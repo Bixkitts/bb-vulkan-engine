@@ -2,6 +2,7 @@
 #define FIRST_APP
 
 #include "bve_window.hpp"
+#include "bve_device.hpp"
 
 namespace bve
 {

@@ -1,5 +1,6 @@
 #include "bve_window.hpp"
 #include "first_app.hpp"
+#include "bve_pipeline.hpp"
 
 //std
 #include <cstdlib>
