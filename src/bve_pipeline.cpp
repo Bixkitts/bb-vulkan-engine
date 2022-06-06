@@ -33,7 +33,7 @@ namespace bve
             BveDevice* device,
             const std::string& vertFilepath, 
             const std::string& fragFilepath,
-            PipelineConfigInfo& configInfo)
+            const PipelineConfigInfo& configInfo)
     {
         auto vertCode = readFile(vertFilepath);
         auto fragCode = readFile(fragFilepath);

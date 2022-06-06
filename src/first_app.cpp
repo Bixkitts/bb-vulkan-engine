@@ -9,7 +9,7 @@ namespace bve
     void runAppWithWindow(BveWindow *mainWindow)
     {
         bve::BveDevice *device = bve::bveDeviceInit(mainWindow);
-        //bve::createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", defaultPipelineConfigInfo(800, 600));
+        bve::createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", defaultPipelineConfigInfo(800, 600));
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();
