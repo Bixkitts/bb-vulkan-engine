@@ -8,7 +8,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp")
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 target_link_options(${PROJECT_NAME} PRIVATE -lvulkan -ldl -lpthread -lX11 -lXxf86vm -lXrandr -lXi)
-target_compile_options(${PROJECT_NAME} PRIVATE -std=c++17 -O2)
+target_compile_options(${PROJECT_NAME} PRIVATE -std=c++17 -O0 -g)
 
 add_subdirectory(lib/bb-net-lib)
 target_link_libraries(${PROJECT_NAME} PRIVATE bbnetlib)

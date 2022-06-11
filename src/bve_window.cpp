@@ -32,4 +32,10 @@ namespace bve
             }
 
     }
+
+    VkExtent2D getExtent(BveWindow *window)
+    {
+        VkExtent2D extent{static_cast<uint32_t>(window->width), static_cast<uint32_t>(window->height)};
+        return extent;
+    }
 }

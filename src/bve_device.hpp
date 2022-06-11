@@ -46,7 +46,7 @@ struct BveDevice
   SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice physicalDevice, BveDevice *theGPU);
   uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, BveDevice *theGPU);
 
-  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevicei, BveDevice *theGPU);
+  QueueFamilyIndices findQueueFamilies(VkPhysicalDevice physicalDevice, BveDevice *theGPU);
 
   VkFormat findSupportedFormat(
       const std::vector<VkFormat> &candidates, 
@@ -74,7 +74,8 @@ struct BveDevice
       const VkImageCreateInfo &imageInfo,
       VkMemoryPropertyFlags properties,
       VkImage &image,
-      VkDeviceMemory &imageMemory);
+      VkDeviceMemory &imageMemory,
+      BveDevice *theGPU);
 // private:
   static void createInstance(BveDevice *theGPU);
   static void setupDebugMessenger(BveDevice *theGPU);

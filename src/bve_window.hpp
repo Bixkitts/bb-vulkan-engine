@@ -17,6 +17,7 @@ namespace bve
     BveWindow* openWindow(int w, int h, std::string name);
     void closeWindow(GLFWwindow *window);
     void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface);
+    VkExtent2D getExtent(BveWindow *window);
 }
 
 #endif

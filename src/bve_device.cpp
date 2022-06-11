@@ -46,9 +46,9 @@ void DestroyDebugUtilsMessengerEXT(
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
         "vkDestroyDebugUtilsMessengerEXT");
-  if (func != nullptr) {
-    func(instance, debugMessenger, pAllocator);
-  }
+    if (func != nullptr) {
+        func(instance, debugMessenger, pAllocator);
+    }
 }
 
 BveDevice *bveDeviceInit(BveWindow *deviceWindow) 
@@ -577,7 +577,8 @@ void createImageWithInfo(
     VkMemoryPropertyFlags properties,
     VkImage &image,
     VkDeviceMemory &imageMemory,
-      BveDevice *theGPU) {
+      BveDevice *theGPU) 
+{
     if (vkCreateImage(theGPU->device_, &imageInfo, nullptr, &image) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create image!");

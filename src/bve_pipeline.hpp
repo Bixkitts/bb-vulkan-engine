@@ -5,14 +5,25 @@
 
 #include <vector>
 #include <string>
+#include <vulkan/vulkan_core.h>
 
 namespace bve
 {
     struct PipelineConfigInfo
     {
-        
+        VkViewport viewport;
+        VkRect2D scissor;
+        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
+        VkPipelineRasterizationStateCreateInfo rasterizationInfo;
+        VkPipelineMultisampleStateCreateInfo multisampleInfo;
+        VkPipelineColorBlendAttachmentState colorBlendAttachment;
+        VkPipelineColorBlendStateCreateInfo colorBlendInfo;
+        VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+        VkPipelineLayout pipelineLayout = nullptr;
+        VkRenderPass renderPass = nullptr;
+        uint32_t subpass = 0;
     };
-    struct graphicsPipeline
+    struct BveGraphicsPipeline
     {
         BveDevice* myPipelineDevice;
         VkPipeline graphicsPipeline;
@@ -21,16 +32,22 @@ namespace bve
     };
 
     std::vector<char> readFile(const std::string& filepath);
+    
+    PipelineConfigInfo* defaultPipelineConfigInfo(uint32_t width, uint32_t height);
 
-    void createGraphicsPipeline(
+    BveGraphicsPipeline *createBveGraphicsPipeline(
             BveDevice* device,
             const std::string& vertFilepath, 
             const std::string& fragFilepath,
-            const PipelineConfigInfo& configInfo);
+            PipelineConfigInfo* configInfo);
 
-    PipelineConfigInfo defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+    void destroyBveGraphicsPipeline(BveGraphicsPipeline *pipeline);
 
-    void createShaderModule(BveDevice *device, const std::vector<char> code, VkShaderModule* shaderModule);
+    VkPipelineLayout createPipelineLayout(BveDevice *device);
+    void createCommanBuffers();
+
+
+    void createShaderModule(BveDevice *device, const std::vector<char>& code, VkShaderModule* shaderModule);
 
 }
 
