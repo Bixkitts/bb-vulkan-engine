@@ -22,6 +22,8 @@ namespace bve
     {
         glfwDestroyWindow(bveWindow->window);
         glfwTerminate();
+        //remember other deallocation stuffs here maybe
+        //
         delete bveWindow;
     }
     void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface)

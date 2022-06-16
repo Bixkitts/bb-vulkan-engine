@@ -31,6 +31,8 @@ namespace bve
         VkShaderModule fragShaderModule;
     };
 
+    void bindPipeline(BveGraphicsPipeline *pipeline, VkCommandBuffer comandBuffer);
+
     std::vector<char> readFile(const std::string& filepath);
     
     PipelineConfigInfo* defaultPipelineConfigInfo(uint32_t width, uint32_t height);

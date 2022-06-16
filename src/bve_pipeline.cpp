@@ -232,4 +232,9 @@ namespace bve
         return pipelineLayout;
     }
 
+    void bindPipeline(BveGraphicsPipeline *pipeline, VkCommandBuffer commandBuffer)
+    {
+        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
+    }
+
 }
