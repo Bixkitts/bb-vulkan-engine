@@ -3,11 +3,12 @@
 
 #include <stdexcept>
 #include <array>
+#include <vulkan/vulkan_core.h>
 
 namespace bve
 {
 
-void createCommandBuffers(BveGraphicsPipeline *pipeline, std::vector<VkCommandBuffer>& commandBuffers, BveSwapChain *swapchain)
+void createCommandBuffers(BveGraphicsPipeline *pipeline, std::vector<VkCommandBuffer>& commandBuffers, BveSwapChain *swapchain, std::vector<BveModel*> models)
 {
     commandBuffers.resize(swapchain->swapChainImages.size());
 
@@ -50,7 +51,11 @@ void createCommandBuffers(BveGraphicsPipeline *pipeline, std::vector<VkCommandBu
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         bindPipeline(pipeline, commandBuffers[i]);
-        vkCmdDraw(commandBuffers[i], 3, 1, 0, 0);//can set up instancing with this, take note for later
+        for(int j = 0; j < models.size(); j++)
+        {
+            bindModel(models[j], commandBuffers[i]);
+            drawModel(models[j], commandBuffers[i]);
+        }
 
         vkCmdEndRenderPass(commandBuffers[i]);
         if(vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)

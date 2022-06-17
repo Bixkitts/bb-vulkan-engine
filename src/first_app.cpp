@@ -3,6 +3,7 @@
 #include "bve_command_buffers.hpp"
 #include "bve_device.hpp"
 #include "bve_draw_frame.hpp"
+#include "bve_model.hpp"
 #include "bve_pipeline.hpp"
 #include "bve_swap_chain.hpp"
 #include "bve_window.hpp"
@@ -19,6 +20,8 @@ namespace bve
 
         BveSwapChain *swapchain = createBveSwapChain(device, getExtent(mainWindow));
 
+        std::vector<BveModel*> models = loadModels(device);
+
         PipelineConfigInfo *pipelineConfig = defaultPipelineConfigInfo(swapchain->swapChainExtent.width,swapchain->swapChainExtent.height);
 
 
@@ -32,10 +35,10 @@ namespace bve
 
         //Command buffer section
         std::vector<VkCommandBuffer> commandBuffers;
-        createCommandBuffers(pipeline, commandBuffers,swapchain);
+        createCommandBuffers(pipeline, commandBuffers,swapchain, models);
 
         //--------------------------------------------
-
+        
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();
