@@ -8,26 +8,26 @@
 namespace bve
 {
 
-    BveModel *createBveModel(BveDevice *device, std::vector<Vertex> &vertices)
+    Model* createBveModel(Device* device, std::vector<Vertex> &vertices)
     {
-        BveModel *model = new BveModel{device};
+        Model* model = new Model{device};
         createVertexBuffers(model, vertices);
 
         return model;
     } 
 
-    void destroyBveModel(BveModel *model)
+    void destroyBveModel(Model* model)
     {
         vkDestroyBuffer(model->device->device_, model->vertexBuffer, nullptr);
         vkFreeMemory(model->device->device_, model->vertexMemory, nullptr);
 
     }
 
-    void createVertexBuffers(BveModel *model, const std::vector<Vertex> &vertices)
+    void createVertexBuffers(Model* model, const std::vector<Vertex> &vertices)
     {
         model->vertexCount = static_cast<uint32_t>(vertices.size());
         assert(model->vertexCount >= 3 && "Vertex count must be at least 3");
-        VkDeviceSize bufferSize = sizeof(vertices[0]) * model->vertexCount;
+        VkDeviceSize bufferSize = sizeof(vertices[0])*  model->vertexCount;
         createBuffer(bufferSize,
                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -35,18 +35,18 @@ namespace bve
                model->vertexMemory,
                model->device);
 
-        void *data;
+        void* data;
         vkMapMemory(model->device->device_, model->vertexMemory, 0, bufferSize, 0, &data);
         memcpy(data, vertices.data(), static_cast<size_t>(bufferSize));
         vkUnmapMemory(model->device->device_, model->vertexMemory);
     }
 
-    void drawModel(BveModel *model, VkCommandBuffer commandBuffer)
+    void drawModel(Model* model, VkCommandBuffer commandBuffer)
     {
         vkCmdDraw(commandBuffer, model->vertexCount, 1, 0, 0);
     }
 
-    void bindModel(BveModel *model, VkCommandBuffer commandBuffer)
+    void bindModel(Model* model, VkCommandBuffer commandBuffer)
     {
         std::cout<<"Bind Model called";
         VkBuffer buffers[] = {model->vertexBuffer};
@@ -73,7 +73,7 @@ namespace bve
         return attributeDescriptions;
     }
 
-    std::vector<BveModel*> loadModels(BveDevice *device)
+    std::vector<Model*> loadModels(Device* device)
     {
         std::cout<<"Loading models....\n";
 
@@ -84,7 +84,7 @@ namespace bve
             {{0.5f, 0.5f}},
             {{-0.5f, 0.5f}}
         };
-        BveModel *model = createBveModel(device, vertices);
+        Model* model = createBveModel(device, vertices);
         //placeholder model loader
         std::vector<Vertex> vertices2 
         {
@@ -92,10 +92,10 @@ namespace bve
             {{-0.9f, -0.8f}},
             {{-0.8f, -0.85f}}
         };
-        BveModel *model2 = createBveModel(device, vertices2);
+        Model* model2 = createBveModel(device, vertices2);
 
         
-        std::vector<BveModel*> models;
+        std::vector<Model*> models;
         models.push_back(model2); 
         models.push_back(model); 
         

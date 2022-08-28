@@ -7,7 +7,7 @@
 
 namespace bve{
 
-void createCommandBuffers(BveGraphicsPipeline *pipeline, std::vector<VkCommandBuffer>& commandBuffers, BveSwapChain *swapchain, std::vector<BveModel*> models);
+void createCommandBuffers(GraphicsPipeline *pipeline, std::vector<VkCommandBuffer>& commandBuffers, SwapChain *swapchain, std::vector<Model*> models);
 
 }
 #endif

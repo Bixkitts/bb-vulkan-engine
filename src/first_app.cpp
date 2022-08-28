@@ -11,34 +11,29 @@
 
 #include <vector>
 #include <array>
-
 namespace bve
 {
-    void runAppWithWindow(BveWindow *mainWindow)
+    void runAppWithWindow(BveWindow* mainWindow)
     {
-        BveDevice *device = bveDeviceInit(mainWindow);
+        //create vulkan device
+        Device* device = deviceInit(mainWindow);
+        //create swap chain
+        SwapChain* swapchain = createBveSwapChain(device, getExtent(mainWindow));
+        //load models into vector of models
+        std::vector<Model*> models = loadModels(device);
+        //create pipeline configuration with a hard coded default
+        PipelineConfig* pipelineConfig = defaultPipelineConfigInfo(swapchain);
 
-        BveSwapChain *swapchain = createBveSwapChain(device, getExtent(mainWindow));
+        //creating the pipe line itself using the coded default
+        GraphicsPipeline* pipeline = 
+            createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
 
-        std::vector<BveModel*> models = loadModels(device);
-
-        PipelineConfigInfo *pipelineConfig = defaultPipelineConfigInfo(swapchain->swapChainExtent.width,swapchain->swapChainExtent.height);
-
-
-        //Extra config steps that should get sorted
-        pipelineConfig->renderPass = swapchain->renderPass;
-        pipelineConfig->pipelineLayout = createPipelineLayout(device);
-        //-----------------------------------------
-        //creating the pipe line
-        BveGraphicsPipeline *pipeline = 
-            createBveGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
-
-        //Command buffer section
+        //Create command buffers. Should be a return value instead of a parameter!
         std::vector<VkCommandBuffer> commandBuffers;
-        createCommandBuffers(pipeline, commandBuffers,swapchain, models);
+        createCommandBuffers(pipeline, commandBuffers, swapchain, models);
 
         //--------------------------------------------
-        
+        //Drawing frames. This was copy pasted idk how it works rly yet.
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();

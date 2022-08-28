@@ -11,14 +11,14 @@ namespace bve
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
         glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-        GLFWwindow *window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
+        GLFWwindow* window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
 
-        BveWindow *mainWindow = new BveWindow{width, height, window};
+        BveWindow* mainWindow = new BveWindow{width, height, window};
 
         return mainWindow;
     }
 
-    void closeWindow(BveWindow *bveWindow)
+    void closeWindow(BveWindow* bveWindow)
     {
         glfwDestroyWindow(bveWindow->window);
         glfwTerminate();
@@ -26,7 +26,7 @@ namespace bve
         //
         delete bveWindow;
     }
-    void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface)
+    void createWindowSurface(BveWindow* window, VkInstance instance, VkSurfaceKHR* surface)
     {
         if (glfwCreateWindowSurface(instance, window->window, nullptr, surface))
             {
@@ -35,7 +35,7 @@ namespace bve
 
     }
 
-    VkExtent2D getExtent(BveWindow *window)
+    VkExtent2D getExtent(BveWindow* window)
     {
         VkExtent2D extent{static_cast<uint32_t>(window->width), static_cast<uint32_t>(window->height)};
         return extent;

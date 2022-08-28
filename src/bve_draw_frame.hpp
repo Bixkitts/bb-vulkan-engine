@@ -8,7 +8,7 @@
 namespace bve
 {
 
-void drawFrame(BveSwapChain *swapchain, std::vector<VkCommandBuffer>& commandBuffers);
+void drawFrame(SwapChain *swapchain, std::vector<VkCommandBuffer>& commandBuffers);
 
 }
 #endif

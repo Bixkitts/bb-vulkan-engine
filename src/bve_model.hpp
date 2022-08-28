@@ -18,25 +18,25 @@ namespace bve
 
     };
 
-    struct BveModel
+    struct Model
     {
-        BveDevice *device;
+        Device *device;
         VkBuffer vertexBuffer;
         VkDeviceMemory vertexMemory;
         uint32_t vertexCount;
     };
 
-    BveModel *createBveModel(BveDevice *device, std::vector<Vertex> &vertices); 
-    void createVertexBuffers(BveModel *model, const std::vector<Vertex> &vertices);
+    Model *createBveModel(Device *device, std::vector<Vertex> &vertices); 
+    void createVertexBuffers(Model *model, const std::vector<Vertex> &vertices);
 
     std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
     std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
 
 
-    void bindModel(BveModel *model, VkCommandBuffer commandBuffer);
-    void drawModel(BveModel *model, VkCommandBuffer commandBuffer);
+    void bindModel(Model *model, VkCommandBuffer commandBuffer);
+    void drawModel(Model *model, VkCommandBuffer commandBuffer);
 
-    std::vector<BveModel*> loadModels(BveDevice *device);
+    std::vector<Model*> loadModels(Device *device);
 
 }
 

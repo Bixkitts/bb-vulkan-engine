@@ -12,8 +12,8 @@ namespace bve {
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT *pCallbackData,
-    void *pUserData) 
+    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+    void* pUserData) 
 {
     std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
@@ -21,9 +21,9 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 
 VkResult CreateDebugUtilsMessengerEXT(
     VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT *pCreateInfo,
-    const VkAllocationCallbacks *pAllocator,
-    VkDebugUtilsMessengerEXT *pDebugMessenger) 
+    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+    const VkAllocationCallbacks* pAllocator,
+    VkDebugUtilsMessengerEXT* pDebugMessenger) 
 {
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
@@ -41,7 +41,7 @@ VkResult CreateDebugUtilsMessengerEXT(
 void DestroyDebugUtilsMessengerEXT(
     VkInstance instance,
     VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks *pAllocator) 
+    const VkAllocationCallbacks* pAllocator) 
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
@@ -51,9 +51,9 @@ void DestroyDebugUtilsMessengerEXT(
     }
 }
 
-BveDevice *bveDeviceInit(BveWindow *deviceWindow) 
+Device* deviceInit(BveWindow* deviceWindow) 
 {
-    BveDevice *theGPU = new BveDevice;
+    Device* theGPU = new Device;
     theGPU->window = deviceWindow;
     createInstance(theGPU);
     setupDebugMessenger(theGPU); 
@@ -65,7 +65,7 @@ BveDevice *bveDeviceInit(BveWindow *deviceWindow)
     return theGPU;
 }
 
-void BveDeviceDestroy(BveDevice *theGPU) 
+void BveDeviceDestroy(Device* theGPU) 
 {
     vkDestroyCommandPool(theGPU->device_, theGPU->commandPool, nullptr);
     vkDestroyDevice(theGPU->device_, nullptr);
@@ -79,7 +79,7 @@ void BveDeviceDestroy(BveDevice *theGPU)
     vkDestroyInstance(theGPU->instance, nullptr);
 }
 
-static void createInstance(BveDevice *theGPU) 
+static void createInstance(Device* theGPU) 
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) 
     {
@@ -88,7 +88,7 @@ static void createInstance(BveDevice *theGPU)
 
     VkApplicationInfo appInfo = {};
     appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "LittleVulkanEngine App";
+    appInfo.pApplicationName = "VulkanEngine App";
     appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
     appInfo.pEngineName = "No Engine";
     appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -109,7 +109,7 @@ static void createInstance(BveDevice *theGPU)
         createInfo.ppEnabledLayerNames = validationLayers.data();
 
         populateDebugMessengerCreateInfo(debugCreateInfo);
-        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT *)&debugCreateInfo;
+        createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT* )&debugCreateInfo;
     } 
     else 
     {
@@ -125,7 +125,7 @@ static void createInstance(BveDevice *theGPU)
     hasGflwRequiredInstanceExtensions();
 }
 
-static void pickPhysicalDevice(BveDevice *theGPU) 
+static void pickPhysicalDevice(Device* theGPU) 
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(theGPU->instance, &deviceCount, nullptr);
@@ -155,7 +155,7 @@ static void pickPhysicalDevice(BveDevice *theGPU)
     std::cout << "physical device: " << theGPU->deviceproperties.deviceName << std::endl;
 }
 
-static void createLogicalDevice(BveDevice *theGPU) 
+static void createLogicalDevice(Device* theGPU) 
 {
     QueueFamilyIndices indices = findQueueFamilies(theGPU->physicalDevice, theGPU);
   
@@ -206,7 +206,7 @@ static void createLogicalDevice(BveDevice *theGPU)
     vkGetDeviceQueue(theGPU->device_, indices.presentFamily, 0, &theGPU->presentQueue_);
 }
 
-static void createCommandPool(BveDevice *theGPU) 
+static void createCommandPool(Device* theGPU) 
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physicalDevice, theGPU);
   
@@ -223,7 +223,7 @@ static void createCommandPool(BveDevice *theGPU)
 }
 
 
-bool isDeviceSuitable(VkPhysicalDevice device, BveDevice *theGPU) 
+bool isDeviceSuitable(VkPhysicalDevice device, Device* theGPU) 
 {
     QueueFamilyIndices indices = findQueueFamilies(device, theGPU);
   
@@ -257,7 +257,7 @@ void populateDebugMessengerCreateInfo(
     createInfo.pUserData = nullptr;  // Optional
 }
 
-static void setupDebugMessenger(BveDevice *theGPU)
+static void setupDebugMessenger(Device* theGPU)
 {
     if (!enableValidationLayers) return;
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -276,7 +276,7 @@ bool checkValidationLayerSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char *layerName : validationLayers) 
+    for (const char* layerName : validationLayers) 
     {
         bool layerFound = false;
 
@@ -297,13 +297,13 @@ bool checkValidationLayerSupport()
   return true;
 }
 
-std::vector<const char *> getRequiredExtensions()  
+std::vector<const char* > getRequiredExtensions()  
 {
     uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions;
+    const char* *glfwExtensions;
     glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
   
-    std::vector<const char *> extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
+    std::vector<const char* > extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
   
     if (enableValidationLayers) {
         extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
@@ -360,7 +360,7 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, BveDevice *theGPU) 
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device* theGPU) 
 {
     QueueFamilyIndices indices;
   
@@ -393,7 +393,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, BveDevice *theGPU)
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, BveDevice *theGPU) 
+SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device* theGPU) 
 {
     SwapChainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, theGPU->surface_, &details.capabilities);
@@ -426,7 +426,7 @@ VkFormat findSupportedFormat(
     const std::vector<VkFormat> &candidates, 
     VkImageTiling tiling, 
     VkFormatFeatureFlags features,
-    BveDevice *theGPU) 
+    Device* theGPU) 
 {
     for (VkFormat format : candidates) 
     {
@@ -445,7 +445,7 @@ VkFormat findSupportedFormat(
     throw std::runtime_error("failed to find supported format!");
 }
 
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, BveDevice *theGPU) 
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device* theGPU) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(theGPU->physicalDevice, &memProperties);
@@ -467,7 +467,7 @@ void createBuffer(
     VkMemoryPropertyFlags properties,
     VkBuffer &buffer,
     VkDeviceMemory &bufferMemory,
-    BveDevice *theGPU) 
+    Device* theGPU) 
 {
     VkBufferCreateInfo bufferInfo{};
     bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
@@ -496,7 +496,7 @@ void createBuffer(
     vkBindBufferMemory(theGPU->device_, buffer, bufferMemory, 0);
 }
 
-VkCommandBuffer beginSingleTimeCommands(BveDevice *theGPU) 
+VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
 {
     VkCommandBufferAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -515,7 +515,7 @@ VkCommandBuffer beginSingleTimeCommands(BveDevice *theGPU)
     return commandBuffer;
 }
 
-void endSingleTimeCommands(VkCommandBuffer commandBuffer, BveDevice *theGPU) 
+void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU) 
 {
     vkEndCommandBuffer(commandBuffer);
   
@@ -530,7 +530,7 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer, BveDevice *theGPU)
     vkFreeCommandBuffers(theGPU->device_, theGPU->commandPool, 1, &commandBuffer);
 }
 
-void copyBuffer(BveDevice *theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
+void copyBuffer(Device* theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
 {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(theGPU);
   
@@ -544,7 +544,7 @@ void copyBuffer(BveDevice *theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDev
 }
 
 void copyBufferToImage(
-        BveDevice *theGPU,
+        Device* theGPU,
     VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount) 
 {
     VkCommandBuffer commandBuffer = beginSingleTimeCommands(theGPU);
@@ -577,7 +577,7 @@ void createImageWithInfo(
     VkMemoryPropertyFlags properties,
     VkImage &image,
     VkDeviceMemory &imageMemory,
-      BveDevice *theGPU) 
+      Device* theGPU) 
 {
     if (vkCreateImage(theGPU->device_, &imageInfo, nullptr, &image) != VK_SUCCESS) 
     {

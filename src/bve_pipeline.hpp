@@ -2,6 +2,7 @@
 #define BVE_PIPELINE
 
 #include "bve_device.hpp"
+#include "bve_swap_chain.hpp"
 
 #include <vector>
 #include <string>
@@ -9,7 +10,7 @@
 
 namespace bve
 {
-    struct PipelineConfigInfo
+    struct PipelineConfig
     {
         VkViewport viewport;
         VkRect2D scissor;
@@ -19,37 +20,40 @@ namespace bve
         VkPipelineColorBlendAttachmentState colorBlendAttachment;
         VkPipelineColorBlendStateCreateInfo colorBlendInfo;
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
+
         uint32_t subpass = 0;
     };
-    struct BveGraphicsPipeline
+    struct GraphicsPipeline
     {
-        BveDevice* myPipelineDevice;
+        Device* myPipelineDevice;
         VkPipeline graphicsPipeline;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
     };
 
-    void bindPipeline(BveGraphicsPipeline *pipeline, VkCommandBuffer comandBuffer);
+    void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer comandBuffer);
 
     std::vector<char> readFile(const std::string& filepath);
     
-    PipelineConfigInfo* defaultPipelineConfigInfo(uint32_t width, uint32_t height);
+    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain);
 
-    BveGraphicsPipeline *createBveGraphicsPipeline(
-            BveDevice* device,
+    GraphicsPipeline* createGraphicsPipeline(
+            Device* device,
             const std::string& vertFilepath, 
             const std::string& fragFilepath,
-            PipelineConfigInfo* configInfo);
+            PipelineConfig* configInfo);
 
-    void destroyBveGraphicsPipeline(BveGraphicsPipeline *pipeline);
+    void destroyBveGraphicsPipeline(GraphicsPipeline* pipeline);
 
-    VkPipelineLayout createPipelineLayout(BveDevice *device);
+    VkPipelineLayout createPipelineLayout(Device* device);
+
     void createCommanBuffers();
 
 
-    void createShaderModule(BveDevice *device, const std::vector<char>& code, VkShaderModule* shaderModule);
+    VkShaderModule createShaderModule(Device* device, const std::vector<char>& code);
 
 }
 

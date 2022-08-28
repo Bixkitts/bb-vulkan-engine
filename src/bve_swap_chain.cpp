@@ -13,9 +13,9 @@
 namespace bve 
 {
 
-BveSwapChain *createBveSwapChain(BveDevice *device, VkExtent2D extent)
+SwapChain* createBveSwapChain(Device* device, VkExtent2D extent)
 {
-    BveSwapChain *swapchain = new BveSwapChain;
+    SwapChain* swapchain = new SwapChain;
     swapchain->device = device;
     initSwapChain(swapchain);
     createImageViews(swapchain);
@@ -27,13 +27,13 @@ BveSwapChain *createBveSwapChain(BveDevice *device, VkExtent2D extent)
     return swapchain;
 }
 
-float extentAspectRatio(BveSwapChain *swapchain)
+float extentAspectRatio(SwapChain* swapchain)
 {
 return static_cast<float>(swapchain->swapChainExtent.width) 
     / static_cast<float>(swapchain->swapChainExtent.height);
 }
 
-void destroyBveSwapchain(BveSwapChain *swapchain) 
+void destroyBveSwapchain(SwapChain* swapchain) 
 {
     for (auto imageView : swapchain->swapChainImageViews) 
     {
@@ -70,7 +70,7 @@ void destroyBveSwapchain(BveSwapChain *swapchain)
     }
 }
 
-VkResult acquireNextImage(BveSwapChain *swapchain, uint32_t *imageIndex) 
+VkResult acquireNextImage(SwapChain* swapchain, uint32_t* imageIndex) 
 {
     vkWaitForFences(
             swapchain->device->device_,
@@ -91,8 +91,8 @@ VkResult acquireNextImage(BveSwapChain *swapchain, uint32_t *imageIndex)
 }
 
 VkResult submitCommandBuffers(
-                BveSwapChain *swapchain,
-        const VkCommandBuffer *buffers, uint32_t *imageIndex) 
+                SwapChain* swapchain,
+        const VkCommandBuffer* buffers, uint32_t* imageIndex) 
 {
     if (swapchain->imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 
     {
@@ -142,7 +142,7 @@ VkResult submitCommandBuffers(
     return result;
 }
 
-void initSwapChain(BveSwapChain *swapchain) 
+void initSwapChain(SwapChain* swapchain) 
 {
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(swapchain->device->physicalDevice, swapchain->device);
 
@@ -209,7 +209,7 @@ void initSwapChain(BveSwapChain *swapchain)
     swapchain->swapChainExtent = extent;
 }
 
-void createImageViews(BveSwapChain *swapchain) 
+void createImageViews(SwapChain* swapchain) 
 {
     swapchain->swapChainImageViews.resize(swapchain->swapChainImages.size());
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
@@ -234,7 +234,7 @@ void createImageViews(BveSwapChain *swapchain)
 }
 
 
-void createRenderPass(BveSwapChain *swapchain) 
+void createRenderPass(SwapChain* swapchain) 
 {
     VkAttachmentDescription depthAttachment{};
     depthAttachment.format = findDepthFormat(swapchain);
@@ -297,7 +297,7 @@ void createRenderPass(BveSwapChain *swapchain)
     }
 }
 
-void createFramebuffers(BveSwapChain *swapchain) 
+void createFramebuffers(SwapChain* swapchain) 
 {
     swapchain->swapChainFramebuffers.resize(swapchain->swapChainImages.size());
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
@@ -325,7 +325,7 @@ void createFramebuffers(BveSwapChain *swapchain)
     }
 }
 
-void createDepthResources(BveSwapChain *swapchain) 
+void createDepthResources(SwapChain* swapchain) 
 {
     VkFormat depthFormat = findDepthFormat(swapchain);
     VkExtent2D swapChainExtent = swapchain->swapChainExtent;
@@ -377,7 +377,7 @@ void createDepthResources(BveSwapChain *swapchain)
     }
 }
 
-void createSyncObjects(BveSwapChain *swapchain) 
+void createSyncObjects(SwapChain* swapchain) 
 {
     swapchain->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     swapchain->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
@@ -442,7 +442,7 @@ VkPresentModeKHR chooseSwapPresentMode(
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D chooseSwapExtent(BveSwapChain *swapchain, const VkSurfaceCapabilitiesKHR &capabilities) 
+VkExtent2D chooseSwapExtent(SwapChain* swapchain, const VkSurfaceCapabilitiesKHR &capabilities) 
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
     {
@@ -462,7 +462,7 @@ VkExtent2D chooseSwapExtent(BveSwapChain *swapchain, const VkSurfaceCapabilities
     }
 }
 
-VkFormat findDepthFormat(BveSwapChain *swapchain) 
+VkFormat findDepthFormat(SwapChain* swapchain) 
 {
     return findSupportedFormat(
             {VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT},
