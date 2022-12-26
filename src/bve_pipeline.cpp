@@ -89,23 +89,7 @@ namespace bve
         viewportInfo.pScissors = &configInfo->scissor;
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-        pipelineInfo.stageCount = 2;
-        pipelineInfo.pStages = std::move(shaderStages);
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
-        pipelineInfo.pInputAssemblyState = &configInfo->inputAssemblyInfo;
-        pipelineInfo.pViewportState = &viewportInfo;
-        pipelineInfo.pRasterizationState = &configInfo->rasterizationInfo;
-        pipelineInfo.pMultisampleState = &configInfo->multisampleInfo;
-        pipelineInfo.pColorBlendState = &configInfo->colorBlendInfo;
-        pipelineInfo.pDepthStencilState = &configInfo->depthStencilInfo;
-        pipelineInfo.pDynamicState = nullptr;
-        pipelineInfo.layout = std::move(configInfo->pipelineLayout);
-        pipelineInfo.renderPass = std::move(configInfo->renderPass);
-        pipelineInfo.subpass = std::move(configInfo->subpass);
-        pipelineInfo.basePipelineIndex = -1;
-        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
-
+        #include "configs/pipeline/pipelineCreateInfo.conf"
         if(vkCreateGraphicsPipelines(device->device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("pipeline not created successfully \n");
@@ -125,82 +109,9 @@ namespace bve
     {
         uint32_t width = swapchain->swapChainExtent.width;
         uint32_t height = swapchain->swapChainExtent.height;
+
         PipelineConfig* config = new PipelineConfig{};
-
-        config->inputAssemblyInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-        config->inputAssemblyInfo.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
-        config->inputAssemblyInfo.primitiveRestartEnable = VK_FALSE;
-        config->inputAssemblyInfo.flags = 0;
-        config->inputAssemblyInfo.pNext = NULL;
-
-        config->viewport.x = 0.0f;
-        config->viewport.y = 0.0f;
-        config->viewport.width = static_cast<float>(width);
-        config->viewport.height = static_cast<float>(height);
-        config->viewport.minDepth = 0.0f;
-        config->viewport.maxDepth = 1.0f;
-
-        config->scissor.offset = {0, 0};
-        config->scissor.extent = {width, height};
-
-
-        config->rasterizationInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
-        config->rasterizationInfo.depthClampEnable = VK_FALSE;
-        config->rasterizationInfo.rasterizerDiscardEnable = VK_FALSE;
-        config->rasterizationInfo.polygonMode = VK_POLYGON_MODE_FILL;
-        config->rasterizationInfo.lineWidth = 1.0f;
-        config->rasterizationInfo.cullMode = VK_CULL_MODE_NONE;
-        config->rasterizationInfo.frontFace = VK_FRONT_FACE_CLOCKWISE;
-        config->rasterizationInfo.depthBiasEnable = VK_FALSE;
-        config->rasterizationInfo.depthBiasConstantFactor = 0.0f;  // Optional
-        config->rasterizationInfo.depthBiasClamp = 0.0f;           // Optional
-        config->rasterizationInfo.depthBiasSlopeFactor = 0.0f;     // Optional
-
-        config->multisampleInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
-        config->multisampleInfo.sampleShadingEnable = VK_FALSE;
-        config->multisampleInfo.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
-        config->multisampleInfo.minSampleShading = 1.0f;           // Optional
-        config->multisampleInfo.pSampleMask = nullptr;             // Optional
-        config->multisampleInfo.alphaToCoverageEnable = VK_FALSE;  // Optional
-        config->multisampleInfo.alphaToOneEnable = VK_FALSE;       // Optional
-        config->multisampleInfo.pNext = NULL;
-        config->multisampleInfo.flags = 0;
-
-        config->colorBlendAttachment.colorWriteMask =
-            VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-            VK_COLOR_COMPONENT_A_BIT;
-        config->colorBlendAttachment.blendEnable = VK_FALSE;
-        config->colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
-        config->colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
-        config->colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;              // Optional
-        config->colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;   // Optional
-        config->colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;  // Optional
-        config->colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;              // Optional
-
-        config->colorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
-        config->colorBlendInfo.logicOpEnable = VK_FALSE;
-        config->colorBlendInfo.logicOp = VK_LOGIC_OP_COPY;  // Optional
-        config->colorBlendInfo.attachmentCount = 1;
-        config->colorBlendInfo.pAttachments = &config->colorBlendAttachment;
-        config->colorBlendInfo.blendConstants[0] = 0.0f;  // Optional
-        config->colorBlendInfo.blendConstants[1] = 0.0f;  // Optional
-        config->colorBlendInfo.blendConstants[2] = 0.0f;  // Optional
-        config->colorBlendInfo.blendConstants[3] = 0.0f;  // Optional
-
-        config->depthStencilInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-        config->depthStencilInfo.depthTestEnable = VK_TRUE;
-        config->depthStencilInfo.depthWriteEnable = VK_TRUE;
-        config->depthStencilInfo.depthCompareOp = VK_COMPARE_OP_LESS;
-        config->depthStencilInfo.depthBoundsTestEnable = VK_FALSE;
-        config->depthStencilInfo.minDepthBounds = 0.0f;  // Optional
-        config->depthStencilInfo.maxDepthBounds = 1.0f;  // Optional
-        config->depthStencilInfo.stencilTestEnable = VK_FALSE;
-        config->depthStencilInfo.front = {};  // Optional
-        config->depthStencilInfo.back = {};   // Optional
-        config->depthStencilInfo.pNext = NULL;
-        
-        config->renderPass = swapchain->renderPass;
-        config->pipelineLayout = createPipelineLayout(swapchain->device);
+        #include "configs/pipeline/pipelineConfigDefault.conf"
 
         return config;
     }
@@ -226,12 +137,8 @@ namespace bve
     {
         VkPipelineLayout pipelineLayout{};
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        #include "configs/pipeline/pipelineLayoutInfo.conf"
 
-        pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pSetLayouts = nullptr;
-        pipelineLayoutInfo.pushConstantRangeCount = 0; 
-        pipelineLayoutInfo.pPushConstantRanges = nullptr;
         if(vkCreatePipelineLayout(device->device_, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
                 VK_SUCCESS)
         {

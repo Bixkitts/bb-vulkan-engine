@@ -87,20 +87,10 @@ static void createInstance(Device* theGPU)
     }
 
     VkApplicationInfo appInfo = {};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "VulkanEngine App";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
-
+    #include "configs/device/appInfo.conf"
     VkInstanceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
-
     auto extensions = getRequiredExtensions();
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
+    #include "configs/device/createInfo.conf"
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) 
@@ -166,11 +156,7 @@ static void createLogicalDevice(Device* theGPU)
     for (uint32_t queueFamily : uniqueQueueFamilies) 
     {
         VkDeviceQueueCreateInfo queueCreateInfo = {};
-        queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-        queueCreateInfo.queueFamilyIndex = queueFamily;
-        queueCreateInfo.queueCount = 1;
-        queueCreateInfo.pQueuePriorities = &queuePriority;
-        queueCreateInfos.push_back(queueCreateInfo);
+        #include "configs/device/queueCreateInfo.conf"
     }
   
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -211,11 +197,7 @@ static void createCommandPool(Device* theGPU)
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physicalDevice, theGPU);
   
     VkCommandPoolCreateInfo poolInfo = {};
-    poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-    poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
-    poolInfo.flags =
-        VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-  
+    #include "configs/device/poolInfo.conf" 
     if (vkCreateCommandPool(theGPU->device_, &poolInfo, nullptr, &theGPU->commandPool) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create command pool!");
@@ -470,11 +452,7 @@ void createBuffer(
     Device* theGPU) 
 {
     VkBufferCreateInfo bufferInfo{};
-    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-    bufferInfo.size = size;
-    bufferInfo.usage = usage;
-    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
+    #include "configs/device/bufferCreateInfo.conf"
     if (vkCreateBuffer(theGPU->device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create vertex buffer!");
@@ -484,10 +462,7 @@ void createBuffer(
     vkGetBufferMemoryRequirements(theGPU->device_, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, theGPU);
-
+    #include "configs/device/memoryAllocateInfo.conf"
     if (vkAllocateMemory(theGPU->device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to allocate vertex buffer memory!");
@@ -499,11 +474,7 @@ void createBuffer(
 VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
 {
     VkCommandBufferAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = theGPU->commandPool;
-    allocInfo.commandBufferCount = 1;
-  
+    #include "configs/device/commandBufferAllocInfo.conf" 
     VkCommandBuffer commandBuffer;
     vkAllocateCommandBuffers(theGPU->device_, &allocInfo, &commandBuffer);
   
