@@ -42,7 +42,7 @@ namespace bve
         
     };
 
-    SwapChain *createBveSwapChain(Device *device, VkExtent2D windowExtent);
+    SwapChain *createSwapChain(Device *device, VkExtent2D windowExtent);
 /*
     VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
     VkRenderPass getRenderPass() { return renderPass; }

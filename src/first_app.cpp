@@ -15,10 +15,10 @@ namespace bve
 {
     void runAppWithWindow(BveWindow* mainWindow)
     {
-        //create vulkan device
+        //create vulkan physical and logical device and store it all in device struct
         Device* device = deviceInit(mainWindow);
-        //create swap chain
-        SwapChain* swapchain = createBveSwapChain(device, getExtent(mainWindow));
+        //create swap chain and store all the vulkan details in SwapChain struct
+        SwapChain* swapchain = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
         std::vector<Model*> models = loadModels(device);
         //create pipeline configuration with a hard coded default

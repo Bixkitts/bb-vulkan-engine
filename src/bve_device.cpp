@@ -443,7 +443,7 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, D
     throw std::runtime_error("failed to find suitable memory type!");
 }
 
-void createBuffer(
+void createDeviceBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
     VkMemoryPropertyFlags properties,

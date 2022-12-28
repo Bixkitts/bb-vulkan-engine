@@ -50,7 +50,7 @@ struct Device
     static void createCommandPool(Device *theGPU);
 
 // Buffer Helper Functions
-    void createBuffer(
+    void createDeviceBuffer(
         VkDeviceSize size,
         VkBufferUsageFlags usage,
         VkMemoryPropertyFlags properties,

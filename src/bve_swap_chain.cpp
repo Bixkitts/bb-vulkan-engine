@@ -13,7 +13,7 @@
 namespace bve 
 {
 
-SwapChain* createBveSwapChain(Device* device, VkExtent2D extent)
+SwapChain* createSwapChain(Device* device, VkExtent2D extent)
 {
     SwapChain* swapchain = new SwapChain;
     swapchain->device = device;

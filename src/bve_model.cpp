@@ -28,7 +28,7 @@ namespace bve
         model->vertexCount = static_cast<uint32_t>(vertices.size());
         assert(model->vertexCount >= 3 && "Vertex count must be at least 3");
         VkDeviceSize bufferSize = sizeof(vertices[0])*  model->vertexCount;
-        createBuffer(bufferSize,
+        createDeviceBuffer(bufferSize,
                VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
                model->vertexBuffer,
@@ -80,8 +80,11 @@ namespace bve
         //placeholder model loader
         std::vector<Vertex> vertices 
         {
-            {{0.0f, -0.5f}},
+            {{-0.5f, -0.5f}},
+            {{0.5f, -0.5f}},
+            {{-0.5f, 0.5f}},
             {{0.5f, 0.5f}},
+            {{0.5f, -0.5f}},
             {{-0.5f, 0.5f}}
         };
         Model* model = createBveModel(device, vertices);
