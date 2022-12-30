@@ -90,7 +90,7 @@ namespace bve
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
         #include "configs/pipeline/pipelineCreateInfo.conf"
-        if(vkCreateGraphicsPipelines(device->device_, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
+        if(vkCreateGraphicsPipelines(device->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("pipeline not created successfully \n");
         }
@@ -101,8 +101,8 @@ namespace bve
  
     void destroyBveGraphicsPipeline(GraphicsPipeline* pipeline)
     {
-        vkDestroyShaderModule(pipeline->myPipelineDevice->device_, pipeline->vertShaderModule, nullptr);
-        vkDestroyShaderModule(pipeline->myPipelineDevice->device_, pipeline->fragShaderModule, nullptr);
+        vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->vertShaderModule, nullptr);
+        vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->fragShaderModule, nullptr);
     }
 
     PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
@@ -125,7 +125,7 @@ namespace bve
         createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
 
 
-        if (vkCreateShaderModule(device->device_, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
+        if (vkCreateShaderModule(device->logical, &createInfo, nullptr, &shaderModule) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to create shader module \n");        
         }
@@ -139,7 +139,7 @@ namespace bve
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         #include "configs/pipeline/pipelineLayoutInfo.conf"
 
-        if(vkCreatePipelineLayout(device->device_, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+        if(vkCreatePipelineLayout(device->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
                 VK_SUCCESS)
         {
             throw std::runtime_error("failed to create pipeline layout!");

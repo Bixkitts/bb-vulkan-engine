@@ -1,4 +1,7 @@
 #include "bve_device.hpp"
+#include "bve_buffer_vertex.hpp"
+#include "config_device.hpp"
+#include "bve_model.hpp"
 
 // std headers
 #include <cstring>
@@ -65,18 +68,18 @@ Device* deviceInit(BveWindow* deviceWindow)
     return theGPU;
 }
 
-void BveDeviceDestroy(Device* theGPU) 
+void destroyDevice(Device* device) 
 {
-    vkDestroyCommandPool(theGPU->device_, theGPU->commandPool, nullptr);
-    vkDestroyDevice(theGPU->device_, nullptr);
+    vkDestroyCommandPool(device->logical, device->commandPool, nullptr);
+    vkDestroyDevice(device->logical, nullptr);
   
     if (enableValidationLayers) 
     {
-        DestroyDebugUtilsMessengerEXT(theGPU->instance, theGPU->debugMessenger, nullptr);
+        DestroyDebugUtilsMessengerEXT(device->instance, device->debugMessenger, nullptr);
     }
   
-    vkDestroySurfaceKHR(theGPU->instance, theGPU->surface_, nullptr);
-    vkDestroyInstance(theGPU->instance, nullptr);
+    vkDestroySurfaceKHR(device->instance, device->surface_, nullptr);
+    vkDestroyInstance(device->instance, nullptr);
 }
 
 static void createInstance(Device* theGPU) 
@@ -86,11 +89,10 @@ static void createInstance(Device* theGPU)
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo appInfo = {};
-    #include "configs/device/appInfo.conf"
-    VkInstanceCreateInfo createInfo = {};
+    VkApplicationInfo appInfo = config::appInfo();
+
     auto extensions = getRequiredExtensions();
-    #include "configs/device/createInfo.conf"
+    VkInstanceCreateInfo createInfo = config::instanceCreateInfo(appInfo, extensions);
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) 
@@ -131,23 +133,23 @@ static void pickPhysicalDevice(Device* theGPU)
     {
         if (isDeviceSuitable(device, theGPU)) 
         {
-          theGPU->physicalDevice = device;
+          theGPU->physical = device;
           break;
       }
     }
   
-    if (theGPU->physicalDevice == VK_NULL_HANDLE) 
+    if (theGPU->physical == VK_NULL_HANDLE) 
     {
         throw std::runtime_error("failed to find a suitable GPU!");
     }
   
-    vkGetPhysicalDeviceProperties(theGPU->physicalDevice, &theGPU->deviceproperties);
-    std::cout << "physical device: " << theGPU->deviceproperties.deviceName << std::endl;
+    vkGetPhysicalDeviceProperties(theGPU->physical, &theGPU->physicalProperties);
+    std::cout << "physical device: " << theGPU->physicalProperties.deviceName << std::endl;
 }
 
 static void createLogicalDevice(Device* theGPU) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(theGPU->physicalDevice, theGPU);
+    QueueFamilyIndices indices = findQueueFamilies(theGPU->physical, theGPU);
   
     std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
     std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
@@ -155,8 +157,7 @@ static void createLogicalDevice(Device* theGPU)
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) 
     {
-        VkDeviceQueueCreateInfo queueCreateInfo = {};
-        #include "configs/device/queueCreateInfo.conf"
+        VkDeviceQueueCreateInfo queueCreateInfo = config::queueCreateInfo(queueCreateInfos, queueFamily, queuePriority);
     }
   
     VkPhysicalDeviceFeatures deviceFeatures = {};
@@ -184,21 +185,21 @@ static void createLogicalDevice(Device* theGPU)
         createInfo.enabledLayerCount = 0;
     }
   
-    if (vkCreateDevice(theGPU->physicalDevice, &createInfo, nullptr, &theGPU->device_) != VK_SUCCESS) {
+    if (vkCreateDevice(theGPU->physical, &createInfo, nullptr, &theGPU->logical) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }
   
-    vkGetDeviceQueue(theGPU->device_, indices.graphicsFamily, 0, &theGPU->graphicsQueue_);
-    vkGetDeviceQueue(theGPU->device_, indices.presentFamily, 0, &theGPU->presentQueue_);
+    vkGetDeviceQueue(theGPU->logical, indices.graphicsFamily, 0, &theGPU->graphicsQueue_);
+    vkGetDeviceQueue(theGPU->logical, indices.presentFamily, 0, &theGPU->presentQueue_);
 }
 
 static void createCommandPool(Device* theGPU) 
 {
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physicalDevice, theGPU);
+    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physical, theGPU);
   
-    VkCommandPoolCreateInfo poolInfo = {};
-    #include "configs/device/poolInfo.conf" 
-    if (vkCreateCommandPool(theGPU->device_, &poolInfo, nullptr, &theGPU->commandPool) != VK_SUCCESS) 
+    VkCommandPoolCreateInfo poolInfo = config::poolInfo(queueFamilyIndices);
+
+    if (vkCreateCommandPool(theGPU->logical, &poolInfo, nullptr, &theGPU->commandPool) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create command pool!");
     }
@@ -413,7 +414,7 @@ VkFormat findSupportedFormat(
     for (VkFormat format : candidates) 
     {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(theGPU->physicalDevice, format, &props);
+        vkGetPhysicalDeviceFormatProperties(theGPU->physical, format, &props);
 
         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) 
         {
@@ -430,7 +431,7 @@ VkFormat findSupportedFormat(
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device* theGPU) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(theGPU->physicalDevice, &memProperties);
+    vkGetPhysicalDeviceMemoryProperties(theGPU->physical, &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) 
     {
         if ((typeFilter & (1 << i)) &&
@@ -451,32 +452,32 @@ void createDeviceBuffer(
     VkDeviceMemory &bufferMemory,
     Device* theGPU) 
 {
-    VkBufferCreateInfo bufferInfo{};
-    #include "configs/device/bufferCreateInfo.conf"
-    if (vkCreateBuffer(theGPU->device_, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) 
+    VkBufferCreateInfo bufferInfo = config::bufferCreateInfo(size, usage);
+
+    if (vkCreateBuffer(theGPU->logical, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create vertex buffer!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(theGPU->device_, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements(theGPU->logical, buffer, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo{};
-    #include "configs/device/memoryAllocateInfo.conf"
-    if (vkAllocateMemory(theGPU->device_, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) 
+    VkMemoryAllocateInfo allocInfo = config::memoryAllocateInfo(memRequirements, properties, theGPU);
+
+    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to allocate vertex buffer memory!");
     }
 
-    vkBindBufferMemory(theGPU->device_, buffer, bufferMemory, 0);
+    vkBindBufferMemory(theGPU->logical, buffer, bufferMemory, 0);
 }
 
 VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
 {
-    VkCommandBufferAllocateInfo allocInfo{};
-    #include "configs/device/commandBufferAllocInfo.conf" 
+    VkCommandBufferAllocateInfo allocInfo = config::commandBufferAllocInfo(theGPU);
+
     VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(theGPU->device_, &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers(theGPU->logical, &allocInfo, &commandBuffer);
   
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -498,7 +499,7 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU)
     vkQueueSubmit(theGPU->graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
     vkQueueWaitIdle(theGPU->graphicsQueue_);
   
-    vkFreeCommandBuffers(theGPU->device_, theGPU->commandPool, 1, &commandBuffer);
+    vkFreeCommandBuffers(theGPU->logical, theGPU->commandPool, 1, &commandBuffer);
 }
 
 void copyBuffer(Device* theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
@@ -550,24 +551,24 @@ void createImageWithInfo(
     VkDeviceMemory &imageMemory,
       Device* theGPU) 
 {
-    if (vkCreateImage(theGPU->device_, &imageInfo, nullptr, &image) != VK_SUCCESS) 
+    if (vkCreateImage(theGPU->logical, &imageInfo, nullptr, &image) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create image!");
     }
 
     VkMemoryRequirements memRequirements;
-    vkGetImageMemoryRequirements(theGPU->device_, image, &memRequirements);
+    vkGetImageMemoryRequirements(theGPU->logical, image, &memRequirements);
   
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, theGPU);
 
-    if (vkAllocateMemory(theGPU->device_, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");
     }
   
-    if (vkBindImageMemory(theGPU->device_, image, imageMemory, 0) != VK_SUCCESS) {
+    if (vkBindImageMemory(theGPU->logical, image, imageMemory, 0) != VK_SUCCESS) {
         throw std::runtime_error("failed to bind image memory!");
     }
 }

@@ -11,7 +11,6 @@ using namespace bve;
 
 int main()
 {
-
     try
     {
         runAppWithWindow(openWindow(800, 600, "BveWindow"));

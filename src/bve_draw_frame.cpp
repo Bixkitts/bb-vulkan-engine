@@ -6,7 +6,7 @@
 namespace bve
 {
 
-void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer>& commandBuffers)
+void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> commandBuffers)
 {
     uint32_t imageIndex;
     auto result = acquireNextImage(swapchain, &imageIndex);

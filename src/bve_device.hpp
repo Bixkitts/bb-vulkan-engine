@@ -1,9 +1,10 @@
 #pragma once
 
-#include "bve_window.hpp"
 
 #include <string>
 #include <vector>
+#include "bve_window.hpp"
+
 
 namespace bve {
 
@@ -23,12 +24,12 @@ struct Device
 {
     VkInstance instance;
     VkDebugUtilsMessengerEXT debugMessenger;
-    VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
+    VkPhysicalDevice physical = VK_NULL_HANDLE;
     BveWindow *window;
     VkCommandPool commandPool;
-    VkPhysicalDeviceProperties deviceproperties;
+    VkPhysicalDeviceProperties physicalProperties;
 
-    VkDevice device_;
+    VkDevice logical;
     VkSurfaceKHR surface_;
     VkQueue graphicsQueue_;
     VkQueue presentQueue_;
@@ -38,10 +39,10 @@ struct Device
 #else
     const bool enableValidationLayers = true;
 #endif
-// Device init+setup:
+// Interface:
     Device *deviceInit(BveWindow *deviceWindow);
 
-// Device init+setup sub-routines:
+// Sub-routines:
     static void createInstance(Device *theGPU);
     static void setupDebugMessenger(Device *theGPU);
     static void createSurface(Device *theGPU);
@@ -91,6 +92,7 @@ struct Device
 
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
+//Memory mapping functions
 
 }
 

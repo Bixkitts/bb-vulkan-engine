@@ -1,4 +1,5 @@
 #include "bve_command_buffers.hpp"
+#include "bve_buffer_vertex.hpp"
 #include "bve_swap_chain.hpp"
 
 #include <stdexcept>
@@ -8,8 +9,9 @@
 namespace bve
 {
 
-void createCommandBuffers(GraphicsPipeline* pipeline, std::vector<VkCommandBuffer>& commandBuffers, SwapChain* swapchain, std::vector<Model*> models)
+    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline, SwapChain* swapchain, std::vector<VertexBuffer*> vertexBuffers)
 {
+    std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(swapchain->swapChainImages.size());
 
     VkCommandBufferAllocateInfo allocInfo{};
@@ -18,7 +20,7 @@ void createCommandBuffers(GraphicsPipeline* pipeline, std::vector<VkCommandBuffe
     allocInfo.commandPool = pipeline->myPipelineDevice->commandPool;
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-    if(vkAllocateCommandBuffers(pipeline->myPipelineDevice->device_, &allocInfo, commandBuffers.data()) !=
+    if(vkAllocateCommandBuffers(pipeline->myPipelineDevice->logical, &allocInfo, commandBuffers.data()) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
@@ -35,11 +37,7 @@ void createCommandBuffers(GraphicsPipeline* pipeline, std::vector<VkCommandBuffe
         }                
 
         VkRenderPassBeginInfo renderPassInfo{};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.renderPass = swapchain->renderPass;
-        renderPassInfo.framebuffer = swapchain->swapChainFramebuffers[i];
-        renderPassInfo.renderArea.offset = {0,0};
-        renderPassInfo.renderArea.extent = swapchain->swapChainExtent;//make sure swapchain extent is being used here and notwindow extent
+        #include "configs/command_buffers/renderPassInfo.conf"
 
         std::array<VkClearValue, 2> clearValues{};
         clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
@@ -51,11 +49,9 @@ void createCommandBuffers(GraphicsPipeline* pipeline, std::vector<VkCommandBuffe
         vkCmdBeginRenderPass(commandBuffers[i], &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         bindPipeline(pipeline, commandBuffers[i]);
-        for(int j = 0; j < models.size(); j++)
-        {
-            bindModel(models[j], commandBuffers[i]);
-            drawModel(models[j], commandBuffers[i]);
-        }
+
+        bindVertexBuffer(vertexBuffers[0], commandBuffers[i]);
+        drawVertexBuffer(vertexBuffers[0], commandBuffers[i]);
 
         vkCmdEndRenderPass(commandBuffers[i]);
         if(vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
@@ -63,6 +59,8 @@ void createCommandBuffers(GraphicsPipeline* pipeline, std::vector<VkCommandBuffe
             throw std::runtime_error("failed to record command buffer!");
         }
     }
+
+    return commandBuffers;
 
 }
 
