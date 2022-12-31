@@ -17,21 +17,21 @@ namespace bve
     void runAppWithWindow(BveWindow* mainWindow)
     {
         //create vulkan physical and logical device and store it all in device struct
-        Device* device = deviceInit(mainWindow);
+        auto device = deviceInit(mainWindow);
         //create swap chain and store all the vulkan details in SwapChain struct
-        SwapChain* swapchain = createSwapChain(device, getExtent(mainWindow));
+        auto swapchain = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
-        std::vector<Model*> models = loadModels(device);
+        auto models = loadModels(device);
         //Vertex buffer placeholder stuff
         auto vertexBuffer = createVertexBuffer(device, models[0]->size());
         std::vector<VertexBuffer*> vertexBuffers = {vertexBuffer};
         //copy the stuff to the device, look into how this works
         copyToDevice(vertexBuffer, models[0]);
         //create pipeline configuration with a hard coded default
-        PipelineConfig* pipelineConfig = defaultPipelineConfigInfo(swapchain);
+        auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
 
         //creating the pipe line itself using the coded default
-        GraphicsPipeline* pipeline = 
+        auto pipeline = 
             createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
 
         //Create command buffers. Should be a return value instead of a parameter!

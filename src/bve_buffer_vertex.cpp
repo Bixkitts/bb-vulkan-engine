@@ -33,7 +33,6 @@ void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer
 
 void bindVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer)
 {
-    std::cout<<"\n bindVertexBuffer called \n";
     VkBuffer buffers[] = {vertexBuffer->buffer};
     VkDeviceSize offsets[] = {0};
     vkCmdBindVertexBuffers(commandBuffer, 0 ,1, buffers, offsets); 

@@ -2,6 +2,7 @@
 #include "bve_device.hpp"
 #include "bve_model.hpp"
 #include "bve_swap_chain.hpp"
+#include "config_pipeline.hpp"
 
 //std libraries
 #include <fstream>
@@ -107,12 +108,7 @@ namespace bve
 
     PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
     {
-        uint32_t width = swapchain->swapChainExtent.width;
-        uint32_t height = swapchain->swapChainExtent.height;
-
-        PipelineConfig* config = new PipelineConfig{};
-        #include "configs/pipeline/pipelineConfigDefault.conf"
-
+        PipelineConfig* config = config::pipelineConfigDefault();
         return config;
     }
 
