@@ -28,8 +28,9 @@ namespace bve
         //copy the stuff to the device, look into how this works
         copyToDevice(vertexBuffer, models[0]);
         //create pipeline configuration with a hard coded default
+        std::cout << "done copying to device.... \n";
         auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
-
+        std::cout << "default pipeline config loaded... \n";
         //creating the pipe line itself using the coded default
         auto pipeline = 
             createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);

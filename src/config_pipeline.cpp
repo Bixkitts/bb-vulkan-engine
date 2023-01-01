@@ -1,10 +1,11 @@
 #include "config_pipeline.hpp"
 #include "bve_swap_chain.hpp"
+#include <vulkan/vulkan_core.h>
 namespace config
 {
     bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain)
     {
-        bve::PipelineConfig *config = {};
+        bve::PipelineConfig *config = new bve::PipelineConfig{};
         
         uint32_t width = swapchain->swapChainExtent.width;
         uint32_t height = swapchain->swapChainExtent.height;
@@ -83,5 +84,27 @@ namespace config
 
         config->renderPass = swapchain->renderPass;
         config->pipelineLayout = createPipelineLayout(swapchain->device);
-
+        return config;
+    }
+    VkGraphicsPipelineCreateInfo *pipelineInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
+    {
+        VkGraphicsPipelineCreateInfo *pipelineInfo = new VkGraphicsPipelineCreateInfo{};
+        pipelineInfo->sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+        pipelineInfo->stageCount = 2;
+        pipelineInfo->pStages = std::move(shaderStages);
+        pipelineInfo->pVertexInputState = vertexInputInfo;
+        pipelineInfo->pInputAssemblyState = &configInfo->inputAssemblyInfo;
+        pipelineInfo->pViewportState = viewportInfo;
+        pipelineInfo->pRasterizationState = &configInfo->rasterizationInfo;
+        pipelineInfo->pMultisampleState = &configInfo->multisampleInfo;
+        pipelineInfo->pColorBlendState = &configInfo->colorBlendInfo;
+        pipelineInfo->pDepthStencilState = &configInfo->depthStencilInfo;
+        pipelineInfo->pDynamicState = nullptr;
+        pipelineInfo->layout = std::move(configInfo->pipelineLayout);
+        pipelineInfo->renderPass = std::move(configInfo->renderPass);
+        pipelineInfo->subpass = std::move(configInfo->subpass);
+        pipelineInfo->basePipelineIndex = -1;
+        pipelineInfo->basePipelineHandle = VK_NULL_HANDLE;
+        return pipelineInfo;
+    }
 }

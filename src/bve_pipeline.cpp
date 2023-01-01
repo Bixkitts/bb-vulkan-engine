@@ -89,9 +89,9 @@ namespace bve
         viewportInfo.scissorCount = 1;
         viewportInfo.pScissors = &configInfo->scissor;
 
-        VkGraphicsPipelineCreateInfo pipelineInfo{};
-        #include "configs/pipeline/pipelineCreateInfo.conf"
-        if(vkCreateGraphicsPipelines(device->logical, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
+        VkGraphicsPipelineCreateInfo *pipelineInfo = config::pipelineInfo(configInfo, &viewportInfo,shaderStages, &vertexInputInfo );
+
+        if(vkCreateGraphicsPipelines(device->logical, VK_NULL_HANDLE, 1, pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
         {
             throw std::runtime_error("pipeline not created successfully \n");
         }
@@ -108,7 +108,9 @@ namespace bve
 
     PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
     {
-        PipelineConfig* config = config::pipelineConfigDefault();
+        std::cout << "defaultPipelineConfigInfo called...\n";
+        PipelineConfig *config = config::pipelineConfigDefault(swapchain);
+        std::cout << "default config loaded... \n";
         return config;
     }
 
