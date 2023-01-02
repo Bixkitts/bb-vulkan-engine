@@ -1,11 +1,12 @@
 #include "config_pipeline.hpp"
+#include "bve_pipeline.hpp"
 #include "bve_swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 namespace config
 {
     bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain)
     {
-        bve::PipelineConfig *config = new bve::PipelineConfig{};
+        auto *config = new bve::PipelineConfig{};
         
         uint32_t width = swapchain->swapChainExtent.width;
         uint32_t height = swapchain->swapChainExtent.height;
@@ -88,7 +89,7 @@ namespace config
     }
     VkGraphicsPipelineCreateInfo *pipelineInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
     {
-        VkGraphicsPipelineCreateInfo *pipelineInfo = new VkGraphicsPipelineCreateInfo{};
+        auto *pipelineInfo = new VkGraphicsPipelineCreateInfo{};
         pipelineInfo->sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo->stageCount = 2;
         pipelineInfo->pStages = std::move(shaderStages);
@@ -106,5 +107,63 @@ namespace config
         pipelineInfo->basePipelineIndex = -1;
         pipelineInfo->basePipelineHandle = VK_NULL_HANDLE;
         return pipelineInfo;
+    }
+    VkPipelineLayoutCreateInfo *pipelineLayoutInfo()
+    {
+        auto *pipelineLayoutInfo = new VkPipelineLayoutCreateInfo{};
+        pipelineLayoutInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
+        pipelineLayoutInfo->setLayoutCount = 0;
+        pipelineLayoutInfo->pSetLayouts = nullptr;
+        pipelineLayoutInfo->pushConstantRangeCount = 0; 
+        pipelineLayoutInfo->pPushConstantRanges = nullptr;
+        return pipelineLayoutInfo;
+    }
+    //copy all functions past here to header file!!
+    VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code)
+    {
+        auto *createInfo = new VkShaderModuleCreateInfo{};
+        createInfo->sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo->codeSize = code.size();
+        createInfo->pCode = reinterpret_cast<const uint32_t*>(code.data());
+        return createInfo;
+    }
+    VkPipelineVertexInputStateCreateInfo *vertexInputInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions)
+    {
+        VkPipelineVertexInputStateCreateInfo *vertexInputInfo = new VkPipelineVertexInputStateCreateInfo{};
+        vertexInputInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+        vertexInputInfo->vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions->size());
+        vertexInputInfo->vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions->size());
+        vertexInputInfo->pVertexAttributeDescriptions = attributeDescriptions->data();
+        vertexInputInfo->pVertexBindingDescriptions = bindingDescriptions->data();
+        return vertexInputInfo;
+    }
+    VkPipelineViewportStateCreateInfo *viewportInfo(bve::PipelineConfig *configInfo)
+    {
+        auto *viewportInfo = new VkPipelineViewportStateCreateInfo{};
+        viewportInfo->sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        viewportInfo->viewportCount = 1;
+        viewportInfo->pViewports = &configInfo->viewport;
+        viewportInfo->scissorCount = 1;
+        viewportInfo->pScissors = &configInfo->scissor;
+        return viewportInfo;
+    }
+    VkPipelineShaderStageCreateInfo *createShaderStages(bve::GraphicsPipeline *mainPipeline)
+    {
+        auto *shaderStages = new VkPipelineShaderStageCreateInfo[2];
+        shaderStages[0].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStages[0].stage = VK_SHADER_STAGE_VERTEX_BIT;
+        shaderStages[0].module = mainPipeline->vertShaderModule;
+        shaderStages[0].pName = "main";
+        shaderStages[0].flags = 0;
+        shaderStages[0].pNext = nullptr;
+        shaderStages[0].pSpecializationInfo = nullptr;
+        shaderStages[1].sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStages[1].stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+        shaderStages[1].module = mainPipeline->fragShaderModule;
+        shaderStages[1].pName = "main";
+        shaderStages[1].flags = 0;
+        shaderStages[1].pNext = nullptr;
+        shaderStages[1].pSpecializationInfo = nullptr;
+        return shaderStages;
     }
 }
