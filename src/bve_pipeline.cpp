@@ -52,12 +52,14 @@ GraphicsPipeline* createGraphicsPipeline(
     mainPipeline->myPipelineDevice = device;
     mainPipeline->vertShaderModule = createShaderModule(device, vertCode);
     mainPipeline->fragShaderModule = createShaderModule(device, fragCode);
-    auto shaderStages = config::createShaderStages(mainPipeline);
-    auto bindingDescriptions = getBindingDescriptions();
-    auto attributeDescriptions = getAttributeDescriptions();
-    auto *vertexInputInfo = config::vertexInputInfo(&bindingDescriptions, &attributeDescriptions);
-    auto *viewportInfo = config::viewportInfo(configInfo);
-    auto *pipelineInfo = config::pipelineInfo(configInfo, viewportInfo,shaderStages, vertexInputInfo );
+
+    auto shaderStages           = config::createShaderStages(mainPipeline);
+    auto bindingDescriptions    = getBindingDescriptions();
+    auto attributeDescriptions  = getAttributeDescriptions();
+    auto vertexInputInfo        = config::vertexInputInfo(&bindingDescriptions, &attributeDescriptions);
+    auto viewportInfo           = config::viewportInfo(configInfo);
+    auto pipelineInfo           = config::pipelineInfo(configInfo, viewportInfo,shaderStages, vertexInputInfo );
+
     if(vkCreateGraphicsPipelines(device->logical, VK_NULL_HANDLE, 1, pipelineInfo, nullptr, &mainPipeline->graphicsPipeline) != VK_SUCCESS)
     {
         throw std::runtime_error("pipeline not created successfully \n");
