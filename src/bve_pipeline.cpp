@@ -67,48 +67,48 @@ GraphicsPipeline* createGraphicsPipeline(
     return mainPipeline;
 }
  
-    void destroyBveGraphicsPipeline(GraphicsPipeline* pipeline)
+void destroyBveGraphicsPipeline(GraphicsPipeline* pipeline)
+{
+    vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->vertShaderModule, nullptr);
+    vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->fragShaderModule, nullptr);
+}
+
+PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
+{
+    PipelineConfig *config = config::pipelineConfigDefault(swapchain);
+    return config;
+}
+
+VkShaderModule createShaderModule(Device* device, const std::vector<char>& code)
+{
+    VkShaderModule shaderModule{};
+    auto createInfo = config::shaderModuleInfo(code);
+
+
+    if (vkCreateShaderModule(device->logical, createInfo, nullptr, &shaderModule) != VK_SUCCESS)
     {
-        vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->vertShaderModule, nullptr);
-        vkDestroyShaderModule(pipeline->myPipelineDevice->logical, pipeline->fragShaderModule, nullptr);
+        throw std::runtime_error("failed to create shader module \n");        
     }
 
-    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
+    return shaderModule;
+}
+
+VkPipelineLayout createPipelineLayout(Device* device)
+{
+    VkPipelineLayout pipelineLayout{};
+    auto pipelineLayoutInfo = config::pipelineLayoutInfo();
+
+    if(vkCreatePipelineLayout(device->logical, pipelineLayoutInfo, nullptr, &pipelineLayout) !=
+            VK_SUCCESS)
     {
-        PipelineConfig *config = config::pipelineConfigDefault(swapchain);
-        return config;
+        throw std::runtime_error("failed to create pipeline layout!");
     }
+    return pipelineLayout;
+}
 
-    VkShaderModule createShaderModule(Device* device, const std::vector<char>& code)
-    {
-        VkShaderModule shaderModule{};
-        auto createInfo = config::shaderModuleInfo(code);
-
-
-        if (vkCreateShaderModule(device->logical, createInfo, nullptr, &shaderModule) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create shader module \n");        
-        }
-
-        return shaderModule;
-    }
-
-    VkPipelineLayout createPipelineLayout(Device* device)
-    {
-        VkPipelineLayout pipelineLayout{};
-        auto pipelineLayoutInfo = config::pipelineLayoutInfo();
-
-        if(vkCreatePipelineLayout(device->logical, pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-                VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create pipeline layout!");
-        }
-        return pipelineLayout;
-    }
-
-    void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
-    {
-        vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
-    }
+void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
+{
+    vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
+}
 
 }

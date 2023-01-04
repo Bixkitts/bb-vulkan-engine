@@ -53,6 +53,7 @@ void DestroyDebugUtilsMessengerEXT(
         func(instance, debugMessenger, pAllocator);
     }
 }
+// end of local callback functions
 
 Device* deviceInit(BveWindow* deviceWindow) 
 {
@@ -163,15 +164,7 @@ static void createLogicalDevice(Device* theGPU)
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
   
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-  
-    createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos = queueCreateInfos.data();
-  
-    createInfo.pEnabledFeatures = &deviceFeatures;
-    createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    VkDeviceCreateInfo createInfo = config::logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
   
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated

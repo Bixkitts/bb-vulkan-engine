@@ -13,5 +13,6 @@ namespace config
     VkCommandPoolCreateInfo poolInfo(bve::QueueFamilyIndices &queueFamilyIndices);
     VkCommandBufferAllocateInfo commandBufferAllocInfo(bve::Device *theGPU);
     VkBufferCreateInfo bufferCreateInfo(VkDeviceSize &size, VkBufferUsageFlags &usage);
+    VkDeviceCreateInfo logicalCreateInfo(std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos, VkPhysicalDeviceFeatures &deviceFeatures, const std::vector<const char *> &deviceExtensions );
 }
 #endif
