@@ -8,7 +8,7 @@
 
 namespace bve
 {
-    void runAppWithWindow(BveWindow *mainWindow);
+    void runAppWithWindow(BveWindow* mainWindow);
 }
 
 #endif

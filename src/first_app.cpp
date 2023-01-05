@@ -39,7 +39,9 @@ namespace bve
 
         //Create command buffers. Should be a return value instead of a parameter!
         auto commandBuffers = createCommandBuffers(pipeline, swapchain, vertexBuffers);
-
+        #ifdef DEBUG
+        std::cout<<"Debug build! yaaaaaay!!!!\n";
+        #endif
         //--------------------------------------------
         //Drawing frames. This was copy pasted idk how it works rly yet.
         while (!glfwWindowShouldClose(mainWindow->window))
