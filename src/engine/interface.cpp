@@ -1,4 +1,4 @@
-#include "first_app.hpp"
+#include "interface.hpp"
 #include "GLFW/glfw3.h"
 #include "bve_buffer_vertex.hpp"
 #include "bve_command_buffers.hpp"
@@ -14,7 +14,7 @@
 #include <array>
 namespace bve
 {
-    void runAppWithWindow(BveWindow* mainWindow)
+    BBAPI void runAppWithWindow(BveWindow* mainWindow)
     {
         //create vulkan physical and logical device and store it all in device struct
         auto device = deviceInit(mainWindow);
@@ -40,7 +40,7 @@ namespace bve
         //Create command buffers. Should be a return value instead of a parameter!
         auto commandBuffers = createCommandBuffers(pipeline, swapchain, vertexBuffers);
         #ifdef DEBUG
-        std::cout<<"Debug build! yaaaaaay!!!!\n";
+        std::cout<<"\n -------This is a Debug build!-------0\n";
         #endif
         //--------------------------------------------
         //Drawing frames. This was copy pasted idk how it works rly yet.

@@ -5,10 +5,11 @@
 #include "bve_device.hpp"
 #include "bve_swap_chain.hpp"
 #include "bve_model.hpp"
+#include "bve_defines.hpp"
 
 namespace bve
 {
-    void runAppWithWindow(BveWindow* mainWindow);
+    BBAPI void runAppWithWindow(BveWindow* mainWindow);
 }
 
 #endif

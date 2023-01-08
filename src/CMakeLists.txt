@@ -1,0 +1,34 @@
+target_sources(${PROJECT_NAME} PRIVATE
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffer_vertex.cpp   
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_draw_frame.hpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_vertex.cpp              
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffer_vertex.hpp    
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_model.cpp       
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_vertex.hpp              
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_pipeline.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_command_buffers.cpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_model.hpp       
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_window.cpp              
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_pipeline.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_command_buffers.hpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_pipeline.cpp    
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_window.hpp              
+${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_device.cpp           
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_pipeline.hpp    
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_command_buffers.cpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_device.hpp           
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_swap_chain.cpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_command_buffers.hpp  
+#${CMAKE_CURRENT_SOURCE_DIR}/engine/Main.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_draw_frame.cpp       
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_swap_chain.hpp  
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_defines.hpp
+)
+target_sources(testbin PRIVATE
+${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp
+)
+target_include_directories(${PROJECT_NAME} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/engine)

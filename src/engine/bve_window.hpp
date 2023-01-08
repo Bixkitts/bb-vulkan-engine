@@ -4,6 +4,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <string>
+#include "bve_defines.hpp"
 
 namespace bve
 {
@@ -14,7 +15,7 @@ namespace bve
         GLFWwindow *window;
     };
 
-    BveWindow* openWindow(int w, int h, std::string name);
+    BBAPI BveWindow* openWindow(int w, int h, std::string name);
     void closeWindow(GLFWwindow *window);
     void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface);
     VkExtent2D getExtent(BveWindow *window);

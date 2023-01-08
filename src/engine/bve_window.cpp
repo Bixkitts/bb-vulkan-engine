@@ -5,7 +5,7 @@
 
 namespace bve
 {
-    BveWindow* openWindow(int width, int height, std::string windowName)
+    BBAPI BveWindow* openWindow(int width, int height, std::string windowName)
     {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);

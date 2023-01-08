@@ -1,6 +1,4 @@
-#include "bve_window.hpp"
-#include "first_app.hpp"
-#include "bve_pipeline.hpp"
+#include "bb-engine.h"
 
 //std
 #include <cstdlib>
