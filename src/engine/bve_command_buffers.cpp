@@ -17,7 +17,7 @@ namespace bve
 
     auto allocInfo = config::allocInfo(pipeline, commandBuffers);
 
-    if(vkAllocateCommandBuffers(pipeline->myPipelineDevice->logical, allocInfo, commandBuffers.data()) !=
+    if(vkAllocateCommandBuffers(pipeline->device->logical, allocInfo, commandBuffers.data()) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");

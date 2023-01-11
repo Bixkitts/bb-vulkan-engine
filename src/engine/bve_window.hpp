@@ -16,9 +16,10 @@ namespace bve
     };
 
     BBAPI BveWindow* openWindow(int w, int h, std::string name);
-    void closeWindow(GLFWwindow *window);
+    void closeWindow(BveWindow *window);
     void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface);
     VkExtent2D getExtent(BveWindow *window);
+
 }
 
 #endif

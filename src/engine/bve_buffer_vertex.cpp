@@ -23,7 +23,6 @@ void destroyBuffer(VertexBuffer *v)
 {
     vkDestroyBuffer(v->device->logical, v->buffer, nullptr);
     vkFreeMemory(v->device->logical, v->deviceMemory, nullptr);
-
 }
 
 void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer)

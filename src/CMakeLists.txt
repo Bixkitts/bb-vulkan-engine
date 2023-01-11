@@ -22,11 +22,14 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_device.hpp           
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_swap_chain.cpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_command_buffers.hpp  
-#${CMAKE_CURRENT_SOURCE_DIR}/engine/Main.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_draw_frame.cpp       
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_swap_chain.hpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_defines.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_cleanup.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_cleanup.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_fileIO.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_fileIO.hpp
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp

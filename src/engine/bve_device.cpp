@@ -72,7 +72,6 @@ Device* deviceInit(BveWindow* deviceWindow)
 void destroyDevice(Device* device) 
 {
     vkDestroyCommandPool(device->logical, device->commandPool, nullptr);
-    vkDestroyDevice(device->logical, nullptr);
   
     if (enableValidationLayers) 
     {
@@ -81,6 +80,7 @@ void destroyDevice(Device* device)
   
     vkDestroySurfaceKHR(device->instance, device->surface_, nullptr);
     vkDestroyInstance(device->instance, nullptr);
+    vkDestroyDevice(device->logical, nullptr);
 }
 
 static void createInstance(Device* theGPU) 

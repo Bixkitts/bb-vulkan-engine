@@ -20,7 +20,12 @@ namespace bve
         VkPipelineColorBlendAttachmentState colorBlendAttachment;
         VkPipelineColorBlendStateCreateInfo colorBlendInfo;
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
-
+        
+        //These two have VkDestroy functions that need to
+        //be called. They are here in the config struct
+        //because they get passed in to vkCreateGraphicsPipelines()
+        //with the rest of the above data after being translated
+        //to a VkPipelineLayoutCreateInfo
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
 
@@ -28,14 +33,16 @@ namespace bve
     };
     struct GraphicsPipeline
     {
-        Device* myPipelineDevice;
+        Device* device;
         VkPipeline graphicsPipeline;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
+        PipelineConfig *pipelineConfig;
     };
 
-    void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer comandBuffer);
-
+    void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer);
+    
+    //move this function to an IO cpp file
     std::vector<char> readFile(const std::string& filepath);
     
     PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain);
@@ -46,15 +53,15 @@ namespace bve
             const std::string& fragFilepath,
             PipelineConfig* configInfo);
 
-    void destroyBveGraphicsPipeline(GraphicsPipeline* pipeline);
+    void destroyPipeline(GraphicsPipeline* pipeline);
 
-    VkPipelineLayout createPipelineLayout(Device* device);
+    static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
-    void createCommanBuffers();
+    static void createPipelineLayout(GraphicsPipeline *pipeline);
+    static void createRenderPass(GraphicsPipeline *pipeline);
 
-
-    VkShaderModule createShaderModule(Device* device, const std::vector<char>& code);
-
+    static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
+    static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
 }
 
 

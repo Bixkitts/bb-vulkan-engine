@@ -8,6 +8,7 @@
 #include "bve_pipeline.hpp"
 #include "bve_swap_chain.hpp"
 #include "bve_window.hpp"
+#include "bve_cleanup.hpp"
 #include <vulkan/vulkan_core.h>
 
 #include <vector>
@@ -51,5 +52,9 @@ namespace bve
         }
 
         vkDeviceWaitIdle(device->logical);
+
+        // Cleanup stuffs
+        auto cleanupList = new CleanupList{device};
+        cleanup(cleanupList);
     }
 }

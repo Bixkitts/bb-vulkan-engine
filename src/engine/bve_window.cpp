@@ -26,6 +26,7 @@ namespace bve
         //
         delete bveWindow;
     }
+
     void createWindowSurface(BveWindow* window, VkInstance instance, VkSurfaceKHR* surface)
     {
         if (glfwCreateWindowSurface(instance, window->window, nullptr, surface))
@@ -40,4 +41,5 @@ namespace bve
         VkExtent2D extent{static_cast<uint32_t>(window->width), static_cast<uint32_t>(window->height)};
         return extent;
     }
+
 }

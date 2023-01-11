@@ -41,6 +41,7 @@ struct Device
 #endif
 // Interface:
     Device *deviceInit(BveWindow *deviceWindow);
+    void destroyDevice(Device* device); 
 
 // Sub-routines:
     static void createInstance(Device *theGPU);
@@ -50,7 +51,7 @@ struct Device
     static void createLogicalDevice(Device *theGPU);
     static void createCommandPool(Device *theGPU);
 
-// Buffer Helper Functions
+// Buffer Helper Functions/Device buffer interface
     void createDeviceBuffer(
         VkDeviceSize size,
         VkBufferUsageFlags usage,
@@ -92,7 +93,6 @@ struct Device
 // some global variables??? fix this maybe.
     const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
     const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
-//Memory mapping functions
 
 }
 

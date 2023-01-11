@@ -28,7 +28,7 @@ namespace config
         auto allocInfo = new VkCommandBufferAllocateInfo{};
         allocInfo->sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
         allocInfo->level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo->commandPool = pipeline->myPipelineDevice->commandPool;
+        allocInfo->commandPool = pipeline->device->commandPool;
         allocInfo->commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
         return allocInfo;
     }

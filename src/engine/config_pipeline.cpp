@@ -83,16 +83,14 @@ namespace config
         config->depthStencilInfo.back                       = {};   // Optional
         config->depthStencilInfo.pNext                      = NULL;
 
-        config->renderPass = swapchain->renderPass;
-        config->pipelineLayout = createPipelineLayout(swapchain->device);
         return config;
     }
-    VkGraphicsPipelineCreateInfo *pipelineInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
+    VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
     {
         auto *pipelineInfo                      = new VkGraphicsPipelineCreateInfo{};
         pipelineInfo->sType                     = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
         pipelineInfo->stageCount                = 2;
-        pipelineInfo->pStages                   = std::move(shaderStages);
+        pipelineInfo->pStages                   = shaderStages;
         pipelineInfo->pVertexInputState         = vertexInputInfo;
         pipelineInfo->pInputAssemblyState       = &configInfo->inputAssemblyInfo;
         pipelineInfo->pViewportState            = viewportInfo;
@@ -101,14 +99,14 @@ namespace config
         pipelineInfo->pColorBlendState          = &configInfo->colorBlendInfo;
         pipelineInfo->pDepthStencilState        = &configInfo->depthStencilInfo;
         pipelineInfo->pDynamicState             = nullptr;
-        pipelineInfo->layout                    = std::move(configInfo->pipelineLayout);
-        pipelineInfo->renderPass                = std::move(configInfo->renderPass);
-        pipelineInfo->subpass                   = std::move(configInfo->subpass);
+        pipelineInfo->layout                    = configInfo->pipelineLayout;
+        pipelineInfo->renderPass                = configInfo->renderPass;
+        pipelineInfo->subpass                   = configInfo->subpass;
         pipelineInfo->basePipelineIndex         = -1;
         pipelineInfo->basePipelineHandle        = VK_NULL_HANDLE;
         return pipelineInfo;
     }
-    VkPipelineLayoutCreateInfo *pipelineLayoutInfo()
+    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo()
     {
         auto *pipelineLayoutInfo                    = new VkPipelineLayoutCreateInfo{};
         pipelineLayoutInfo->sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
@@ -118,7 +116,13 @@ namespace config
         pipelineLayoutInfo->pPushConstantRanges     = nullptr;
         return pipelineLayoutInfo;
     }
-    //copy all functions past here to header file!!
+    VkRenderPassCreateInfo *renderPassCreateInfo()
+    {
+        auto renderPassInfo                         = new VkRenderPassCreateInfo{};
+
+
+        return renderPassInfo;
+    }
     VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code)
     {
         auto *createInfo        = new VkShaderModuleCreateInfo{};
@@ -127,7 +131,7 @@ namespace config
         createInfo->pCode       = reinterpret_cast<const uint32_t*>(code.data());
         return createInfo;
     }
-    VkPipelineVertexInputStateCreateInfo *vertexInputInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions)
+    VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions)
     {
         auto *vertexInputInfo                               = new VkPipelineVertexInputStateCreateInfo{};
         vertexInputInfo->sType                              = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -137,7 +141,7 @@ namespace config
         vertexInputInfo->pVertexBindingDescriptions         = bindingDescriptions->data();
         return vertexInputInfo;
     }
-    VkPipelineViewportStateCreateInfo *viewportInfo(bve::PipelineConfig *configInfo)
+    VkPipelineViewportStateCreateInfo *viewportCreateInfo(bve::PipelineConfig *configInfo)
     {
         auto *viewportInfo          = new VkPipelineViewportStateCreateInfo{};
         viewportInfo->sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
@@ -147,7 +151,7 @@ namespace config
         viewportInfo->pScissors     = &configInfo->scissor;
         return viewportInfo;
     }
-    VkPipelineShaderStageCreateInfo *createShaderStages(bve::GraphicsPipeline *mainPipeline)
+    VkPipelineShaderStageCreateInfo *shaderStagesCreateInfo(bve::GraphicsPipeline *mainPipeline)
     {
         auto *shaderStages      = new VkPipelineShaderStageCreateInfo[2];
         shaderStages[0].sType   = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

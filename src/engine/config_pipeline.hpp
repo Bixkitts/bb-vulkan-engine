@@ -5,17 +5,19 @@
 #include <vulkan/vulkan_core.h>
 namespace config
 {
-
+    //a default configuration for the pipeline containing all the info
+    //I'm going to need
     bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain);
 
-    VkGraphicsPipelineCreateInfo *pipelineInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
+    VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 
-    VkPipelineLayoutCreateInfo *pipelineLayoutInfo();
+    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo();
+    VkRenderPassCreateInfo *renderPassCreateInfo();
 
     VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code);
-    VkPipelineVertexInputStateCreateInfo *vertexInputInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions);
-    VkPipelineViewportStateCreateInfo *viewportInfo(bve::PipelineConfig *configInfo);
-    VkPipelineShaderStageCreateInfo *createShaderStages(bve::GraphicsPipeline *mainPipeline);
+    VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions);
+    VkPipelineViewportStateCreateInfo *viewportCreateInfo(bve::PipelineConfig *configInfo);
+    VkPipelineShaderStageCreateInfo *shaderStagesCreateInfo(bve::GraphicsPipeline *mainPipeline);
 }
 
 
