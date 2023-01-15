@@ -4,7 +4,7 @@
 #include <vulkan/vulkan_core.h>
 namespace config
 {
-    VkRenderPassBeginInfo* renderPassInfo(bve::SwapChain *swapchain, int framebufferIndex);
+    VkRenderPassBeginInfo *renderPassInfo(bve::SwapChain *swapchain, int framebufferIndex);
     VkCommandBufferAllocateInfo* allocInfo(bve::GraphicsPipeline* pipeline, std::vector<VkCommandBuffer> &commandBuffers);
 }
 
