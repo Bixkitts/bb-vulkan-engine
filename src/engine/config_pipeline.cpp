@@ -83,6 +83,8 @@ namespace config
         config->depthStencilInfo.back                       = {};   // Optional
         config->depthStencilInfo.pNext                      = NULL;
 
+        config->renderPass = swapchain->renderPass;
+        config->pipelineLayout = bve::createPipelineLayout(swapchain->device);
         return config;
     }
     VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
@@ -115,13 +117,6 @@ namespace config
         pipelineLayoutInfo->pushConstantRangeCount  = 0; 
         pipelineLayoutInfo->pPushConstantRanges     = nullptr;
         return pipelineLayoutInfo;
-    }
-    VkRenderPassCreateInfo *renderPassCreateInfo()
-    {
-        auto renderPassInfo                         = new VkRenderPassCreateInfo{};
-
-
-        return renderPassInfo;
     }
     VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code)
     {

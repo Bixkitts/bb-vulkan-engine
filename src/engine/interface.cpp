@@ -36,12 +36,12 @@ namespace bve
         auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
         //creating the pipe line itself using the coded default
         auto pipeline = 
-            createGraphicsPipeline(device, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
+            createGraphicsPipeline(device, swapchain, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
 
         //Create command buffers. Should be a return value instead of a parameter!
         auto commandBuffers = createCommandBuffers(pipeline, swapchain, vertexBuffers);
         #ifdef DEBUG
-        std::cout<<"\n -------This is a Debug build!-------0\n";
+        std::cout<<"\n -------This is a Debug build!-------\n";
         #endif
         //--------------------------------------------
         //Drawing frames. This was copy pasted idk how it works rly yet.
@@ -54,7 +54,10 @@ namespace bve
         vkDeviceWaitIdle(device->logical);
 
         // Cleanup stuffs
-        auto cleanupList = new CleanupList{device};
+        auto cleanupList = new CleanupList{device, 
+                                           pipeline,
+                                           swapchain,
+                                           vertexBuffers};
         cleanup(cleanupList);
     }
 }

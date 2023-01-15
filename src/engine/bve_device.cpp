@@ -80,6 +80,7 @@ void destroyDevice(Device* device)
   
     vkDestroySurfaceKHR(device->instance, device->surface_, nullptr);
     vkDestroyInstance(device->instance, nullptr);
+    vkDeviceWaitIdle(device->logical);
     vkDestroyDevice(device->logical, nullptr);
 }
 

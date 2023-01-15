@@ -10,6 +10,7 @@
 
 namespace bve
 {
+
     struct PipelineConfig
     {
         VkViewport viewport;
@@ -20,20 +21,18 @@ namespace bve
         VkPipelineColorBlendAttachmentState colorBlendAttachment;
         VkPipelineColorBlendStateCreateInfo colorBlendInfo;
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
-        
-        //These two have VkDestroy functions that need to
-        //be called. They are here in the config struct
-        //because they get passed in to vkCreateGraphicsPipelines()
-        //with the rest of the above data after being translated
-        //to a VkPipelineLayoutCreateInfo
+
+        //Vk objects that need to be properly destroyed!
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
-
-        uint32_t subpass = 0;
+        
+        uint32_t subpass = 0; // There are subpasses created and 
+                              // configured in the RenderPass
     };
     struct GraphicsPipeline
     {
         Device* device;
+        SwapChain* swapchain;
         VkPipeline graphicsPipeline;
         VkShaderModule vertShaderModule;
         VkShaderModule fragShaderModule;
@@ -49,6 +48,7 @@ namespace bve
 
     GraphicsPipeline* createGraphicsPipeline(
             Device* device,
+            SwapChain* swapchain,
             const std::string& vertFilepath, 
             const std::string& fragFilepath,
             PipelineConfig* configInfo);
@@ -57,8 +57,7 @@ namespace bve
 
     static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
-    static void createPipelineLayout(GraphicsPipeline *pipeline);
-    static void createRenderPass(GraphicsPipeline *pipeline);
+    VkPipelineLayout createPipelineLayout(Device *device);
 
     static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
     static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);

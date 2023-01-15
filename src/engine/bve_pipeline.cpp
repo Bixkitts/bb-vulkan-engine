@@ -18,10 +18,14 @@ namespace bve
 
 GraphicsPipeline* createGraphicsPipeline(
         Device* device,
+        SwapChain* swapchain,
         const std::string& vertFilepath, 
         const std::string& fragFilepath,
         PipelineConfig* configInfo) // Here a default configuration is given in atm
 {
+    auto mainPipeline = new GraphicsPipeline{};
+
+
     assert(configInfo->pipelineLayout != VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
     assert(configInfo->renderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderPass provided in configInfo");
     const std::vector<char> vertCode = readFile(vertFilepath);
@@ -29,13 +33,13 @@ GraphicsPipeline* createGraphicsPipeline(
     std::cout<< "Vertex Shader Code Size: " << vertCode.size() << '\n';
     std::cout<< "Fragment Shader Code Size: " << fragCode.size() << '\n';
 
-    auto mainPipeline = new GraphicsPipeline{};
 
     mainPipeline->device = device;
+    mainPipeline->swapchain = swapchain;
     createVertShaderModule(mainPipeline, vertCode); //These create the VkShaderModules
     createFragShaderModule(mainPipeline, fragCode); //stored in the GraphicsPipeline
 
-    mainPipeline->pipelineConfig = configInfo;      //The default configuration I've passed in
+    mainPipeline->pipelineConfig = std::move(configInfo);      //The default configuration I've passed in
                                                     //stays stored in the pipeline object 
                                                     //for reference and vulkan deallocation
 
@@ -49,14 +53,12 @@ GraphicsPipeline* createGraphicsPipeline(
 
     //Uses info from all the above objects and is translated to a final configuration
     //to the actual VkPipeline.
-    auto *pipelineCreateInfo     = config::pipelineCreateInfo(mainPipeline->pipelineConfig,
+    auto *pipelineCreateInfo     = config::pipelineCreateInfo(configInfo,
                                                               viewportInfo,
                                                               shaderStages,
                                                               vertexInputInfo);
     //-------------------------------------------------------------------
-    //These are two VkObjets that will need to have their destructors called.
-    createPipelineLayout(mainPipeline);
-    createRenderPass(mainPipeline);
+
 
     if(vkCreateGraphicsPipelines(device->logical,
                                  VK_NULL_HANDLE,
@@ -74,7 +76,6 @@ GraphicsPipeline* createGraphicsPipeline(
 void destroyPipeline(GraphicsPipeline* pipeline)
 {
     vkDestroyPipelineLayout(pipeline->device->logical, pipeline->pipelineConfig->pipelineLayout, nullptr);
-    vkDestroyRenderPass(pipeline->device->logical, VkRenderPass , nullptr);
     vkDestroyPipeline(pipeline->device->logical, pipeline->graphicsPipeline, nullptr);
     delete pipeline->pipelineConfig;
     delete pipeline;
@@ -118,26 +119,20 @@ static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector
     delete createInfo;
 }
 
-static void createPipelineLayout(GraphicsPipeline *pipeline)
+VkPipelineLayout createPipelineLayout(Device *device)
 {
-    pipeline->pipelineConfig->pipelineLayout = {};
+    VkPipelineLayout pipelineLayout = {};
     auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo();
 
-    if(vkCreatePipelineLayout(pipeline->device->logical, pipelineLayoutInfo, nullptr, &pipeline->pipelineConfig->pipelineLayout) !=
+    if(vkCreatePipelineLayout(device->logical, pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to create pipeline layout!");
     }
     delete pipelineLayoutInfo;
+    return pipelineLayout;
 }
 
-static void createRenderPass(GraphicsPipeline *pipeline)
-{
-    pipeline->pipelineConfig->renderPass = {};
-    auto renderPassInfo = config::renderPassCreateInfo(
-
-
-}
 void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);

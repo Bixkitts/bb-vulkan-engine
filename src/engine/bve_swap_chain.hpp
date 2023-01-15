@@ -43,6 +43,7 @@ namespace bve
     };
 
     SwapChain *createSwapChain(Device *device, VkExtent2D windowExtent);
+    void destroySwapchain(SwapChain* swapchain);
 /*
     VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
     VkRenderPass getRenderPass() { return renderPass; }
@@ -75,4 +76,4 @@ namespace bve
             const std::vector<VkPresentModeKHR> &availablePresentModes);
     VkExtent2D chooseSwapExtent(SwapChain *swapchain, const VkSurfaceCapabilitiesKHR &capabilities);
 
-}    // namespace lve
+}    

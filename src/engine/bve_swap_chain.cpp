@@ -33,7 +33,7 @@ return static_cast<float>(swapchain->swapChainExtent.width)
     / static_cast<float>(swapchain->swapChainExtent.height);
 }
 
-void destroyBveSwapchain(SwapChain* swapchain) 
+void destroySwapchain(SwapChain* swapchain) 
 {
     for (auto imageView : swapchain->swapChainImageViews) 
     {

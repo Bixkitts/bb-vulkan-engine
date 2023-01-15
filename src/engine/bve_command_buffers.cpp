@@ -16,12 +16,12 @@ namespace bve
     commandBuffers.resize(swapchain->swapChainImages.size());
 
     auto allocInfo = config::allocInfo(pipeline, commandBuffers);
-
     if(vkAllocateCommandBuffers(pipeline->device->logical, allocInfo, commandBuffers.data()) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
     }
+    delete allocInfo;
 
     for (int i = 0; i < commandBuffers.size(); i++)
     {
@@ -34,8 +34,8 @@ namespace bve
         }                
 
         auto renderPassInfo = config::renderPassInfo(swapchain, i);
-
         vkCmdBeginRenderPass(commandBuffers[i], renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        delete renderPassInfo;
 
         bindPipeline(pipeline, commandBuffers[i]);
 
@@ -46,9 +46,8 @@ namespace bve
         if(vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to record command buffer!");
-        }
+       }
     }
-
     return commandBuffers;
 
 }
