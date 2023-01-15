@@ -1,5 +1,6 @@
 #include "bve_swap_chain.hpp"
 #include "bve_device.hpp"
+#include "config_swap_chain.hpp"
 
 // std
 #include <array>
@@ -68,6 +69,7 @@ void destroySwapchain(SwapChain* swapchain)
         vkDestroySemaphore(swapchain->device->logical, swapchain->imageAvailableSemaphores[i], nullptr);
         vkDestroyFence(swapchain->device->logical, swapchain->inFlightFences[i], nullptr);
     }
+    delete swapchain;
 }
 
 VkResult acquireNextImage(SwapChain* swapchain, uint32_t* imageIndex) 
@@ -144,11 +146,12 @@ VkResult submitCommandBuffers(
 
 void initSwapChain(SwapChain* swapchain) 
 {
+
     SwapChainSupportDetails swapChainSupport = querySwapChainSupport(swapchain->device->physical, swapchain->device);
 
-    VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode = chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent = chooseSwapExtent(swapchain, swapChainSupport.capabilities);
+    VkSurfaceFormatKHR surfaceFormat         = chooseSwapSurfaceFormat(swapChainSupport.formats);
+    VkPresentModeKHR presentMode             = chooseSwapPresentMode(swapChainSupport.presentModes);
+    VkExtent2D extent                        = chooseSwapExtent(swapchain, swapChainSupport.capabilities);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -156,46 +159,13 @@ void initSwapChain(SwapChain* swapchain)
     {
         imageCount = swapChainSupport.capabilities.maxImageCount;
     }
-
-    VkSwapchainCreateInfoKHR createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface = swapchain->device->surface_;
-
-    createInfo.minImageCount = imageCount;
-    createInfo.imageFormat = surfaceFormat.format;
-    createInfo.imageColorSpace = surfaceFormat.colorSpace;
-    createInfo.imageExtent = extent;
-    createInfo.imageArrayLayers = 1;
-    createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-
-    QueueFamilyIndices indices = findQueueFamilies(swapchain->device->physical, swapchain->device);
-    uint32_t queueFamilyIndices[] = {indices.graphicsFamily, indices.presentFamily};
-
-    if (indices.graphicsFamily != indices.presentFamily) 
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-        createInfo.queueFamilyIndexCount = 2;
-        createInfo.pQueueFamilyIndices = queueFamilyIndices;
-    } 
-    else 
-    {
-        createInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.queueFamilyIndexCount = 0;            // Optional
-        createInfo.pQueueFamilyIndices = nullptr;    // Optional
-    }
-
-    createInfo.preTransform = swapChainSupport.capabilities.currentTransform;
-    createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-
-    createInfo.presentMode = presentMode;
-    createInfo.clipped = VK_TRUE;
-
-    createInfo.oldSwapchain = VK_NULL_HANDLE;
+    auto createInfo = config::createSwapchainInfo(swapchain, swapChainSupport, surfaceFormat, presentMode, extent, imageCount);
 
     if (vkCreateSwapchainKHR(swapchain->device->logical, &createInfo, nullptr, &swapchain->swapChain) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create swap chain!");
     }
+    delete[] createInfo.pQueueFamilyIndices;
 
     // we only specified a minimum number of images in the swap chain, so the implementation is
     // allowed to create a swap chain with more. That's why we'll first query the final number of
@@ -214,16 +184,7 @@ void createImageViews(SwapChain* swapchain)
     swapchain->swapChainImageViews.resize(swapchain->swapChainImages.size());
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
     {
-        VkImageViewCreateInfo viewInfo{};
-        viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image = swapchain->swapChainImages[i];
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = swapchain->swapChainImageFormat;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
+        auto viewInfo = config::createImageViewInfo(swapchain, i);
 
         if (vkCreateImageView(swapchain->device->logical, &viewInfo, nullptr, &swapchain->swapChainImageViews[i]) !=
                 VK_SUCCESS) 

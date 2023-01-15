@@ -35,8 +35,7 @@ namespace bve
 
         auto renderPassInfo = config::renderPassInfo(swapchain, i);
         vkCmdBeginRenderPass(commandBuffers[i], renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        //delete renderPassInfo;
-        delete renderPassInfo->pClearValues;
+        delete[] renderPassInfo->pClearValues;
         delete renderPassInfo;
 
         bindPipeline(pipeline, commandBuffers[i]);
