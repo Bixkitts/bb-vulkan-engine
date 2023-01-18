@@ -51,28 +51,6 @@ struct Device
     static void createLogicalDevice(Device *theGPU);
     static void createCommandPool(Device *theGPU);
 
-// Buffer Helper Functions/Device buffer interface
-    void createDeviceBuffer(
-        VkDeviceSize size,
-        VkBufferUsageFlags usage,
-        VkMemoryPropertyFlags properties,
-        VkBuffer &buffer,
-        VkDeviceMemory &bufferMemory,
-        Device *theGPU);
-
-    VkCommandBuffer beginSingleTimeCommands(Device *theGPU);
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device *theGPU);
-
-    void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-    void copyBufferToImage(
-            VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-
-    void createImageWithInfo(
-        const VkImageCreateInfo &imageInfo,
-        VkMemoryPropertyFlags properties,
-        VkImage &image,
-        VkDeviceMemory &imageMemory,
-        Device *theGPU);
 
 // helper functions
     bool isDeviceSuitable(VkPhysicalDevice device, Device *theGPU);

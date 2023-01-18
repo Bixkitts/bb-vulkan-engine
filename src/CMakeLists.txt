@@ -32,6 +32,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_fileIO.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_fileIO.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.hpp
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp
