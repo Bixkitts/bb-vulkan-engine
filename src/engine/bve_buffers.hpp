@@ -23,7 +23,8 @@ struct VulkanBuffer
 typedef VulkanBuffer StagingBuffer;
 typedef VulkanBuffer VertexBuffer;
 
-VertexBuffer *createVertexBuffer(Device *device, const uint32_t vertexCount);
+VertexBuffer *createVertexBuffer(Device *device, Model *model);
+std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
 void destroyBuffer(VertexBuffer *v);
 
 void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer);
@@ -41,10 +42,14 @@ void createDeviceBuffer(
 VkCommandBuffer beginSingleTimeCommands(Device *theGPU);
 void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device *theGPU);
 
-void copyBuffer(VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
+void copyBuffer(Device *theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
 void copyBufferToImage(
         VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
-
+//----------------------------------------------------
+//Allocation Stuff, maybe moved to it's own files
+//
+VkDeviceMemory allocateDeviceMemory(Device *theGPU, VkBuffer buffer,VkMemoryPropertyFlags properties, VkDeviceSize size);
+//----------------------------------------------------
 void createImageWithInfo(
     const VkImageCreateInfo &imageInfo,
     VkMemoryPropertyFlags properties,
@@ -52,6 +57,6 @@ void createImageWithInfo(
     VkDeviceMemory &imageMemory,
     Device *theGPU);
 // ------------------------------------
-void copyToDevice(VertexBuffer *v, Model *model);
+void copyToDeviceMem(StagingBuffer *sb, Model *model);
 }
 #endif

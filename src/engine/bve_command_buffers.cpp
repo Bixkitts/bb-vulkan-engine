@@ -40,8 +40,11 @@ namespace bve
 
         bindPipeline(pipeline, commandBuffers[i]);
 
-        bindVertexBuffer(vertexBuffers[0], commandBuffers[i]);
-        drawVertexBuffer(vertexBuffers[0], commandBuffers[i]);
+        for(int j = 0; j < vertexBuffers.size(); j++)
+        {
+            bindVertexBuffer(vertexBuffers[j], commandBuffers[i]);
+            drawVertexBuffer(vertexBuffers[j], commandBuffers[i]);
+        }
 
         vkCmdEndRenderPass(commandBuffers[i]);
         if(vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)

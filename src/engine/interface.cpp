@@ -26,10 +26,7 @@ namespace bve
 
 
         //Vertex buffer placeholder stuff
-        auto vertexBuffer = createVertexBuffer(device, models[0]->size());
-        std::vector<VertexBuffer*> vertexBuffers = {vertexBuffer};
-        //copy the stuff to the device, look into how this works
-        copyToDevice(vertexBuffer, models[0]);
+        auto vertexBuffers = createVertexBuffers(device, models);
 
 
         //create pipeline configuration with a hard coded default

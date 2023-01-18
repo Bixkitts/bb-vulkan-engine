@@ -1,23 +1,47 @@
 #include "bve_buffers.hpp"
 #include "config_buffers.hpp"
+#include <vulkan/vulkan_core.h>
 namespace bve
 {
 
-VertexBuffer *createVertexBuffer(Device *device, const uint32_t vertexCount)
+VertexBuffer *createVertexBuffer(Device *device, Model *model)
 {
-    VertexBuffer *v = new VertexBuffer{};
-    v->device = device;
-    v->vertexCount = vertexCount;
-    assert(v->vertexCount >= 3 && "Vertex count must be at least 3");
-    VkDeviceSize bufferSize = sizeof(Vertex) * v->vertexCount;
+    auto *sbuffer = new StagingBuffer{};
+    sbuffer->device = device;
+    assert(model->size() >= 3 && "Vertex count must be at least 3");
+    VkDeviceSize bufferSize = sizeof(Vertex) * model->size();
     createDeviceBuffer(bufferSize,
-           VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-           v->buffer,
-           v->deviceMemory,
-           v->device);
+           sbuffer->buffer,
+           sbuffer->deviceMemory,
+           sbuffer->device);
 
-    return v;
+    copyToDeviceMem(sbuffer, model);
+    
+    auto *vbuffer = new VertexBuffer{};
+    vbuffer->device = device;
+    vbuffer->vertexCount = model->size();
+    createDeviceBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vbuffer->buffer, vbuffer->deviceMemory, vbuffer->device);
+
+    copyBuffer(device, sbuffer->buffer, vbuffer->buffer, bufferSize);
+    
+    vkDestroyBuffer(device->logical, sbuffer->buffer, nullptr);
+    vkFreeMemory(device->logical, sbuffer->deviceMemory, nullptr);
+    delete sbuffer;
+    return vbuffer;
+}
+std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models)
+{
+    std::vector<VertexBuffer*> vBuffers;
+    for(int i = 0; i < models.size(); i++)
+    {
+        vBuffers.push_back(
+        createVertexBuffer(device, models[i])
+        );
+    } 
+
+    return vBuffers;
 }
 
 void destroyBuffer(VertexBuffer *v)
@@ -38,18 +62,14 @@ void bindVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer
     vkCmdBindVertexBuffers(commandBuffer, 0 ,1, buffers, offsets); 
 }
 
-//--------------------------------------------------------
-//
-//functions to copy to the device
-//--------------------------------------------------------
 
-void copyToDevice(VertexBuffer *v, Model *model)
+void copyToDeviceMem(StagingBuffer *sb, Model *model)
 {
-    uint32_t size = v->vertexCount * sizeof(Vertex);
+    uint32_t size = model->size() * sizeof(Vertex);
     void *data;
-    vkMapMemory(v->device->logical, v->deviceMemory, 0, size, 0, &data);
+    vkMapMemory(sb->device->logical, sb->deviceMemory, 0, size, 0, &data);
     memcpy(data, model->data(), static_cast<size_t>(size));
-    vkUnmapMemory(v->device->logical, v->deviceMemory);
+    vkUnmapMemory(sb->device->logical, sb->deviceMemory);
 }
 
 void createDeviceBuffer(
@@ -67,17 +87,24 @@ void createDeviceBuffer(
         throw std::runtime_error("failed to create vertex buffer!");
     }
 
+    bufferMemory = allocateDeviceMemory(theGPU, buffer, properties, size);
+
+    vkBindBufferMemory(theGPU->logical, buffer, bufferMemory, 0);
+}
+
+VkDeviceMemory allocateDeviceMemory(Device *theGPU, VkBuffer buffer,VkMemoryPropertyFlags properties, VkDeviceSize size)
+{
+    VkDeviceMemory deviceMemory = {};
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(theGPU->logical, buffer, &memRequirements);
 
     VkMemoryAllocateInfo allocInfo = config::memoryAllocateInfo(memRequirements, properties, theGPU);
 
-    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &bufferMemory) != VK_SUCCESS) 
+    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &deviceMemory) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to allocate vertex buffer memory!");
     }
-
-    vkBindBufferMemory(theGPU->logical, buffer, bufferMemory, 0);
+    return deviceMemory;
 }
 
 void copyBuffer(Device* theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size) 
