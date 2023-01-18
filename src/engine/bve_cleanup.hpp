@@ -4,7 +4,7 @@
 #include "bve_window.hpp"
 #include "bve_device.hpp"
 #include "bve_pipeline.hpp"
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 namespace bve
 { 
     struct CleanupList  //A list of objects that will need to have cleanup code called

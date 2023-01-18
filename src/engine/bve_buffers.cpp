@@ -1,4 +1,4 @@
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 namespace bve
 {
 

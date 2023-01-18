@@ -20,6 +20,8 @@ struct VertexBuffer
     uint32_t vertexCount;
 };
 
+typedef VertexBuffer StagingBuffer;
+
 VertexBuffer *createVertexBuffer(Device *device, const uint32_t vertexCount);
 void destroyBuffer(VertexBuffer *v);
 

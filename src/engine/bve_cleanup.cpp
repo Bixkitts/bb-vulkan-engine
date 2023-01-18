@@ -1,4 +1,4 @@
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 #include "bve_pipeline.hpp"
 #include "bve_window.hpp"
 #include "bve_cleanup.hpp"

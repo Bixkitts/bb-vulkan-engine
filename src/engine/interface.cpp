@@ -1,6 +1,6 @@
 #include "interface.hpp"
 #include "GLFW/glfw3.h"
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 #include "bve_command_buffers.hpp"
 #include "bve_device.hpp"
 #include "bve_draw_frame.hpp"

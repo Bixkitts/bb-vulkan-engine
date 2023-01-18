@@ -1,5 +1,5 @@
 #include "bve_device.hpp"
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 #include "config_device.hpp"
 #include "bve_model.hpp"
 

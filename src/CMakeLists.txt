@@ -1,9 +1,9 @@
 target_sources(${PROJECT_NAME} PRIVATE
-${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffer_vertex.cpp   
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffers.cpp   
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_draw_frame.hpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_vertex.cpp              
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffer_vertex.hpp    
+${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_buffers.hpp    
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_model.cpp       
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/bve_vertex.hpp              
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_pipeline.cpp

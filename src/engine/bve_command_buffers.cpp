@@ -1,6 +1,6 @@
 #include "bve_command_buffers.hpp"
 #include "config_command_buffers.hpp"
-#include "bve_buffer_vertex.hpp"
+#include "bve_buffers.hpp"
 #include "bve_swap_chain.hpp"
 
 #include <stdexcept>
