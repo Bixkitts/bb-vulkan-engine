@@ -11,7 +11,11 @@
 
 namespace bve
 {
-    typedef std::vector<Vertex> Model;
+    struct Model
+    {
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indeces;
+    };
     
     std::vector<Model*> loadModels(Device *device);
 

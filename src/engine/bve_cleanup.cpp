@@ -16,6 +16,14 @@ void cleanup(CleanupList *list)
     {
         destroyBuffer(list->vertexBuffers[i]);
     }
+    for(int i = 0; i < list->indexBuffers.size();i++)
+    {
+        destroyBuffer(list->indexBuffers[i]);
+    }
+    for(int i = 0; i < list->models.size();i++)
+    {
+        delete list->models[i];
+    }
     destroyDevice(list->device);
 }
 }

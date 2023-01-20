@@ -27,6 +27,7 @@ namespace bve
 
         //Vertex buffer placeholder stuff
         auto vertexBuffers = createVertexBuffers(device, models);
+        auto indexBuffers = createIndexBuffers(device, models);
 
 
         //create pipeline configuration with a hard coded default
@@ -36,7 +37,7 @@ namespace bve
             createGraphicsPipeline(device, swapchain, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);
 
         //Create command buffers. Should be a return value instead of a parameter!
-        auto commandBuffers = createCommandBuffers(pipeline, swapchain, vertexBuffers);
+        auto commandBuffers = createCommandBuffers(pipeline, swapchain, vertexBuffers, indexBuffers);
         #ifdef DEBUG
         std::cout<<"\n -------This is a Debug build!-------\n";
         #endif
@@ -54,7 +55,9 @@ namespace bve
         auto cleanupList = new CleanupList{device, 
                                            pipeline,
                                            swapchain,
-                                           vertexBuffers};
+                                           vertexBuffers,
+                                           indexBuffers,
+                                           models};
         cleanup(cleanupList);
     }
 }

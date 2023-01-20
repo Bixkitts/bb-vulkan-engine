@@ -11,7 +11,7 @@ int main()
 {
     try
     {
-        runAppWithWindow(openWindow(800, 600, "BveWindow"));
+        runAppWithWindow(openWindow(1024, 768, "BveWindow"));
     }
     catch (const std::exception &e)
     {

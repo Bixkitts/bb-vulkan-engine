@@ -13,6 +13,8 @@ namespace bve
         GraphicsPipeline *pipeline;
         SwapChain *swapchain;
         std::vector<VertexBuffer*> vertexBuffers;
+        std::vector<VertexBuffer*> indexBuffers;
+        std::vector<Model*> models;
     };
 
     void cleanup(CleanupList* list);

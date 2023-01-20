@@ -10,7 +10,7 @@
 namespace bve
 {
 
-    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers)
+    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(swapchain->swapChainImages.size());
@@ -43,7 +43,8 @@ namespace bve
         for(int j = 0; j < vertexBuffers.size(); j++)
         {
             bindVertexBuffer(vertexBuffers[j], commandBuffers[i]);
-            drawVertexBuffer(vertexBuffers[j], commandBuffers[i]);
+            bindIndexBuffer(indexBuffers[j], commandBuffers[i]);
+            drawIndexBuffer(indexBuffers[j], commandBuffers[i]);
         }
 
         vkCmdEndRenderPass(commandBuffers[i]);

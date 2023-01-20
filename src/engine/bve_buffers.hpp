@@ -17,18 +17,25 @@ struct VulkanBuffer
     Device *device;
     VkBuffer buffer;
     VkDeviceMemory deviceMemory;
-    uint32_t vertexCount;
+    uint32_t size;
 };
 
 typedef VulkanBuffer StagingBuffer;
 typedef VulkanBuffer VertexBuffer;
+typedef VulkanBuffer IndexBuffer;
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model);
+IndexBuffer *createIndexBuffer(Device *device, Model *model);
+
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
-void destroyBuffer(VertexBuffer *v);
+std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*> models);
+
+void destroyBuffer(VulkanBuffer *v);
 
 void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer);
 void bindVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer);
+void drawIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
+void bindIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
 
 // copy these
 void createDeviceBuffer(
@@ -57,6 +64,7 @@ void createImageWithInfo(
     VkDeviceMemory &imageMemory,
     Device *theGPU);
 // ------------------------------------
-void copyToDeviceMem(StagingBuffer *sb, Model *model);
+void copyToDeviceMem(StagingBuffer *sb, std::vector<Vertex> &vertices);
+void copyToDeviceMem(StagingBuffer *sb, std::vector<uint32_t> &indeces);
 }
 #endif
