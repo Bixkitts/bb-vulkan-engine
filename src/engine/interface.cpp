@@ -26,6 +26,7 @@ namespace bve
         //Vertex and index buffers from the loaded models
         auto vertexBuffers = createVertexBuffers(device, models);
         auto indexBuffers = createIndexBuffers(device, models);
+        auto uniformBuffers = createUniformBuffers(device, sizeof(Matrices));
         //create pipeline configuration with a hard coded default
         auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
         //creating the pipe line itself using the coded default
@@ -42,7 +43,7 @@ namespace bve
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();
-            drawFrame(swapchain, commandBuffers); 
+            drawFrame(swapchain, commandBuffers, uniformBuffers); 
         }
 
         vkDeviceWaitIdle(device->logical);
@@ -53,6 +54,7 @@ namespace bve
                                            swapchain,
                                            vertexBuffers,
                                            indexBuffers,
+                                           uniformBuffers,
                                            models};
         cleanup(cleanupList);
     }

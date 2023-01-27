@@ -12,23 +12,36 @@
 #include <glm/glm.hpp>
 namespace bve
 {
+//3d transformation matrices for uniform buffer, should mb get moved to it's own area
+struct Matrices
+{
+    glm::mat4 model;
+    glm::mat4 view;
+    glm::mat4 proj;
+};
+//-------------------------------------------------------------------------------
 struct VulkanBuffer
 {
     Device *device;
     VkBuffer buffer;
     VkDeviceMemory deviceMemory;
     uint32_t size;
+    void *mapped = nullptr;       //pointer to mapped buffer if that is the case
 };
+
 
 typedef VulkanBuffer StagingBuffer;
 typedef VulkanBuffer VertexBuffer;
 typedef VulkanBuffer IndexBuffer;
+typedef VulkanBuffer UniformBuffer;
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model);
 IndexBuffer *createIndexBuffer(Device *device, Model *model);
+UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize);
 
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
 std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*> models);
+std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contentsSize);
 
 void destroyBuffer(VulkanBuffer *v);
 

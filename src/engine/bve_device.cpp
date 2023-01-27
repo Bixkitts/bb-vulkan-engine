@@ -8,6 +8,7 @@
 #include <iostream>
 #include <set>
 #include <unordered_set>
+#include <vulkan/vulkan_core.h>
 
 namespace bve {
 
@@ -80,6 +81,7 @@ void destroyDevice(Device* device)
   
     vkDestroySurfaceKHR(device->instance, device->surface_, nullptr);
     vkDestroyInstance(device->instance, nullptr);
+    vkDeviceWaitIdle(device->logical);
     vkDestroyDevice(device->logical, nullptr);
     delete device->window;
     delete device;
@@ -179,7 +181,7 @@ static void createLogicalDevice(Device* theGPU)
     {
         createInfo.enabledLayerCount = 0;
     }
-  
+ 
     if (vkCreateDevice(theGPU->physical, &createInfo, nullptr, &theGPU->logical) != VK_SUCCESS) {
         throw std::runtime_error("failed to create logical device!");
     }

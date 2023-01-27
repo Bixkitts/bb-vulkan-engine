@@ -1,4 +1,5 @@
 #include "bve_buffers.hpp"
+#include "bve_swap_chain.hpp"
 #include "config_buffers.hpp"
 #include <vulkan/vulkan_core.h>
 namespace bve
@@ -58,6 +59,19 @@ IndexBuffer *createIndexBuffer(Device *device, Model *model)
     return ibuffer;
 }
 
+UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize)
+{
+    auto *ubuffer = new UniformBuffer{};
+    ubuffer->device = device;
+    ubuffer->size = 1;  //a uniform buffer is going to typically contain a single struct
+    VkDeviceSize bufferSize = contentsSize;
+    createDeviceBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ubuffer->buffer, ubuffer->deviceMemory, device); 
+
+   vkMapMemory(device->logical, ubuffer->deviceMemory, 0, bufferSize, 0, &ubuffer->mapped);
+
+   return ubuffer;
+}
+
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models)
 {
     std::vector<VertexBuffer*> vBuffers;
@@ -84,6 +98,21 @@ std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*>
     return iBuffers;
 }
 
+std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contentsSize)
+{
+
+    std::vector<UniformBuffer*> uBuffers;
+    for(int i = 0; i <= MAX_FRAMES_IN_FLIGHT ; i++)
+    {
+        uBuffers.push_back(
+        createUniformBuffer(device, contentsSize)
+        );
+    } 
+
+    return uBuffers;
+
+
+}
 void destroyBuffer(VulkanBuffer *v)
 {
     vkDestroyBuffer(v->device->logical, v->buffer, nullptr);
