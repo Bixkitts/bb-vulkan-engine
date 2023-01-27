@@ -84,7 +84,10 @@ namespace config
         config->depthStencilInfo.pNext                      = NULL;
 
         config->renderPass = swapchain->renderPass;
-        config->pipelineLayout = bve::createPipelineLayout(swapchain->device);
+
+        //Creating layouts
+        config->descriptorSetLayout  = bve::createDescriptorSetLayout(swapchain->device);
+        config->pipelineLayout       = bve::createPipelineLayout(swapchain->device, &config->descriptorSetLayout);
         return config;
     }
     VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
@@ -108,12 +111,12 @@ namespace config
         pipelineInfo->basePipelineHandle        = VK_NULL_HANDLE;
         return pipelineInfo;
     }
-    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo()
+    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo(VkDescriptorSetLayout *descriptorSetLayout)
     {
         auto *pipelineLayoutInfo                    = new VkPipelineLayoutCreateInfo{};
         pipelineLayoutInfo->sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-        pipelineLayoutInfo->setLayoutCount          = 0;
-        pipelineLayoutInfo->pSetLayouts             = nullptr;
+        pipelineLayoutInfo->setLayoutCount          = 1;
+        pipelineLayoutInfo->pSetLayouts             = descriptorSetLayout;
         pipelineLayoutInfo->pushConstantRangeCount  = 0; 
         pipelineLayoutInfo->pPushConstantRanges     = nullptr;
         return pipelineLayoutInfo;

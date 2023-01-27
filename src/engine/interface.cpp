@@ -23,13 +23,9 @@ namespace bve
         auto swapchain = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
         auto models = loadModels(device);
-
-
-        //Vertex buffer placeholder stuff
+        //Vertex and index buffers from the loaded models
         auto vertexBuffers = createVertexBuffers(device, models);
         auto indexBuffers = createIndexBuffers(device, models);
-
-
         //create pipeline configuration with a hard coded default
         auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
         //creating the pipe line itself using the coded default

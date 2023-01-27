@@ -36,12 +36,13 @@ GraphicsPipeline* createGraphicsPipeline(
 
     mainPipeline->device = device;
     mainPipeline->swapchain = swapchain;
-    createVertShaderModule(mainPipeline, vertCode); //These create the VkShaderModules
-    createFragShaderModule(mainPipeline, fragCode); //stored in the GraphicsPipeline
+    createVertShaderModule(mainPipeline, vertCode);             //These create the VkShaderModules
+    createFragShaderModule(mainPipeline, fragCode);             //stored in the GraphicsPipeline
 
-    mainPipeline->pipelineConfig = std::move(configInfo);      //The default configuration I've passed in
-                                                    //stays stored in the pipeline object 
-                                                    //for reference and vulkan deallocation
+    
+    mainPipeline->pipelineConfig = std::move(configInfo);       //The default configuration I've passed in
+                                                                //stays stored in the pipeline object 
+                                                                //for reference and vulkan deallocation
 
     //Here the vertex input info is put constructed 
     auto bindingDescriptions     = getBindingDescriptions();
@@ -76,6 +77,7 @@ GraphicsPipeline* createGraphicsPipeline(
 void destroyPipeline(GraphicsPipeline* pipeline)
 {
     vkDestroyPipelineLayout(pipeline->device->logical, pipeline->pipelineConfig->pipelineLayout, nullptr);
+    vkDestroyDescriptorSetLayout(pipeline->device->logical, pipeline->pipelineConfig->descriptorSetLayout, nullptr);
     vkDestroyPipeline(pipeline->device->logical, pipeline->graphicsPipeline, nullptr);
     delete pipeline->pipelineConfig;
     delete pipeline;
@@ -119,10 +121,10 @@ static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector
     delete createInfo;
 }
 
-VkPipelineLayout createPipelineLayout(Device *device)
+VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout)
 {
     VkPipelineLayout pipelineLayout = {};
-    auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo();
+    auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo(descriptorSetLayout);
 
     if(vkCreatePipelineLayout(device->logical, pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS)
@@ -138,4 +140,27 @@ void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 }
 
+VkDescriptorSetLayout createDescriptorSetLayout(Device *device)
+{
+    VkDescriptorSetLayout descriptorSetLayout = {};
+
+    VkDescriptorSetLayoutBinding uboLayoutBinding{};
+    uboLayoutBinding.binding = 0;
+    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding.descriptorCount = 1;
+    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = 1;
+    layoutInfo.pBindings = &uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+
+    return descriptorSetLayout;
+
+}
 }

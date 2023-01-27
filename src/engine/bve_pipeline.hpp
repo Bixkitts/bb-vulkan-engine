@@ -23,6 +23,7 @@ namespace bve
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
 
         //Vk objects that need to be properly destroyed!
+        VkDescriptorSetLayout descriptorSetLayout;
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
         
@@ -57,8 +58,11 @@ namespace bve
 
     static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
-    VkPipelineLayout createPipelineLayout(Device *device);
-
+    VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout);
+//Descriptor set stuff
+    VkDescriptorSetLayout createDescriptorSetLayout(Device *device);
+    
+//Make shader Modules
     static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
     static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
 }

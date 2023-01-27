@@ -11,7 +11,7 @@ namespace config
 
     VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 
-    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo();
+    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo(VkDescriptorSetLayout *descriptorSetLayout);
     VkRenderPassCreateInfo *renderPassCreateInfo(bve::SwapChain *swapchain);
 
     VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code);
