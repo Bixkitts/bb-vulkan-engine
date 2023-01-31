@@ -59,7 +59,6 @@ namespace bve
     VkFormat findDepthFormat(SwapChain *swapchain);
 
     VkResult acquireNextImage(SwapChain *swapchain, uint32_t *imageIndex);
-    VkResult submitCommandBuffers(SwapChain *swapchain, const VkCommandBuffer *buffers, uint32_t *imageIndex);
 
  //private:
     static void initSwapChain(SwapChain *swapchain);
