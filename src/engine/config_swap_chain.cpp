@@ -1,6 +1,6 @@
 #include "config_swap_chain.hpp"
-#include "bve_device.hpp"
-#include "bve_swap_chain.hpp"
+#include "device.hpp"
+#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 
 namespace config

@@ -1,4 +1,4 @@
-#include "bve_model.hpp"
+#include "model.hpp"
 
 #include <cassert>
 #include <vulkan/vulkan_core.h>
@@ -27,7 +27,7 @@ namespace bve
             {{-0.9f, -0.8f}},
             {{-0.8f, -0.85f}}
         };
-        model2->indeces={0,1,2};
+        model2->indeces={2,1,0};
         
         std::vector<Model*> models;
         models.push_back(model1); 

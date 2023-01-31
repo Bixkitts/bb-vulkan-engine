@@ -1,7 +1,7 @@
-#include "bve_command_buffers.hpp"
+#include "command_buffers.hpp"
 #include "config_command_buffers.hpp"
-#include "bve_buffers.hpp"
-#include "bve_swap_chain.hpp"
+#include "buffers.hpp"
+#include "swap_chain.hpp"
 
 #include <stdexcept>
 #include <array>
@@ -39,6 +39,8 @@ namespace bve
         delete renderPassInfo;
 
         bindPipeline(pipeline, commandBuffers[i]);
+
+        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[i], 0, nullptr);
 
         for(int j = 0; j < vertexBuffers.size(); j++)
         {

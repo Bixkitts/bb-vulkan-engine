@@ -1,9 +1,10 @@
-#include "bve_pipeline.hpp"
-#include "bve_device.hpp"
-#include "bve_model.hpp"
-#include "bve_swap_chain.hpp"
+#include "pipeline.hpp"
+#include "buffers.hpp"
+#include "device.hpp"
+#include "model.hpp"
+#include "swap_chain.hpp"
 #include "config_pipeline.hpp"
-#include "bve_fileIO.hpp"
+#include "fileIO.hpp"
 
 //std libraries
 #include <fstream>
@@ -77,6 +78,7 @@ GraphicsPipeline* createGraphicsPipeline(
 void destroyPipeline(GraphicsPipeline* pipeline)
 {
     vkDestroyPipelineLayout(pipeline->device->logical, pipeline->pipelineConfig->pipelineLayout, nullptr);
+    vkDestroyDescriptorPool(pipeline->device->logical, pipeline->pipelineConfig->descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(pipeline->device->logical, pipeline->pipelineConfig->descriptorSetLayout, nullptr);
     vkDestroyPipeline(pipeline->device->logical, pipeline->graphicsPipeline, nullptr);
     delete pipeline->pipelineConfig;
@@ -89,9 +91,9 @@ static void cleanupShaderModules(GraphicsPipeline* pipeline)
     vkDestroyShaderModule(pipeline->device->logical, pipeline->fragShaderModule, nullptr);
 }
 
-PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain)
+PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers)
 {
-    auto *config = config::pipelineConfigDefault(swapchain);
+    auto *config = config::pipelineConfigDefault(swapchain, uniformBuffers);
     return config;
 }
 
@@ -119,6 +121,68 @@ static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector
         throw std::runtime_error("failed to create shader module \n");        
     }
     delete createInfo;
+}
+
+VkDescriptorPool createDescriptorPool(Device *device)
+{
+
+    VkDescriptorPoolSize poolSize{};
+    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount = 1;
+    poolInfo.pPoolSizes = &poolSize;
+    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+
+    VkDescriptorPool descriptorPool;
+
+    if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor pool!");
+    }
+    return descriptorPool;
+}
+
+std::vector<VkDescriptorSet> createDescriptorSets(Device *device, PipelineConfig *config)
+{
+    std::vector<VkDescriptorSet> descriptorSets{};
+
+    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, config->descriptorSetLayout);
+
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = config->descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
+    
+    descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+        throw std::runtime_error("failed to allocate descriptor sets!");
+    }
+    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = config->uniformBuffers[i]->buffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(Matrices);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pImageInfo = nullptr; // Optional
+        descriptorWrite.pTexelBufferView = nullptr; // Optional
+                                                    //
+        vkUpdateDescriptorSets(device->logical, 1, &descriptorWrite, 0, nullptr);
+    }
+
+    return descriptorSets;
+
 }
 
 VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout)

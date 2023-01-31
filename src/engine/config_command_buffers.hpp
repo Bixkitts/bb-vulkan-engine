@@ -1,6 +1,6 @@
 #ifndef CONFIG_COMMAND_BUFFERS
 #define CONFIG_COMMAND_BUFFERS
-#include "bve_pipeline.hpp"
+#include "pipeline.hpp"
 #include <vulkan/vulkan_core.h>
 namespace config
 {

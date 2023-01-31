@@ -1,9 +1,9 @@
 #ifndef BVE_MODEL
 #define BVE_MODEL
 #include <vulkan/vulkan_core.h>
-#include "bve_vertex.hpp"
+#include "vertex.hpp"
 
-#include "bve_device.hpp"
+#include "device.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE

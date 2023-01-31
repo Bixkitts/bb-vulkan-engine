@@ -2,8 +2,8 @@
 #define BVE_BUFFER_VERTEX
 
 #include <vulkan/vulkan_core.h>
-#include "bve_vertex.hpp"
-#include "bve_model.hpp"
+#include "vertex.hpp"
+#include "model.hpp"
 #include <iostream>
 #include <cstring>
 

@@ -1,6 +1,6 @@
 #include "config_command_buffers.hpp"
-#include "bve_pipeline.hpp"
-#include "bve_swap_chain.hpp"
+#include "pipeline.hpp"
+#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 #include <array>
 

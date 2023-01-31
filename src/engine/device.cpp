@@ -1,7 +1,7 @@
-#include "bve_device.hpp"
-#include "bve_buffers.hpp"
+#include "device.hpp"
+#include "buffers.hpp"
 #include "config_device.hpp"
-#include "bve_model.hpp"
+#include "model.hpp"
 
 // std headers
 #include <cstring>

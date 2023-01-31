@@ -1,6 +1,6 @@
 #pragma once
 
-#include "bve_swap_chain.hpp"
+#include "swap_chain.hpp"
 
 namespace config
 {

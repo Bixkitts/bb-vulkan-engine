@@ -1,5 +1,5 @@
 #include <vulkan/vulkan_core.h>
-#include "bve_device.hpp"
+#include "device.hpp"
 #include "config_device.hpp"
 
 namespace config

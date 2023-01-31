@@ -3,7 +3,7 @@
 
 #include <string>
 #include <vector>
-#include "bve_window.hpp"
+#include "window.hpp"
 
 
 namespace bve {

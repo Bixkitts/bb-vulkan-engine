@@ -1,5 +1,5 @@
-#include "bve_buffers.hpp"
-#include "bve_swap_chain.hpp"
+#include "buffers.hpp"
+#include "swap_chain.hpp"
 #include "config_buffers.hpp"
 #include <vulkan/vulkan_core.h>
 namespace bve

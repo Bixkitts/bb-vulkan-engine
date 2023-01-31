@@ -1,8 +1,9 @@
 #ifndef BVE_PIPELINE
 #define BVE_PIPELINE
 
-#include "bve_device.hpp"
-#include "bve_swap_chain.hpp"
+#include "buffers.hpp"
+#include "device.hpp"
+#include "swap_chain.hpp"
 
 #include <vector>
 #include <string>
@@ -24,8 +25,12 @@ namespace bve
 
         //Vk objects that need to be properly destroyed!
         VkDescriptorSetLayout descriptorSetLayout;
+        std::vector<VkDescriptorSet> descriptorSets;
+        VkDescriptorPool descriptorPool;
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
+
+        std::vector<UniformBuffer*> uniformBuffers; //pointer to the main vector of uniform Buffers.
         
         uint32_t subpass = 0; // There are subpasses created and 
                               // configured in the RenderPass
@@ -45,7 +50,7 @@ namespace bve
     //move this function to an IO cpp file
     std::vector<char> readFile(const std::string& filepath);
     
-    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain);
+    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers);
 
     GraphicsPipeline* createGraphicsPipeline(
             Device* device,
@@ -61,6 +66,8 @@ namespace bve
     VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout);
 //Descriptor set stuff
     VkDescriptorSetLayout createDescriptorSetLayout(Device *device);
+    VkDescriptorPool createDescriptorPool(Device *device);
+    std::vector<VkDescriptorSet> createDescriptorSets(Device *device, PipelineConfig *config);
     
 //Make shader Modules
     static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);

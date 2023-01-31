@@ -2,7 +2,7 @@
 #define CONFIG_DEVICE
 #include <vector>
 #include <vulkan/vulkan_core.h>
-#include "bve_device.hpp"
+#include "device.hpp"
 namespace config
 {
     VkApplicationInfo appInfo();

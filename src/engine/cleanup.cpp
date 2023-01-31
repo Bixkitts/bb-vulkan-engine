@@ -1,9 +1,9 @@
-#include "bve_buffers.hpp"
-#include "bve_pipeline.hpp"
-#include "bve_window.hpp"
-#include "bve_cleanup.hpp"
-#include "bve_swap_chain.hpp"
-#include "bve_device.hpp"
+#include "buffers.hpp"
+#include "pipeline.hpp"
+#include "window.hpp"
+#include "cleanup.hpp"
+#include "swap_chain.hpp"
+#include "device.hpp"
 namespace bve
 {
 // more things will... eventually be listed here!

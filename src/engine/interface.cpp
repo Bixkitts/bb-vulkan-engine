@@ -1,14 +1,14 @@
 #include "interface.hpp"
 #include "GLFW/glfw3.h"
-#include "bve_buffers.hpp"
-#include "bve_command_buffers.hpp"
-#include "bve_device.hpp"
-#include "bve_draw_frame.hpp"
-#include "bve_model.hpp"
-#include "bve_pipeline.hpp"
-#include "bve_swap_chain.hpp"
-#include "bve_window.hpp"
-#include "bve_cleanup.hpp"
+#include "buffers.hpp"
+#include "command_buffers.hpp"
+#include "device.hpp"
+#include "draw_frame.hpp"
+#include "model.hpp"
+#include "pipeline.hpp"
+#include "swap_chain.hpp"
+#include "window.hpp"
+#include "cleanup.hpp"
 #include <vulkan/vulkan_core.h>
 
 #include <vector>
@@ -28,7 +28,7 @@ namespace bve
         auto indexBuffers = createIndexBuffers(device, models);
         auto uniformBuffers = createUniformBuffers(device, sizeof(Matrices));
         //create pipeline configuration with a hard coded default
-        auto pipelineConfig = defaultPipelineConfigInfo(swapchain);
+        auto pipelineConfig = defaultPipelineConfigInfo(swapchain, uniformBuffers);
         //creating the pipe line itself using the coded default
         auto pipeline = 
             createGraphicsPipeline(device, swapchain, "../shaders/simple_shader.vert.spv", "../shaders/simple_shader.frag.spv", pipelineConfig);

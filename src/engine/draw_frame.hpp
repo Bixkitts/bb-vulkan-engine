@@ -1,8 +1,8 @@
 #ifndef BVE_DRAW_FRAME
 #define BVE_DRAW_FRAME
 
-#include "bve_swap_chain.hpp"
-#include "bve_buffers.hpp"
+#include "swap_chain.hpp"
+#include "buffers.hpp"
 #include <glm/matrix.hpp>
 
 #include <stdexcept>

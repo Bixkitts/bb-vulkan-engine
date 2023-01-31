@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.h>
-#include "bve_device.hpp"
+#include "device.hpp"
 
 namespace config
 {

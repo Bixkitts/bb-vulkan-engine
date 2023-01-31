@@ -1,6 +1,6 @@
-#include "bve_draw_frame.hpp"
-#include "bve_buffers.hpp"
-#include "bve_swap_chain.hpp"
+#include "draw_frame.hpp"
+#include "buffers.hpp"
+#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -33,8 +33,7 @@ void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> &commandBuffer
 
 void updateUniformBuffer(uint32_t currentImage, SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers)
 {
-        static auto startTime = std::chrono::high_resolution_clock::now();
-
+    static auto startTime = std::chrono::high_resolution_clock::now();
     auto currentTime = std::chrono::high_resolution_clock::now();
     float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
     Matrices ubo{};

@@ -1,6 +1,6 @@
-#include "bve_swap_chain.hpp"
-#include "bve_device.hpp"
-#include "bve_buffers.hpp"
+#include "swap_chain.hpp"
+#include "device.hpp"
+#include "buffers.hpp"
 #include "config_swap_chain.hpp"
 
 // std

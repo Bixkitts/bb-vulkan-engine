@@ -1,8 +1,8 @@
 #ifndef INTERFACE
 #define INTERFACE
 
-#include "bve_window.hpp"
-#include "bve_defines.hpp"
+#include "window.hpp"
+#include "defines.hpp"
 
 namespace bve
 {

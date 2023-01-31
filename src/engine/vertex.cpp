@@ -1,4 +1,4 @@
-#include "bve_vertex.hpp"
+#include "vertex.hpp"
 
 namespace bve
 {

@@ -1,10 +1,11 @@
 #include "config_pipeline.hpp"
-#include "bve_pipeline.hpp"
-#include "bve_swap_chain.hpp"
+#include "buffers.hpp"
+#include "pipeline.hpp"
+#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 namespace config
 {
-    bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain)
+    bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain, std::vector<bve::UniformBuffer*> &uniformBuffers)
     {
         auto *config                                 = new bve::PipelineConfig{};
         
@@ -33,8 +34,8 @@ namespace config
         config->rasterizationInfo.rasterizerDiscardEnable    = VK_FALSE;
         config->rasterizationInfo.polygonMode                = VK_POLYGON_MODE_FILL;
         config->rasterizationInfo.lineWidth                  = 1.0f;
-        config->rasterizationInfo.cullMode                   = VK_CULL_MODE_NONE;
-        config->rasterizationInfo.frontFace                  = VK_FRONT_FACE_CLOCKWISE;
+        config->rasterizationInfo.cullMode                   = VK_CULL_MODE_BACK_BIT;
+        config->rasterizationInfo.frontFace                  = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         config->rasterizationInfo.depthBiasEnable            = VK_FALSE;
         config->rasterizationInfo.depthBiasConstantFactor    = 0.0f;  // Optional
         config->rasterizationInfo.depthBiasClamp             = 0.0f;           // Optional
@@ -83,10 +84,15 @@ namespace config
         config->depthStencilInfo.back                       = {};   // Optional
         config->depthStencilInfo.pNext                      = NULL;
 
-        config->renderPass = swapchain->renderPass;
+        config->renderPass                                  = swapchain->renderPass;
 
-        //Creating layouts
+        config->uniformBuffers                              = uniformBuffers;
+
+        //Creating layouts and descriptors
         config->descriptorSetLayout  = bve::createDescriptorSetLayout(swapchain->device);
+        config->descriptorPool       = bve::createDescriptorPool(swapchain->device);
+        config->descriptorSets       = bve::createDescriptorSets(swapchain->device, config);
+
         config->pipelineLayout       = bve::createPipelineLayout(swapchain->device, &config->descriptorSetLayout);
         return config;
     }
