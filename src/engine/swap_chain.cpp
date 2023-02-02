@@ -82,6 +82,8 @@ VkResult acquireNextImage(SwapChain* swapchain, uint32_t* imageIndex)
             VK_TRUE,
             std::numeric_limits<uint64_t>::max());
 
+    vkResetFences(swapchain->device->logical, 1, &swapchain->inFlightFences[swapchain->currentFrame]);
+
     VkResult result = vkAcquireNextImageKHR(
             swapchain->device->logical,
             swapchain->swapChain,

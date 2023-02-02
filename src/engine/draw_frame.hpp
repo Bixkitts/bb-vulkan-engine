@@ -3,6 +3,7 @@
 
 #include "swap_chain.hpp"
 #include "buffers.hpp"
+#include "pipeline.hpp"
 #include <glm/matrix.hpp>
 
 #include <stdexcept>
@@ -10,7 +11,7 @@
 namespace bve
 {
 
-void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers);
+void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers);
 void updateUniformBuffer(uint32_t currentImage, SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers);
 
 }

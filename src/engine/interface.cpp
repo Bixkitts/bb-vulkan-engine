@@ -37,7 +37,7 @@ namespace bve
                                                       pipelineConfig);
 
         //Create command buffers. Should be a return value instead of a parameter!
-        auto commandBuffers    = createCommandBuffers(pipeline, swapchain, vertexBuffers, indexBuffers);
+        auto commandBuffers    = createCommandBuffers(pipeline);
         #ifdef DEBUG
         std::cout<<"\n -------This is a Debug build!-------\n";
         #endif
@@ -46,7 +46,7 @@ namespace bve
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();
-            drawFrame(swapchain, commandBuffers, uniformBuffers); 
+            drawFrame(swapchain, pipeline, commandBuffers, uniformBuffers, vertexBuffers, indexBuffers); 
         }
 
         vkDeviceWaitIdle(device->logical);

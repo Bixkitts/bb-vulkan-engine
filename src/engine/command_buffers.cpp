@@ -10,7 +10,7 @@
 namespace bve
 {
 
-    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
+    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -23,44 +23,46 @@ namespace bve
     }
     delete allocInfo;
 
-    for (int i = 0; i < commandBuffers.size(); i++)
-    {
+    return commandBuffers;
+
+}
+
+void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeline, uint32_t imageIndex, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
+{
+
         VkCommandBufferBeginInfo beginInfo{};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         
-        if (vkBeginCommandBuffer(commandBuffers[i], &beginInfo) != VK_SUCCESS)
+        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to begin recording command buffer!");
         }                
 
-        auto renderPassInfo = config::renderPassInfo(swapchain, i);
+        auto renderPassInfo = config::renderPassInfo(swapchain, imageIndex);
 
-        vkCmdBeginRenderPass(commandBuffers[i], renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(commandBuffer, renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
         delete[] renderPassInfo->pClearValues;
         delete renderPassInfo;
 
-        bindPipeline(pipeline, commandBuffers[i]);
+        bindPipeline(pipeline, commandBuffer);
 
-        vkCmdBindDescriptorSets(commandBuffers[i], VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[i], 0, nullptr);
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
 
         for(int j = 0; j < vertexBuffers.size(); j++)
         {
-            bindVertexBuffer(vertexBuffers[j], commandBuffers[i]);
-            bindIndexBuffer(indexBuffers[j], commandBuffers[i]);
-            drawIndexBuffer(indexBuffers[j], commandBuffers[i]);
+            bindVertexBuffer(vertexBuffers[j], commandBuffer);
+            bindIndexBuffer(indexBuffers[j], commandBuffer);
+            drawIndexBuffer(indexBuffers[j], commandBuffer);
         }
 
-        vkCmdEndRenderPass(commandBuffers[i]);
-        if(vkEndCommandBuffer(commandBuffers[i]) != VK_SUCCESS)
+        vkCmdEndRenderPass(commandBuffer);
+        if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
         {
             throw std::runtime_error("failed to record command buffer!");
        }
     }
-    return commandBuffers;
 
-}
-VkResult submitCommandBuffers(
-                SwapChain* swapchain,
+VkResult submitCommandBuffers(SwapChain *swapchain,
         const VkCommandBuffer* buffers, uint32_t* imageIndex) 
 {
     if (swapchain->imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 

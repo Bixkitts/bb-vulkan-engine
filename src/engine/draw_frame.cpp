@@ -1,5 +1,6 @@
 #include "draw_frame.hpp"
 #include "buffers.hpp"
+#include "pipeline.hpp"
 #include "swap_chain.hpp"
 #include "command_buffers.hpp"
 #include <vulkan/vulkan_core.h>
@@ -12,7 +13,7 @@
 namespace bve
 {
 
-void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers)
+void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
 {
     uint32_t imageIndex;
     auto result = acquireNextImage(swapchain, &imageIndex);
@@ -23,6 +24,9 @@ void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> &commandBuffer
     }
 
     updateUniformBuffer(imageIndex, swapchain, uniformBuffers);
+    vkResetCommandBuffer(commandBuffers[swapchain->currentFrame], 0);
+
+    recordCommandBuffer(commandBuffers[swapchain->currentFrame], pipeline, imageIndex, swapchain, vertexBuffers, indexBuffers);
 
     result = submitCommandBuffers(swapchain, &commandBuffers[swapchain->currentFrame], &imageIndex);
     if (result != VK_SUCCESS)

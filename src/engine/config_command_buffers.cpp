@@ -6,12 +6,12 @@
 
 namespace config
 {
-    VkRenderPassBeginInfo *renderPassInfo(bve::SwapChain *swapchain, int framebufferIndex)
+    VkRenderPassBeginInfo *renderPassInfo(bve::SwapChain *swapchain, uint32_t imageIndex)
     {
         auto renderPassInfo = new VkRenderPassBeginInfo{};
         renderPassInfo->sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo->renderPass = swapchain->renderPass;
-        renderPassInfo->framebuffer = swapchain->swapChainFramebuffers[framebufferIndex];
+        renderPassInfo->framebuffer = swapchain->swapChainFramebuffers[imageIndex];
         renderPassInfo->renderArea.offset = {0,0};
         renderPassInfo->renderArea.extent = swapchain->swapChainExtent;
 
