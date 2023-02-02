@@ -102,7 +102,7 @@ std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contents
 {
 
     std::vector<UniformBuffer*> uBuffers;
-    for(int i = 0; i <= MAX_FRAMES_IN_FLIGHT ; i++)
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT ; i++)
     {
         uBuffers.push_back(
         createUniformBuffer(device, contentsSize)

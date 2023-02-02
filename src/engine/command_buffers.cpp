@@ -65,11 +65,6 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeli
 VkResult submitCommandBuffers(SwapChain *swapchain,
         const VkCommandBuffer* buffers, uint32_t* imageIndex) 
 {
-    if (swapchain->imagesInFlight[*imageIndex] != VK_NULL_HANDLE) 
-    {
-        vkWaitForFences(swapchain->device->logical, 1, &swapchain->imagesInFlight[*imageIndex], VK_TRUE, UINT64_MAX);
-    }
-    swapchain->imagesInFlight[*imageIndex] = swapchain->inFlightFences[swapchain->currentFrame];
 
     VkSubmitInfo submitInfo = {};
     submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -87,7 +82,6 @@ VkResult submitCommandBuffers(SwapChain *swapchain,
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores = signalSemaphores;
 
-    vkResetFences(swapchain->device->logical, 1, &swapchain->inFlightFences[swapchain->currentFrame]);
     if (vkQueueSubmit(swapchain->device->graphicsQueue_, 1, &submitInfo, swapchain->inFlightFences[swapchain->currentFrame]) !=
             VK_SUCCESS) 
     {

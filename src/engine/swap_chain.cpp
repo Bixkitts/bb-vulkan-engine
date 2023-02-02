@@ -296,7 +296,6 @@ void createSyncObjects(SwapChain* swapchain)
     swapchain->imageAvailableSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     swapchain->renderFinishedSemaphores.resize(MAX_FRAMES_IN_FLIGHT);
     swapchain->inFlightFences.resize(MAX_FRAMES_IN_FLIGHT);
-    swapchain->imagesInFlight.resize(MAX_FRAMES_IN_FLIGHT, VK_NULL_HANDLE);
 
     VkSemaphoreCreateInfo semaphoreInfo = {};
     semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
