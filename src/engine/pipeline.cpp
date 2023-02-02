@@ -123,22 +123,49 @@ static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector
     delete createInfo;
 }
 
+
+//--------------------------------------------------------------------
+// Decriptor Set stuff starts here!!
+//--------------------------------------------------------------------
+//
+VkDescriptorSetLayout createDescriptorSetLayout(Device *device)
+{
+    VkDescriptorSetLayout descriptorSetLayout{};
+
+    auto uboLayoutBinding = new VkDescriptorSetLayoutBinding{};
+    uboLayoutBinding->binding            = 0;
+    uboLayoutBinding->descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    uboLayoutBinding->descriptorCount    = 1;
+    uboLayoutBinding->stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
+    uboLayoutBinding->pImmutableSamplers = nullptr; // Optional
+
+    auto layoutInfo = new VkDescriptorSetLayoutCreateInfo{};
+    layoutInfo->sType                    = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo->bindingCount             = 1;
+    layoutInfo->pBindings                = uboLayoutBinding;
+
+    if (vkCreateDescriptorSetLayout(device->logical, layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create descriptor set layout!");
+    }
+    return descriptorSetLayout;
+}
+
 VkDescriptorPool createDescriptorPool(Device *device)
 {
 
-    VkDescriptorPoolSize poolSize{};
-    poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSize.descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    auto poolSize = new VkDescriptorPoolSize{};
+    poolSize->type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSize->descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
-    VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 1;
-    poolInfo.pPoolSizes = &poolSize;
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    auto poolInfo = new VkDescriptorPoolCreateInfo{};
+    poolInfo->sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo->poolSizeCount = 1;
+    poolInfo->pPoolSizes = poolSize;
+    poolInfo->maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
 
     VkDescriptorPool descriptorPool;
 
-    if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(device->logical, poolInfo, nullptr, &descriptorPool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
     }
     return descriptorPool;
@@ -150,45 +177,46 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, PipelineConfig
 
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, config->descriptorSetLayout);
 
-    VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = config->descriptorPool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    allocInfo.pSetLayouts = layouts.data();
+    auto allocInfo = new VkDescriptorSetAllocateInfo{};
+    allocInfo->sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo->descriptorPool = config->descriptorPool;
+    allocInfo->descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo->pSetLayouts = layouts.data();
     
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device->logical, allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
     for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = config->uniformBuffers[i]->buffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(Matrices);
+        auto bufferInfo = new VkDescriptorBufferInfo{};
+        bufferInfo->buffer = config->uniformBuffers[i]->buffer;
+        bufferInfo->offset = 0;
+        bufferInfo->range = sizeof(Matrices);
 
-        VkWriteDescriptorSet descriptorWrite{};
-        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite.dstSet = descriptorSets[i];
-        descriptorWrite.dstBinding = 0;
-        descriptorWrite.dstArrayElement = 0;
-        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite.descriptorCount = 1;
-        descriptorWrite.pBufferInfo = &bufferInfo;
-        descriptorWrite.pImageInfo = nullptr; // Optional
-        descriptorWrite.pTexelBufferView = nullptr; // Optional
+        auto descriptorWrite = new VkWriteDescriptorSet{};
+        descriptorWrite->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite->dstSet = descriptorSets[i];
+        descriptorWrite->dstBinding = 0;
+        descriptorWrite->dstArrayElement = 0;
+        descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite->descriptorCount = 1;
+        descriptorWrite->pBufferInfo = bufferInfo;
+        descriptorWrite->pImageInfo = nullptr; // Optional
+        descriptorWrite->pTexelBufferView = nullptr; // Optional
                                                     //
-        vkUpdateDescriptorSets(device->logical, 1, &descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets(device->logical, 1, descriptorWrite, 0, nullptr);
     }
 
     return descriptorSets;
 
 }
 
-VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout)
+
+VkPipelineLayout createPipelineLayout(Device *device, bve::PipelineConfig *config)
 {
     VkPipelineLayout pipelineLayout = {};
-    auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo(descriptorSetLayout);
+    auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo(config);
 
     if(vkCreatePipelineLayout(device->logical, pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS)
@@ -204,27 +232,4 @@ void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 }
 
-VkDescriptorSetLayout createDescriptorSetLayout(Device *device)
-{
-    VkDescriptorSetLayout descriptorSetLayout = {};
-
-    VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding = 0;
-    uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount = 1;
-    uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
-
-    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 1;
-    layoutInfo.pBindings = &uboLayoutBinding;
-
-    if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor set layout!");
-    }
-
-    return descriptorSetLayout;
-
-}
 }

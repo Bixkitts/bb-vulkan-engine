@@ -63,7 +63,7 @@ namespace bve
 
     static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
-    VkPipelineLayout createPipelineLayout(Device *device, VkDescriptorSetLayout *descriptorSetLayout);
+    VkPipelineLayout createPipelineLayout(Device *device, bve::PipelineConfig *config);
 //Descriptor set stuff
     VkDescriptorSetLayout createDescriptorSetLayout(Device *device);
     VkDescriptorPool createDescriptorPool(Device *device);

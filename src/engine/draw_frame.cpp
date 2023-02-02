@@ -24,7 +24,7 @@ void drawFrame(SwapChain* swapchain, std::vector<VkCommandBuffer> &commandBuffer
 
     updateUniformBuffer(imageIndex, swapchain, uniformBuffers);
 
-    result = submitCommandBuffers(swapchain, &commandBuffers[imageIndex], &imageIndex);
+    result = submitCommandBuffers(swapchain, &commandBuffers[swapchain->currentFrame], &imageIndex);
     if (result != VK_SUCCESS)
     {
         throw std::runtime_error("failed to run command from command buffer!");

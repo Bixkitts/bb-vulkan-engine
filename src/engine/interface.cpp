@@ -18,23 +18,23 @@ namespace bve
     BBAPI void runAppWithWindow(BveWindow* mainWindow)
     {
         //create vulkan physical and logical device and store it all in device struct
-        auto device                                = deviceInit(mainWindow);
+        auto device            = deviceInit(mainWindow);
         //create swap chain and store all the vulkan details in SwapChain struct
-        auto swapchain                          = createSwapChain(device, getExtent(mainWindow));
+        auto swapchain         = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
-        auto models                    = loadModels(device);
+        auto models            = loadModels(device);
         //Vertex and index buffers from the loaded models
-        auto vertexBuffers      = createVertexBuffers(device, models);
-        auto indexBuffers        = createIndexBuffers(device, models);
+        auto vertexBuffers     = createVertexBuffers(device, models);
+        auto indexBuffers      = createIndexBuffers(device, models);
         auto uniformBuffers    = createUniformBuffers(device, sizeof(Matrices));
         //create pipeline configuration with a hard coded default
-        auto pipelineConfig                = defaultPipelineConfigInfo(swapchain, uniformBuffers);
+        auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers);
         //creating the pipe line itself using the coded default
-        auto pipeline                    = createGraphicsPipeline(device, 
-                                                                                    swapchain, 
-                                                                                    "../shaders/simple_shader.vert.spv", 
-                                                                                    "../shaders/simple_shader.frag.spv", 
-                                                                                    pipelineConfig);
+        auto pipeline          = createGraphicsPipeline(device, 
+                                                      swapchain, 
+                                                      "../shaders/simple_shader.vert.spv", 
+                                                      "../shaders/simple_shader.frag.spv", 
+                                                      pipelineConfig);
 
         //Create command buffers. Should be a return value instead of a parameter!
         auto commandBuffers    = createCommandBuffers(pipeline, swapchain, vertexBuffers, indexBuffers);

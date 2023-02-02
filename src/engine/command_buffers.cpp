@@ -13,7 +13,7 @@ namespace bve
     std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
 {
     std::vector<VkCommandBuffer> commandBuffers;
-    commandBuffers.resize(swapchain->swapChainImages.size());
+    commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
     auto allocInfo = config::allocInfo(pipeline, commandBuffers);
     if(vkAllocateCommandBuffers(pipeline->device->logical, allocInfo, commandBuffers.data()) !=
