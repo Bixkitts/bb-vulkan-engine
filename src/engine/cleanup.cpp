@@ -33,5 +33,6 @@ void cleanup(CleanupList *list)
         delete list->models[i];
     }
     destroyDevice(list->device);
+    delete list;
 }
 }

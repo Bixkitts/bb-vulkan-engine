@@ -177,35 +177,35 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, PipelineConfig
 
     std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, config->descriptorSetLayout);
 
-    auto allocInfo = new VkDescriptorSetAllocateInfo{};
-    allocInfo->sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo->descriptorPool = config->descriptorPool;
-    allocInfo->descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    allocInfo->pSetLayouts = layouts.data();
+    VkDescriptorSetAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool = config->descriptorPool;
+    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts.data();
     
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(device->logical, allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
     for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
-        auto bufferInfo = new VkDescriptorBufferInfo{};
-        bufferInfo->buffer = config->uniformBuffers[i]->buffer;
-        bufferInfo->offset = 0;
-        bufferInfo->range = sizeof(Matrices);
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = config->uniformBuffers[i]->buffer;
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(Matrices);
 
-        auto descriptorWrite = new VkWriteDescriptorSet{};
-        descriptorWrite->sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrite->dstSet = descriptorSets[i];
-        descriptorWrite->dstBinding = 0;
-        descriptorWrite->dstArrayElement = 0;
-        descriptorWrite->descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrite->descriptorCount = 1;
-        descriptorWrite->pBufferInfo = bufferInfo;
-        descriptorWrite->pImageInfo = nullptr; // Optional
-        descriptorWrite->pTexelBufferView = nullptr; // Optional
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = descriptorSets[i];
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+        descriptorWrite.pImageInfo = nullptr; // Optional
+        descriptorWrite.pTexelBufferView = nullptr; // Optional
                                                     //
-        vkUpdateDescriptorSets(device->logical, 1, descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets(device->logical, 1, &descriptorWrite, 0, nullptr);
     }
 
     return descriptorSets;
