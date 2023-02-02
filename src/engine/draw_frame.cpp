@@ -23,10 +23,11 @@ void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkC
         throw std::runtime_error("failed to acquire swap chain image!");
     }
 
-    updateUniformBuffer(imageIndex, swapchain, uniformBuffers);
     vkResetCommandBuffer(commandBuffers[swapchain->currentFrame], 0);
 
     recordCommandBuffer(commandBuffers[swapchain->currentFrame], pipeline, imageIndex, swapchain, vertexBuffers, indexBuffers);
+
+    updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
 
     result = submitCommandBuffers(swapchain, &commandBuffers[swapchain->currentFrame], &imageIndex);
     if (result != VK_SUCCESS)
