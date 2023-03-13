@@ -442,35 +442,6 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, D
 }
 
 
-VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
-{
-    VkCommandBufferAllocateInfo allocInfo = config::commandBufferAllocInfo(theGPU);
-
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(theGPU->logical, &allocInfo, &commandBuffer);
-  
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
-    return commandBuffer;
-}
-
-void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU) 
-{
-    vkEndCommandBuffer(commandBuffer);
-  
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-  
-    vkQueueSubmit(theGPU->graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(theGPU->graphicsQueue_);
-  
-    vkFreeCommandBuffers(theGPU->logical, theGPU->commandPool, 1, &commandBuffer);
-}
 
 
 

@@ -34,6 +34,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/images.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/images.hpp
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp

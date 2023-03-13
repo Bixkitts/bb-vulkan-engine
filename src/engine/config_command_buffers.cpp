@@ -32,4 +32,13 @@ namespace config
         allocInfo->commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
         return allocInfo;
     }
+    VkCommandBufferAllocateInfo commandBufferAllocInfo(bve::Device *theGPU)
+    {
+        VkCommandBufferAllocateInfo allocInfo = {};
+        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        allocInfo.commandPool = theGPU->commandPool;
+        allocInfo.commandBufferCount = 1;
+        return allocInfo;
+    }
 }

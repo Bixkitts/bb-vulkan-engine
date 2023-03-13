@@ -43,15 +43,6 @@ namespace config
                 VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         return poolInfo;
     }
-    VkCommandBufferAllocateInfo commandBufferAllocInfo(bve::Device *theGPU)
-    {
-        VkCommandBufferAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-        allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-        allocInfo.commandPool = theGPU->commandPool;
-        allocInfo.commandBufferCount = 1;
-        return allocInfo;
-    }
     VkDeviceCreateInfo logicalCreateInfo(std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos, VkPhysicalDeviceFeatures &deviceFeatures, const std::vector<const char *> &deviceExtensions )
     {
         VkDeviceCreateInfo createInfo = {};

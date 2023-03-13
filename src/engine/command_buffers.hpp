@@ -18,6 +18,9 @@ namespace bve{
 
     VkResult submitCommandBuffers(
                 SwapChain* swapchain,
-        const VkCommandBuffer* buffers, uint32_t* imageIndex) ;
+                const VkCommandBuffer* buffers, uint32_t* imageIndex) ;
+    //single time commands
+    VkCommandBuffer beginSingleTimeCommands(Device* theGPU); 
+    void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU); 
 }
 #endif

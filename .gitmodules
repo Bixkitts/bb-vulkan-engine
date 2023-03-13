@@ -7,3 +7,6 @@
 [submodule "lib/bb-net-lib"]
 	path = lib/bb-net-lib
 	url = https://github.com/Bixkitts/bb-net-lib.git
+[submodule "lib/stb"]
+	path = lib/stb
+	url = https://github.com/nothings/stb.git

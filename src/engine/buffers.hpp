@@ -51,7 +51,7 @@ void drawIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
 void bindIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
 
 // copy these
-void createDeviceBuffer(
+void createBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
     VkMemoryPropertyFlags properties,

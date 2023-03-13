@@ -9,6 +9,7 @@ namespace config
 {
     VkRenderPassBeginInfo *renderPassInfo(bve::SwapChain *swapchain, uint32_t imageIndex);
     VkCommandBufferAllocateInfo* allocInfo(bve::GraphicsPipeline* pipeline, std::vector<VkCommandBuffer> &commandBuffers);
+    VkCommandBufferAllocateInfo commandBufferAllocInfo(bve::Device *theGPU);
 }
 
 #endif

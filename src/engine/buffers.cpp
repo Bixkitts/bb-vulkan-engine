@@ -11,7 +11,7 @@ VertexBuffer *createVertexBuffer(Device *device, Model *model)
     sbuffer->device = device;
     assert(model->vertices.size() >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(Vertex) * model->vertices.size();
-    createDeviceBuffer(bufferSize,
+    createBuffer(bufferSize,
            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
            sbuffer->buffer,
@@ -23,7 +23,7 @@ VertexBuffer *createVertexBuffer(Device *device, Model *model)
     auto *vbuffer = new VertexBuffer{};
     vbuffer->device = device;
     vbuffer->size = model->vertices.size();
-    createDeviceBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vbuffer->buffer, vbuffer->deviceMemory, vbuffer->device);
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vbuffer->buffer, vbuffer->deviceMemory, vbuffer->device);
 
     copyBuffer(device, sbuffer->buffer, vbuffer->buffer, bufferSize);
    
@@ -38,7 +38,7 @@ IndexBuffer *createIndexBuffer(Device *device, Model *model)
     sbuffer->device = device;
     assert(model->indeces.size() >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(model->indeces[0]) * model->indeces.size();
-    createDeviceBuffer(bufferSize,
+    createBuffer(bufferSize,
            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
            sbuffer->buffer,
@@ -50,7 +50,7 @@ IndexBuffer *createIndexBuffer(Device *device, Model *model)
     auto *ibuffer = new IndexBuffer{};
     ibuffer->device = device;
     ibuffer->size = model->indeces.size();
-    createDeviceBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, ibuffer->buffer, ibuffer->deviceMemory, ibuffer->device);
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, ibuffer->buffer, ibuffer->deviceMemory, ibuffer->device);
 
     copyBuffer(device, sbuffer->buffer, ibuffer->buffer, bufferSize);
    
@@ -65,7 +65,7 @@ UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize)
     ubuffer->device = device;
     ubuffer->size = 1;  //a uniform buffer is going to typically contain a single struct
     VkDeviceSize bufferSize = contentsSize;
-    createDeviceBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ubuffer->buffer, ubuffer->deviceMemory, device); 
+    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ubuffer->buffer, ubuffer->deviceMemory, device); 
 
    vkMapMemory(device->logical, ubuffer->deviceMemory, 0, bufferSize, 0, &ubuffer->mapped);
 
@@ -161,7 +161,7 @@ void copyToDeviceMem(StagingBuffer *sb, std::vector<uint32_t> &indeces)
     vkUnmapMemory(sb->device->logical, sb->deviceMemory);
 }
 
-void createDeviceBuffer(
+void createBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
     VkMemoryPropertyFlags properties,
