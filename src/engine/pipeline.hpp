@@ -11,7 +11,6 @@
 
 namespace bve
 {
-
     struct PipelineConfig
     {
         VkViewport viewport;
@@ -72,7 +71,7 @@ namespace bve
 //Make shader Modules
     static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
     static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
-}
 
+}
 
 #endif

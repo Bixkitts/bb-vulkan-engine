@@ -17,11 +17,9 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/window.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/device.cpp           
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/pipeline.hpp    
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_command_buffers.cpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/device.hpp           
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/swap_chain.cpp  
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_command_buffers.hpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/draw_frame.cpp       
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/swap_chain.hpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.cpp
@@ -30,8 +28,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/cleanup.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/cleanup.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/fileIO.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/fileIO.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.hpp
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_swap_chain.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/images.cpp

@@ -63,7 +63,7 @@ VkCommandBuffer beginSingleTimeCommands(Device *theGPU);
 void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device *theGPU);
 
 void copyBuffer(Device *theGPU, VkBuffer srcBuffer, VkBuffer dstBuffer, VkDeviceSize size);
-void copyBufferToImage(
+void copyBufferToImage( Device *theGPU,
         VkBuffer buffer, VkImage image, uint32_t width, uint32_t height, uint32_t layerCount);
 //----------------------------------------------------
 //Allocation Stuff, maybe moved to it's own files

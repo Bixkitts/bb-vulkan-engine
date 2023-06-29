@@ -1,5 +1,4 @@
 #include "command_buffers.hpp"
-#include "config_command_buffers.hpp"
 #include "buffers.hpp"
 #include "swap_chain.hpp"
 
@@ -15,13 +14,17 @@ namespace bve
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
 
-    auto allocInfo = config::allocInfo(pipeline, commandBuffers);
-    if(vkAllocateCommandBuffers(pipeline->device->logical, allocInfo, commandBuffers.data()) !=
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = pipeline->device->commandPool;
+    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+
+    if(vkAllocateCommandBuffers(pipeline->device->logical, &allocInfo, commandBuffers.data()) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
     }
-    delete allocInfo;
 
     return commandBuffers;
 
@@ -38,11 +41,21 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeli
             throw std::runtime_error("failed to begin recording command buffer!");
         }                
 
-        auto renderPassInfo = config::renderPassInfo(swapchain, imageIndex);
+        VkRenderPassBeginInfo renderPassInfo = {};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = swapchain->renderPass;
+        renderPassInfo.framebuffer = swapchain->swapChainFramebuffers[imageIndex];
+        renderPassInfo.renderArea.offset = {0,0};
+        renderPassInfo.renderArea.extent = swapchain->swapChainExtent;
 
-        vkCmdBeginRenderPass(commandBuffer, renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-        delete[] renderPassInfo->pClearValues;
-        delete renderPassInfo;
+        auto clearValues = new VkClearValue[2];
+        clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+        clearValues[1].depthStencil = {1.0f, 0};
+
+        renderPassInfo.clearValueCount = 2;
+        renderPassInfo.pClearValues = clearValues;
+
+        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
         bindPipeline(pipeline, commandBuffer);
 
@@ -109,7 +122,11 @@ VkResult submitCommandBuffers(SwapChain *swapchain,
 
 VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
 {
-    VkCommandBufferAllocateInfo allocInfo = config::commandBufferAllocInfo(theGPU);
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool = theGPU->commandPool;
+    allocInfo.commandBufferCount = 1;
 
     VkCommandBuffer commandBuffer;
     vkAllocateCommandBuffers(theGPU->logical, &allocInfo, &commandBuffer);

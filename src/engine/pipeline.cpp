@@ -16,7 +16,6 @@
 
 namespace bve
 {
-
 GraphicsPipeline* createGraphicsPipeline(
         Device* device,
         SwapChain* swapchain,
@@ -232,4 +231,4 @@ void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 }
 
-}
+} // namespace bve
