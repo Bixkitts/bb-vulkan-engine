@@ -128,6 +128,15 @@ if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANS
     endSingleTimeCommands(commandBuffer, device);
 }
 
+// this has a duplicate function I should transform into one
+void createTextureImageView(Device* device, VulkanImage* image)
+{
+    
+
+
+
+}
+
 
 
 }
