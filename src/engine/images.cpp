@@ -1,12 +1,17 @@
 #include "images.hpp"
 #include <stdexcept>
 #include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
 #include "buffers.hpp"
 #include "command_buffers.hpp"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 namespace bve
 {
+
+static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, Device* device);
+
+
 VulkanImage* createTextureImage(Device* device)
 {
     int texWidth, texHeight, texChannels;
@@ -45,8 +50,20 @@ void destroyImage(VulkanImage *v)
     delete v;
 }
 
+void destroyImageView(VulkanImageView *v)
+{
+    vkDestroyImageView(v->device->logical, v->view, nullptr);
+    delete v;
+}
 
-void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, Device* device)
+void destroySampler(VulkanSampler* s)
+{
+    vkDestroySampler(s->device->logical, s->sampler, nullptr);
+    delete s;
+}
+
+
+static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, Device* device)
 {
     VkImageCreateInfo imageInfo{};
     imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
@@ -129,14 +146,60 @@ if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANS
 }
 
 // this has a duplicate function I should transform into one
-void createTextureImageView(Device* device, VulkanImage* image)
+VulkanImageView* createTextureImageView(VulkanImage* image)
 {
-    
+    VkImageViewCreateInfo viewInfo = {};
+    viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    viewInfo.image                           = image->textureImage;
+    viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+    viewInfo.format                          = image->format;
+    viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    viewInfo.subresourceRange.baseMipLevel   = 0;
+    viewInfo.subresourceRange.levelCount     = 1;
+    viewInfo.subresourceRange.baseArrayLayer = 0;
+    viewInfo.subresourceRange.layerCount     = 1;
 
+    auto imageView = new VulkanImageView{};
+    if (vkCreateImageView(image->device->logical, &viewInfo, nullptr, &imageView->view) !=
+            VK_SUCCESS) 
+    {
+        throw std::runtime_error("failed to create texture image view!");
+    }
+    return imageView;
+}
 
+VulkanSampler* createTextureSampler(VulkanImage* image)
+{
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType                    = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter                = VK_FILTER_LINEAR;
+    samplerInfo.minFilter                = VK_FILTER_LINEAR;
+    samplerInfo.addressModeU             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeV             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.addressModeW             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    samplerInfo.anisotropyEnable         = VK_TRUE;
+    samplerInfo.maxAnisotropy            = image->device->physicalProperties.limits.maxSamplerAnisotropy;
+    samplerInfo.borderColor              = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+    samplerInfo.unnormalizedCoordinates  = VK_FALSE;
+    samplerInfo.compareEnable            = VK_FALSE;
+    samplerInfo.compareOp                = VK_COMPARE_OP_ALWAYS;
+    samplerInfo.mipmapMode               = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    samplerInfo.mipLodBias               = 0.0f;
+    samplerInfo.minLod                   = 0.0f;
+    samplerInfo.maxLod                   = 0.0f;
 
+    VulkanSampler* sampler = new VulkanSampler{};
+    if (vkCreateSampler(image->device->logical, &samplerInfo, nullptr, &sampler->sampler) 
+            != VK_SUCCESS) 
+    {
+        throw std::runtime_error("failed to create texture sampler!");
+    }
+    return sampler;
 }
 
 
 
 }
+
+
+

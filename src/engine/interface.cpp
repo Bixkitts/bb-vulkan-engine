@@ -26,7 +26,8 @@ namespace bve
         auto models            = loadModels(device);
         //Vertex and index buffers from the loaded models
         auto textureImage      = createTextureImage(device);
-        auto textureImageView  = createTextureImageView(device, textureImage);
+        auto textureImageView  = createTextureImageView(textureImage);
+        auto textureSampler    = createTextureSampler(textureImage);
 
         auto vertexBuffers     = createVertexBuffers(device, models);
         auto indexBuffers      = createIndexBuffers(device, models);

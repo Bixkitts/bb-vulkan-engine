@@ -61,7 +61,7 @@ namespace bve
 
  //private:
     static void initSwapChain(SwapChain *swapchain);
-    static void createImageViews(SwapChain *swapchain);
+    static void createSwapchainImageViews(SwapChain *swapchain);
     static void createDepthResources(SwapChain *swapchain);
     static void createRenderPass(SwapChain *swapchain);
     static void createFramebuffers(SwapChain *swapchain);

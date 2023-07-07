@@ -19,7 +19,7 @@ SwapChain* createSwapChain(Device* device, VkExtent2D extent)
     SwapChain* swapchain = new SwapChain;
     swapchain->device = device;
     initSwapChain(swapchain);
-    createImageViews(swapchain);
+    createSwapchainImageViews(swapchain);
     createRenderPass(swapchain);
     createDepthResources(swapchain);
     createFramebuffers(swapchain);
@@ -169,7 +169,7 @@ void initSwapChain(SwapChain* swapchain)
     swapchain->swapChainExtent = extent;
 }
 
-void createImageViews(SwapChain* swapchain) 
+void createSwapchainImageViews(SwapChain* swapchain) 
 {
     swapchain->swapChainImageViews.resize(swapchain->swapChainImages.size());
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
