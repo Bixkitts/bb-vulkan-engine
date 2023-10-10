@@ -14,19 +14,18 @@ namespace bve
         //placeholder model loader
         Model *model1 = new Model;
         model1->vertices={
-            {{-0.5f, -0.5f}},
-            {{0.5f, -0.5f}},
-            {{0.5f, 0.5f}},
-            {{-0.5f, 0.5f}}
+            {{-0.5f, -0.5f}, {1.0f, 0.0f}},
+            {{0.5f, -0.5f},  {0.0f, 0.0f}},
+            {{0.5f, 0.5f},   {0.0f, 1.0f}},
+            {{-0.5f, 0.5f},  {1.0f, 1.0f}}
         };
         model1->indeces={0,1,2,2,3,0};
         //placeholder model loader
         Model *model2 = new Model;
         model2->vertices={
-            {{-0.9f, -0.9f}},
-            {{-0.9f, -0.8f}},
-            {{-0.8f, -0.85f}}
-        };
+            {{-0.9f, -0.9f}, {1.0f, 0.0f}},
+            {{-0.9f, -0.8f}, {0.0f, 0.0f}},
+            {{-0.8f, -0.85f}, {0.0f, 1.0f}}};
         model2->indeces={2,1,0};
         
         std::vector<Model*> models;

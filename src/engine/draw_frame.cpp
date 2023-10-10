@@ -13,7 +13,7 @@
 namespace bve
 {
 
-void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
+void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models)
 {
     uint32_t imageIndex;
     auto result = acquireNextImage(swapchain, &imageIndex);
@@ -25,7 +25,7 @@ void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkC
 
     vkResetCommandBuffer(commandBuffers[swapchain->currentFrame], 0);
 
-    recordCommandBuffer(commandBuffers[swapchain->currentFrame], pipeline, imageIndex, swapchain, vertexBuffers, indexBuffers);
+    recordCommandBuffer(commandBuffers[swapchain->currentFrame], pipeline, imageIndex, swapchain, vertexBuffers, indexBuffers, models);
 
     updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
 

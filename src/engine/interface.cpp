@@ -51,7 +51,7 @@ namespace bve
         while (!glfwWindowShouldClose(mainWindow->window))
         {
             glfwPollEvents();
-            drawFrame(swapchain, pipeline, commandBuffers, uniformBuffers, vertexBuffers, indexBuffers); 
+            drawFrame(swapchain, pipeline, commandBuffers, uniformBuffers, vertexBuffers, indexBuffers, models); 
         }
 
         vkDeviceWaitIdle(device->logical);

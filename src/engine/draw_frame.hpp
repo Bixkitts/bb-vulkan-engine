@@ -11,7 +11,7 @@
 namespace bve
 {
 
-void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers);
+void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models);
 void updateUniformBuffer(uint32_t currentImage, SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers);
 
 }

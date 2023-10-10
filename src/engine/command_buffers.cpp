@@ -1,5 +1,6 @@
 #include "command_buffers.hpp"
 #include "buffers.hpp"
+#include "model.hpp"
 #include "swap_chain.hpp"
 
 #include <stdexcept>
@@ -30,7 +31,7 @@ namespace bve
 
 }
 
-void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeline, uint32_t imageIndex, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers)
+void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeline, uint32_t imageIndex, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models)
 {
 
         VkCommandBufferBeginInfo beginInfo{};

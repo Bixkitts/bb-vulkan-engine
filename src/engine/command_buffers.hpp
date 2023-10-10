@@ -14,7 +14,8 @@ namespace bve{
                             uint32_t imageIndex, 
                             SwapChain* swapchain, 
                             std::vector<VertexBuffer*> &vertexBuffers, 
-                            std::vector<IndexBuffer*> &indexBuffers);
+                            std::vector<IndexBuffer*> &indexBuffers,
+                            std::vector<Model*> &models);
 
     VkResult submitCommandBuffers(
                 SwapChain* swapchain,

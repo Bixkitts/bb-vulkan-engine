@@ -110,8 +110,6 @@ std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contents
     } 
 
     return uBuffers;
-
-
 }
 void destroyBuffer(VulkanBuffer *v)
 {
