@@ -32,6 +32,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/images.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/images.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/descriptor_sets.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/descriptor_sets.hpp
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp

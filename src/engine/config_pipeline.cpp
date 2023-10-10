@@ -5,7 +5,7 @@
 #include <vulkan/vulkan_core.h>
 namespace config
 {
-    bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain, std::vector<bve::UniformBuffer*> &uniformBuffers)
+    bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain, std::vector<bve::UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets)
     {
         auto *config                                 = new bve::PipelineConfig{};
         
@@ -89,9 +89,8 @@ namespace config
         config->uniformBuffers                              = uniformBuffers;
 
         //Creating layouts and descriptors
-        config->descriptorSetLayout  = bve::createDescriptorSetLayout(swapchain->device);
-        config->descriptorPool       = bve::createDescriptorPool(swapchain->device);
-        config->descriptorSets       = bve::createDescriptorSets(swapchain->device, config);
+        config->descriptorSetLayout  = descriptorSetLayout;
+        config->descriptorSets       = descriptorSets;
 
         config->pipelineLayout       = bve::createPipelineLayout(swapchain->device, config);
         return config;
@@ -117,22 +116,22 @@ namespace config
         pipelineInfo->basePipelineHandle        = VK_NULL_HANDLE;
         return pipelineInfo;
     }
-    VkPipelineLayoutCreateInfo *pipelineLayoutCreateInfo(bve::PipelineConfig *config)
+    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(bve::PipelineConfig *config)
     {
-        auto *pipelineLayoutInfo                    = new VkPipelineLayoutCreateInfo{};
-        pipelineLayoutInfo->sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-        pipelineLayoutInfo->setLayoutCount          = 1;
-        pipelineLayoutInfo->pSetLayouts             = &config->descriptorSetLayout;
-        pipelineLayoutInfo->pushConstantRangeCount  = 0; 
-        pipelineLayoutInfo->pPushConstantRanges     = nullptr;
+        VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
+        pipelineLayoutInfo.setLayoutCount          = 1;
+        pipelineLayoutInfo.pSetLayouts             = &config->descriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount  = 0; 
+        pipelineLayoutInfo.pPushConstantRanges     = nullptr;
         return pipelineLayoutInfo;
     }
-    VkShaderModuleCreateInfo *shaderModuleInfo(const std::vector<char> &code)
+    VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code)
     {
-        auto *createInfo        = new VkShaderModuleCreateInfo{};
-        createInfo->sType       = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo->codeSize    = code.size();
-        createInfo->pCode       = reinterpret_cast<const uint32_t*>(code.data());
+        VkShaderModuleCreateInfo createInfo{};
+        createInfo.sType       = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+        createInfo.codeSize    = code.size();
+        createInfo.pCode       = reinterpret_cast<const uint32_t*>(code.data());
         return createInfo;
     }
     VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions)

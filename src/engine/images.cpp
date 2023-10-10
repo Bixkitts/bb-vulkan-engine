@@ -15,7 +15,7 @@ static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImag
 VulkanImage* createTextureImage(Device* device)
 {
     int texWidth, texHeight, texChannels;
-    stbi_uc* pixels = stbi_load("textures/screw.jpg", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+    stbi_uc* pixels = stbi_load("../textures/CADE.png", &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
     VkDeviceSize imageSize = texWidth * texHeight * 4;
 
     if(!pixels)
@@ -33,6 +33,8 @@ VulkanImage* createTextureImage(Device* device)
 
 
     auto image = new VulkanImage{};
+    image->device = device;
+    image->format = VK_FORMAT_R8G8B8A8_SRGB;
 
     bve::createImage(texWidth, texHeight, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, image->textureImage, image->textureImageMemory, device);
     bve::transitionImageLayout(image->textureImage, VK_FORMAT_R8G8B8A8_SRGB, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device);
@@ -90,7 +92,7 @@ static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImag
     VkMemoryAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, device);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
 
     if (vkAllocateMemory(device->logical, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         throw std::runtime_error("failed to allocate image memory!");

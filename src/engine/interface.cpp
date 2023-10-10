@@ -4,6 +4,7 @@
 #include "command_buffers.hpp"
 #include "device.hpp"
 #include "draw_frame.hpp"
+#include "descriptor_sets.hpp"
 #include "model.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
@@ -24,16 +25,30 @@ namespace bve
         auto swapchain         = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
         auto models            = loadModels(device);
-        //Vertex and index buffers from the loaded models
-        auto textureImage      = createTextureImage(device);
-        auto textureImageView  = createTextureImageView(textureImage);
-        auto textureSampler    = createTextureSampler(textureImage);
 
+        //texture related loading, buffering, views and sampling
+        auto textureImage      = createTextureImage(device);
+        auto textureImageViews = createTextureImageView(textureImage);
+        auto textureSamplers   = createTextureSampler(textureImage);
+
+
+        //Vertex and index buffers from the loaded models
         auto vertexBuffers     = createVertexBuffers(device, models);
         auto indexBuffers      = createIndexBuffers(device, models);
         auto uniformBuffers    = createUniformBuffers(device, sizeof(Matrices));
+
+        //create descriptor sets
+        auto descriptorPool    = createDescriptorPool(device);
+        auto descriptorSetLayout = createDescriptorSetLayout(device);
+        auto descriptorSets    = createDescriptorSets(device, 
+                                                descriptorSetLayout,
+                                                descriptorPool, 
+                                                uniformBuffers, 
+                                                textureImageViews, 
+                                                textureSamplers);
+
         //create pipeline configuration with a hard coded default
-        auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers);
+        auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
         //creating the pipe line itself using the coded default
         auto pipeline          = createGraphicsPipeline(device, 
                                                       swapchain, 

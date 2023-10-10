@@ -22,10 +22,12 @@ namespace bve
         VkPipelineColorBlendStateCreateInfo colorBlendInfo;
         VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
 
+        //std::vector<
+
         //Vk objects that need to be properly destroyed!
         VkDescriptorSetLayout descriptorSetLayout;
         std::vector<VkDescriptorSet> descriptorSets;
-        VkDescriptorPool descriptorPool;
+        //VkDescriptorPool descriptorPool;
         VkPipelineLayout pipelineLayout = nullptr;
         VkRenderPass renderPass = nullptr;
 
@@ -49,7 +51,7 @@ namespace bve
     //move this function to an IO cpp file
     std::vector<char> readFile(const std::string& filepath);
     
-    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers);
+    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
 
     GraphicsPipeline* createGraphicsPipeline(
             Device* device,
@@ -63,10 +65,6 @@ namespace bve
     static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
     VkPipelineLayout createPipelineLayout(Device *device, bve::PipelineConfig *config);
-//Descriptor set stuff
-    VkDescriptorSetLayout createDescriptorSetLayout(Device *device);
-    VkDescriptorPool createDescriptorPool(Device *device);
-    std::vector<VkDescriptorSet> createDescriptorSets(Device *device, PipelineConfig *config);
     
 //Make shader Modules
     static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
