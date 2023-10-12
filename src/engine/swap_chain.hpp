@@ -43,23 +43,12 @@ namespace bve
 
     SwapChain *createSwapChain(Device *device, VkExtent2D windowExtent);
     void destroySwapchain(SwapChain* swapchain);
-/*
-    VkFramebuffer getFrameBuffer(int index) { return swapChainFramebuffers[index]; }
-    VkRenderPass getRenderPass() { return renderPass; }
-    VkImageView getImageView(int index) { return swapChainImageViews[index]; }
-    size_t imageCount() { return swapChainImages.size(); }
-    VkFormat getSwapChainImageFormat() { return swapChainImageFormat; }
-    VkExtent2D getSwapChainExtent() { return swapChainExtent; }
-    uint32_t width() { return swapChainExtent.width; }
-    uint32_t height() { return swapChainExtent.height; }
-*/
     float extentAspectRatio(SwapChain *swapchain); 
     
     VkFormat findDepthFormat(SwapChain *swapchain);
 
     VkResult acquireNextImage(SwapChain *swapchain, uint32_t *imageIndex);
 
- //private:
     static void initSwapChain(SwapChain *swapchain);
     static void createSwapchainImageViews(SwapChain *swapchain);
     static void createDepthResources(SwapChain *swapchain);

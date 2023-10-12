@@ -31,16 +31,15 @@ namespace bve
         auto textureImageViews = createTextureImageView(textureImage);
         auto textureSamplers   = createTextureSampler(textureImage);
 
-
         //Vertex and index buffers from the loaded models
         auto vertexBuffers     = createVertexBuffers(device, models);
         auto indexBuffers      = createIndexBuffers(device, models);
         auto uniformBuffers    = createUniformBuffers(device, sizeof(Matrices));
 
         //create descriptor sets
-        auto descriptorPool    = createDescriptorPool(device);
+        auto descriptorPool      = createDescriptorPool(device);
         auto descriptorSetLayout = createDescriptorSetLayout(device);
-        auto descriptorSets    = createDescriptorSets(device, 
+        auto descriptorSets      = createDescriptorSets(device, 
                                                 descriptorSetLayout,
                                                 descriptorPool, 
                                                 uniformBuffers, 
