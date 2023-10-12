@@ -425,6 +425,7 @@ VkFormat findSupportedFormat(
     throw std::runtime_error("failed to find supported format!");
 }
 
+//Query the physical device for the types of memory available to allocate
 uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device* theGPU) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;

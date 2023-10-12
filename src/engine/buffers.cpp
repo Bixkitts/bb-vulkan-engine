@@ -159,6 +159,7 @@ void copyToDeviceMem(StagingBuffer *sb, std::vector<uint32_t> &indeces)
     vkUnmapMemory(sb->device->logical, sb->deviceMemory);
 }
 
+//TODO: manage device memory allocation instead of allocating for every new buffer
 void createBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,
@@ -174,6 +175,7 @@ void createBuffer(
         throw std::runtime_error("failed to create vertex buffer!");
     }
 
+    // TODO: device memory allocation needs to be separated
     bufferMemory = allocateDeviceMemory(theGPU, buffer, properties, size);
 
     vkBindBufferMemory(theGPU->logical, buffer, bufferMemory, 0);
