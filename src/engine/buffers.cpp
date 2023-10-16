@@ -118,10 +118,13 @@ void destroyBuffer(VulkanBuffer *v)
     delete v;
 }
 
+// Use drawIndexBuffer() instead
 void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer)
 {
     vkCmdDraw(commandBuffer, vertexBuffer->size, 1, 0, 0);
 }
+// In this function I should consider binding multiple vertex buffers
+// in one vulkan call
 void bindVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer)
 {
     VkBuffer buffers[] = {vertexBuffer->buffer};
@@ -139,7 +142,6 @@ void bindIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer)
     VkDeviceSize offset = {0};
     vkCmdBindIndexBuffer(commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT32); 
 }
-
 
 void copyToDeviceMem(StagingBuffer *sb, std::vector<Vertex> &vertices)
 {

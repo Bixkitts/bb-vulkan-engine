@@ -6,7 +6,7 @@
 #include "draw_frame.hpp"
 #include "descriptor_sets.hpp"
 #include "model.hpp"
-#include "pipeline.hpp"
+#include "pipeline.hpp" 
 #include "swap_chain.hpp"
 #include "window.hpp"
 #include "cleanup.hpp"
@@ -17,6 +17,14 @@
 #include <array>
 namespace bve
 {
+    // This should load a model from an external file
+    BBAPI void createEntity(char *model, char *texture, char *vertShader, char *fragShader)
+    {
+        
+
+    }
+
+    BBAPI void spawnEntity(BBEntity *entity, glm::vec3 worldCoords...
     BBAPI void runAppWithWindow(BveWindow* mainWindow)
     {
         //create vulkan physical and logical device and store it all in device struct
@@ -26,6 +34,8 @@ namespace bve
         //load models into vector of models
         auto models            = loadModels(device);
 
+
+    //    auto object1           = spawnObject(model, texture, worldCoords);
         //texture related loading, buffering, views and sampling
         auto textureImage      = createTextureImage(device);
         auto textureImageViews = createTextureImageView(textureImage);

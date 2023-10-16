@@ -62,8 +62,9 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeli
 
         vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
 
-        for(int j = 0; j < vertexBuffers.size(); j++)
+        for(int j = 0; j < indexBuffers.size(); j++)
         {
+            // consider binding all vertex buffers at once (look in function)
             bindVertexBuffer(vertexBuffers[j], commandBuffer);
             bindIndexBuffer(indexBuffers[j], commandBuffer);
             drawIndexBuffer(indexBuffers[j], commandBuffer);

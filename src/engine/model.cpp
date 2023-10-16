@@ -30,7 +30,7 @@ namespace bve
         
         std::vector<Model*> models;
         models.push_back(model1); 
-        //models.push_back(model2); 
+        models.push_back(model2); 
         
         return models;
     }

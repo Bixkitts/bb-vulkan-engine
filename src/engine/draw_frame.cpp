@@ -27,7 +27,6 @@ void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkC
 
     recordCommandBuffer(commandBuffers[swapchain->currentFrame], pipeline, imageIndex, swapchain, vertexBuffers, indexBuffers, models);
 
-    updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
 
     result = submitCommandBuffers(swapchain, &commandBuffers[swapchain->currentFrame], &imageIndex);
     if (result != VK_SUCCESS)
@@ -35,8 +34,10 @@ void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkC
         throw std::runtime_error("failed to run command from command buffer!");
     }
 
+    updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
 }
 
+// 
 void updateUniformBuffer(uint32_t currentImage, SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers)
 {
     static auto startTime = std::chrono::high_resolution_clock::now();
