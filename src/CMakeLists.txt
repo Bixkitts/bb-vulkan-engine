@@ -36,6 +36,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/descriptor_sets.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/descriptor_sets.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/transform.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/transform.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/entity.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/entity.hpp
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp

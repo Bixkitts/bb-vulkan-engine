@@ -17,7 +17,8 @@ namespace bve
         std::vector<uint32_t> indeces;
     };
     
-    std::vector<Model*> loadModels(char* dir);
+    std::vector<Model*> loadModels(char *dir);
+    Model *loadModel(char *dir);
 
 
     Model *createModel(Device *device, std::vector<Vertex> &vertices); 

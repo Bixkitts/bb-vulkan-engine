@@ -3,6 +3,7 @@
 
 #include "model.hpp"
 #include "buffers.hpp"
+#include "images.hpp"
 namespace bve
 {
 typedef struct BBEntity
@@ -11,6 +12,7 @@ typedef struct BBEntity
    PerObjectMatrices *modelMatrix;
    // next I need to associate pipeline
    // and resources for the entity
+   VulkanImage *texture;
 } BBEntity;
 
 

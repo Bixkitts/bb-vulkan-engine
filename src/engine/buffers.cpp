@@ -7,54 +7,54 @@ namespace bve
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model)
 {
-    auto *sbuffer = new StagingBuffer{};
-    sbuffer->device = device;
+    StagingBuffer sbuffer = {};
+    sbuffer.device = device;
     assert(model->vertices.size() >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(Vertex) * model->vertices.size();
     createBuffer(bufferSize,
            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-           sbuffer->buffer,
-           sbuffer->deviceMemory,
-           sbuffer->device);
+           sbuffer.buffer,
+           sbuffer.deviceMemory,
+           sbuffer.device);
 
-    copyToDeviceMem(sbuffer, model->vertices);
+    copyToDeviceMem(&sbuffer, model->vertices);
     
     auto *vbuffer = new VertexBuffer{};
     vbuffer->device = device;
     vbuffer->size = model->vertices.size();
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vbuffer->buffer, vbuffer->deviceMemory, vbuffer->device);
 
-    copyBuffer(device, sbuffer->buffer, vbuffer->buffer, bufferSize);
+    copyBuffer(device, sbuffer.buffer, vbuffer->buffer, bufferSize);
    
-    destroyBuffer(sbuffer); 
+    destroyBuffer(&sbuffer); 
 
     return vbuffer;
 }
 
 IndexBuffer *createIndexBuffer(Device *device, Model *model)
 {
-    auto *sbuffer = new StagingBuffer{};
-    sbuffer->device = device;
+    StagingBuffer sbuffer = {};
+    sbuffer.device = device;
     assert(model->indeces.size() >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(model->indeces[0]) * model->indeces.size();
     createBuffer(bufferSize,
            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-           sbuffer->buffer,
-           sbuffer->deviceMemory,
-           sbuffer->device);
+           sbuffer.buffer,
+           sbuffer.deviceMemory,
+           sbuffer.device);
 
-    copyToDeviceMem(sbuffer, model->indeces);
+    copyToDeviceMem(&sbuffer, model->indeces);
     
     auto *ibuffer = new IndexBuffer{};
     ibuffer->device = device;
     ibuffer->size = model->indeces.size();
     createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, ibuffer->buffer, ibuffer->deviceMemory, ibuffer->device);
 
-    copyBuffer(device, sbuffer->buffer, ibuffer->buffer, bufferSize);
+    copyBuffer(device, sbuffer.buffer, ibuffer->buffer, bufferSize);
    
-    destroyBuffer(sbuffer); 
+    destroyBuffer(&sbuffer); 
 
     return ibuffer;
 }
@@ -67,9 +67,9 @@ UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize)
     VkDeviceSize bufferSize = contentsSize;
     createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ubuffer->buffer, ubuffer->deviceMemory, device); 
 
-   vkMapMemory(device->logical, ubuffer->deviceMemory, 0, bufferSize, 0, &ubuffer->mapped);
+    vkMapMemory(device->logical, ubuffer->deviceMemory, 0, bufferSize, 0, &ubuffer->mapped);
 
-   return ubuffer;
+    return ubuffer;
 }
 
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models)

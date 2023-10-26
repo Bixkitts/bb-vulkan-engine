@@ -7,6 +7,7 @@
 
 namespace bve
 {
+    // Placeholders for actually loading models from a file
     std::vector<Model*> loadModels(char* dir)
     {
         std::cout<<"Loading models....\n";
@@ -35,5 +36,16 @@ namespace bve
         return models;
     }
 
-
+    Model *loadModel(char *dir)
+    {
+        std::cout<<"Loading models....\n";
+        Model *model = new Model;
+        model->vertices={
+            {{-0.5f, -0.5f}, {1.0f, 0.0f}},
+            {{0.5f, -0.5f},  {0.0f, 0.0f}},
+            {{0.5f, 0.5f},   {0.0f, 1.0f}},
+            {{-0.5f, 0.5f},  {1.0f, 1.0f}}
+        };
+        return model;
+    }
 }

@@ -66,7 +66,7 @@ VulkanDescriptorPool *createDescriptorPool(Device *device)
     return descriptorPool;
 }
 
-std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImageView *textureImageView, VulkanSampler *textureSampler)
+std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImage *texture)
 {
     std::vector<VkDescriptorSet> descriptorSets{};
 
@@ -91,8 +91,9 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSe
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageInfo.imageView = textureImageView->view;
-        imageInfo.sampler = textureSampler->sampler;
+        //TODO: AHHHHH. Sort out the views and samplers thing.
+        imageInfo.imageView = texture->views[0];
+        imageInfo.sampler = texture->samplers[0];
 
         VkWriteDescriptorSet descriptorWrites[2] = {};
         descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;

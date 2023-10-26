@@ -18,40 +18,21 @@
 #include <array>
 namespace bve
 {
+    // Logical and physical device that everything needs access to.
     Device *device;
+
+    SwapChain *swapchain;
     // This should load a model from an external file
     BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char *fragShader)
     {
         BBEntity* entity       = new BBEntity{};
-        auto models            = loadModels(device);
-        auto textureImage      = createTextureImage(texture, device);
-                                 createTextureImageView(textureImage);
-                                 createTextureSampler(textureImage);
-
+        entity->model          = loadModel(model);
+        entity->texture        = createTextureImage(texture, device);
+                                 createTextureImageView(entity->texture);
+                                 createTextureSampler(entity->texture);
+        // I need to have like a pool of pipelines and bind the right ones for the right objects
+        // based on the shaders they use
     }
-
-    BBAPI void *spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
-    {
-
-        auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
-        //Vertex and index buffers from the loaded models
-        auto vertexBuffers     = createVertexBuffers(device, models);
-        auto indexBuffers      = createIndexBuffers(device, models);
-
-    }
-    BBAPI void runAppWithWindow(BBWindow* mainWindow)
-    {
-        //create vulkan physical and logical device and store it all in device struct
-        device                 = deviceInit(mainWindow);
-        //create swap chain and store all the vulkan details in SwapChain struct
-        auto swapchain         = createSwapChain(device, getExtent(mainWindow));
-        //load models into vector of models
-
-
-    //    auto object1           = spawnObject(model, texture, worldCoords);
-        //texture related loading, buffering, views and sampling
-
-
         //create descriptor sets
         auto descriptorPool      = createDescriptorPool(device);
         auto descriptorSetLayout = createDescriptorSetLayout(device);
@@ -70,6 +51,28 @@ namespace bve
                                                       "../shaders/simple_shader.vert.spv", 
                                                       "../shaders/simple_shader.frag.spv", 
                                                       pipelineConfig);
+
+    BBAPI void *spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
+    {
+        auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
+        //Vertex and index buffers from the loaded models
+        auto vertexBuffers     = createVertexBuffer(device, entity->model);
+        auto indexBuffers      = createIndexBuffer(device, entity->model);
+
+    }
+    BBAPI void runAppWithWindow(BBWindow* mainWindow)
+    {
+        //create vulkan physical and logical device and store it all in device struct
+        device                 = deviceInit(mainWindow);
+        //create swap chain and store all the vulkan details in SwapChain struct
+        swapchain              = createSwapChain(device, getExtent(mainWindow));
+        //load models into vector of models
+
+
+    //    auto object1           = spawnObject(model, texture, worldCoords);
+        //texture related loading, buffering, views and sampling
+
+
 
         //Create command buffers. Should be a return value instead of a parameter!
         auto commandBuffers    = createCommandBuffers(pipeline);

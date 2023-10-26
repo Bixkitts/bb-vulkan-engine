@@ -16,7 +16,8 @@ VkDescriptorSetLayout createDescriptorSetLayout(Device *device);
 
 VulkanDescriptorPool *createDescriptorPool(Device *device);
 
-std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImageView *textureImageView, VulkanSampler *textureSampler);
+//TODO: Allow the linking of multiple textures instead of just one
+std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImage *texture);
 
 }
 
