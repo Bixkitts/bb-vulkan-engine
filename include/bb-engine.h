@@ -3,22 +3,17 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <string>
-#include <GLFW/glfw3.h>
 
-namespace bve
-{
-struct BveWindow
-{
-    const int width;
-    const int height;
-    GLFWwindow *window;
-};
+typedef struct BBWindow BBWindow;
+typedef struct BBEntity BBEntity;
 
-BveWindow* openWindow(int w, int h, std::string name);
+BBWindow* openWindow(int w, int h, std::string name);
+void runAppWithWindow(BBWindow* mainWindow);
 
-void runAppWithWindow(BveWindow* mainWindow);
+BBEntity createEntity(char *model, char *texture, char *vertShader, char *fragShader);
+void *spawnEntity(BBEntity entity, double worldCoords[3], double rotation);
 
 
-}
+
 
 #endif

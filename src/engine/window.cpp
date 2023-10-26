@@ -5,7 +5,7 @@
 
 namespace bve
 {
-    BBAPI BveWindow* openWindow(int width, int height, std::string windowName)
+    BBAPI BBWindow* openWindow(int width, int height, std::string windowName)
     {
         glfwInit();
         glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
@@ -13,12 +13,12 @@ namespace bve
 
         GLFWwindow* window = glfwCreateWindow(width, height, windowName.c_str(), nullptr, nullptr);
 
-        BveWindow* mainWindow = new BveWindow{width, height, window};
+        BBWindow* mainWindow = new BBWindow{width, height, window};
 
         return mainWindow;
     }
 
-    void closeWindow(BveWindow* bveWindow)
+    void closeWindow(BBWindow* bveWindow)
     {
         glfwDestroyWindow(bveWindow->window);
         glfwTerminate();
@@ -27,7 +27,7 @@ namespace bve
         delete bveWindow;
     }
 
-    void createWindowSurface(BveWindow* window, VkInstance instance, VkSurfaceKHR* surface)
+    void createWindowSurface(BBWindow* window, VkInstance instance, VkSurfaceKHR* surface)
     {
         if (glfwCreateWindowSurface(instance, window->window, nullptr, surface))
             {
@@ -36,7 +36,7 @@ namespace bve
 
     }
 
-    VkExtent2D getExtent(BveWindow* window)
+    VkExtent2D getExtent(BBWindow* window)
     {
         VkExtent2D extent{static_cast<uint32_t>(window->width), static_cast<uint32_t>(window->height)};
         return extent;

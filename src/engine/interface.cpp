@@ -11,40 +11,46 @@
 #include "window.hpp"
 #include "cleanup.hpp"
 #include "images.hpp"
+#include "entity.hpp"
 #include <vulkan/vulkan_core.h>
 
 #include <vector>
 #include <array>
 namespace bve
 {
+    Device *device;
     // This should load a model from an external file
-    BBAPI void createEntity(char *model, char *texture, char *vertShader, char *fragShader)
+    BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char *fragShader)
     {
-        
+        BBEntity* entity       = new BBEntity{};
+        auto models            = loadModels(device);
+        auto textureImage      = createTextureImage(texture, device);
+                                 createTextureImageView(textureImage);
+                                 createTextureSampler(textureImage);
 
     }
 
-    BBAPI void spawnEntity(BBEntity *entity, glm::vec3 worldCoords...
-    BBAPI void runAppWithWindow(BveWindow* mainWindow)
+    BBAPI void *spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
+    {
+
+        auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
+        //Vertex and index buffers from the loaded models
+        auto vertexBuffers     = createVertexBuffers(device, models);
+        auto indexBuffers      = createIndexBuffers(device, models);
+
+    }
+    BBAPI void runAppWithWindow(BBWindow* mainWindow)
     {
         //create vulkan physical and logical device and store it all in device struct
-        auto device            = deviceInit(mainWindow);
+        device                 = deviceInit(mainWindow);
         //create swap chain and store all the vulkan details in SwapChain struct
         auto swapchain         = createSwapChain(device, getExtent(mainWindow));
         //load models into vector of models
-        auto models            = loadModels(device);
 
 
     //    auto object1           = spawnObject(model, texture, worldCoords);
         //texture related loading, buffering, views and sampling
-        auto textureImage      = createTextureImage(device);
-        auto textureImageViews = createTextureImageView(textureImage);
-        auto textureSamplers   = createTextureSampler(textureImage);
 
-        //Vertex and index buffers from the loaded models
-        auto vertexBuffers     = createVertexBuffers(device, models);
-        auto indexBuffers      = createIndexBuffers(device, models);
-        auto uniformBuffers    = createUniformBuffers(device, sizeof(Matrices));
 
         //create descriptor sets
         auto descriptorPool      = createDescriptorPool(device);
@@ -76,6 +82,9 @@ namespace bve
         {
             glfwPollEvents();
             drawFrame(swapchain, pipeline, commandBuffers, uniformBuffers, vertexBuffers, indexBuffers, models); 
+            // I need to turn "updateUniformBuffer()" into functions
+            // for uniform buffer transformations on specific buffers.
+            updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
         }
 
         vkDeviceWaitIdle(device->logical);

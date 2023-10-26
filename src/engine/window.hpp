@@ -8,17 +8,17 @@
 
 namespace bve
 {
-    struct BveWindow
+    struct BBWindow
     {
         const int width;
         const int height;
         GLFWwindow *window;
     };
 
-    BBAPI BveWindow* openWindow(int w, int h, std::string name);
-    void closeWindow(BveWindow *window);
-    void createWindowSurface(BveWindow *window, VkInstance instance, VkSurfaceKHR *surface);
-    VkExtent2D getExtent(BveWindow *window);
+    BBAPI BBWindow* openWindow(int w, int h, std::string name);
+    void closeWindow(BBWindow *window);
+    void createWindowSurface(BBWindow *window, VkInstance instance, VkSurfaceKHR *surface);
+    VkExtent2D getExtent(BBWindow *window);
 
 }
 

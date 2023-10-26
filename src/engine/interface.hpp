@@ -6,7 +6,7 @@
 
 namespace bve
 {
-    BBAPI void runAppWithWindow(BveWindow* mainWindow);
+    BBAPI void runAppWithWindow(BBWindow* mainWindow);
 }
 
 #endif

@@ -87,7 +87,7 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSe
         VkDescriptorBufferInfo bufferInfo{};
         bufferInfo.buffer = uniformBuffers[i]->buffer;
         bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(Matrices);
+        bufferInfo.range = sizeof(PerObjectMatrices);
 
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;

@@ -7,7 +7,7 @@
 
 namespace bve
 {
-    std::vector<Model*> loadModels(Device* device)
+    std::vector<Model*> loadModels(char* dir)
     {
         std::cout<<"Loading models....\n";
 

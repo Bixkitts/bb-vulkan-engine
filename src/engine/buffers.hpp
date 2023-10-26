@@ -12,10 +12,13 @@
 #include <glm/glm.hpp>
 namespace bve
 {
-//3d transformation matrices for uniform buffer, should mb get moved to it's own area
-struct Matrices
+//3d transformation matrices for uniform buffers, should mb get moved to it's own area
+struct PerObjectMatrices
 {
     glm::mat4 model;
+};
+struct ViewMatrices
+{
     glm::mat4 view;
     glm::mat4 proj;
 };
@@ -45,12 +48,13 @@ std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contents
 
 void destroyBuffer(VulkanBuffer *v);
 
+// These functions should maybe be bundled in with drawing
 void drawVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer);
 void bindVertexBuffer(VertexBuffer *vertexBuffer, VkCommandBuffer &commandBuffer);
 void drawIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
 void bindIndexBuffer(IndexBuffer *indexBuffer, VkCommandBuffer &commandBuffer);
 
-// copy these
+// big main buffer creation function
 void createBuffer(
     VkDeviceSize size,
     VkBufferUsageFlags usage,

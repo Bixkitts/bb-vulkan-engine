@@ -56,7 +56,7 @@ void DestroyDebugUtilsMessengerEXT(
 }
 // end of local callback functions
 
-Device* deviceInit(BveWindow* deviceWindow) 
+Device* deviceInit(BBWindow* deviceWindow) 
 {
     Device* theGPU = new Device;
     theGPU->window = deviceWindow;
