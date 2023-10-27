@@ -10,8 +10,6 @@
 #include <unordered_set>
 #include <vulkan/vulkan_core.h>
 
-namespace bve {
-
 // local callback functions
 static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
     VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
@@ -62,7 +60,7 @@ Device* deviceInit(BBWindow* deviceWindow)
     theGPU->window = deviceWindow;
     createInstance(theGPU);
     setupDebugMessenger(theGPU); 
-    bve::createWindowSurface(theGPU->window, theGPU->instance, &theGPU->surface_);
+    createWindowSurface(theGPU->window, theGPU->instance, &theGPU->surface_);
     pickPhysicalDevice(theGPU);
 
     createLogicalDevice(theGPU);
@@ -94,10 +92,10 @@ static void createInstance(Device* theGPU)
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo appInfo = config::appInfo();
+    VkApplicationInfo appInfo = appInfo();
 
     auto extensions = getRequiredExtensions();
-    VkInstanceCreateInfo createInfo = config::instanceCreateInfo(appInfo, extensions);
+    VkInstanceCreateInfo createInfo = instanceCreateInfo(appInfo, extensions);
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
     if (enableValidationLayers) 
@@ -162,13 +160,13 @@ static void createLogicalDevice(Device* theGPU)
     float queuePriority = 1.0f;
     for (uint32_t queueFamily : uniqueQueueFamilies) 
     {
-        VkDeviceQueueCreateInfo queueCreateInfo = config::queueCreateInfo(queueCreateInfos, queueFamily, queuePriority);
+        VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfo(queueCreateInfos, queueFamily, queuePriority);
     }
   
     VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
   
-    VkDeviceCreateInfo createInfo = config::logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
+    VkDeviceCreateInfo createInfo = logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
   
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
@@ -194,7 +192,7 @@ static void createCommandPool(Device* theGPU)
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physical, theGPU);
   
-    VkCommandPoolCreateInfo poolInfo = config::poolInfo(queueFamilyIndices);
+    VkCommandPoolCreateInfo poolInfo = poolCreateInfo(queueFamilyIndices);
 
     if (vkCreateCommandPool(theGPU->logical, &poolInfo, nullptr, &theGPU->commandPool) != VK_SUCCESS) 
     {
@@ -441,11 +439,3 @@ uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, D
   
     throw std::runtime_error("failed to find suitable memory type!");
 }
-
-
-
-
-
-} 
-
-

@@ -6,22 +6,20 @@
 #include "swap_chain.hpp"
 #include "model.hpp"
 
-namespace bve{
-    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline);
+std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline);
 
-    void recordCommandBuffer(VkCommandBuffer commandBuffer, 
-                            GraphicsPipeline *pipeline, 
-                            uint32_t imageIndex, 
-                            SwapChain* swapchain, 
-                            std::vector<VertexBuffer*> &vertexBuffers, 
-                            std::vector<IndexBuffer*> &indexBuffers,
-                            std::vector<Model*> &models);
+void recordCommandBuffer(VkCommandBuffer commandBuffer, 
+                        GraphicsPipeline *pipeline, 
+                        uint32_t imageIndex, 
+                        SwapChain* swapchain, 
+                        std::vector<VertexBuffer*> &vertexBuffers, 
+                        std::vector<IndexBuffer*> &indexBuffers,
+                        std::vector<Model*> &models);
 
-    VkResult submitCommandBuffers(
-                SwapChain* swapchain,
-                const VkCommandBuffer* buffers, uint32_t* imageIndex) ;
-    //single time commands
-    VkCommandBuffer beginSingleTimeCommands(Device* theGPU); 
-    void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU); 
-}
+VkResult submitCommandBuffers(
+            SwapChain* swapchain,
+            const VkCommandBuffer* buffers, uint32_t* imageIndex) ;
+//single time commands
+VkCommandBuffer beginSingleTimeCommands(Device* theGPU); 
+void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU); 
 #endif

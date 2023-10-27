@@ -6,20 +6,16 @@
 #include <string>
 #include "defines.hpp"
 
-namespace bve
+struct BBWindow
 {
-    struct BBWindow
-    {
-        const int width;
-        const int height;
-        GLFWwindow *window;
-    };
+    const int width;
+    const int height;
+    GLFWwindow *window;
+};
 
-    BBAPI BBWindow* openWindow(int w, int h, std::string name);
-    void closeWindow(BBWindow *window);
-    void createWindowSurface(BBWindow *window, VkInstance instance, VkSurfaceKHR *surface);
-    VkExtent2D getExtent(BBWindow *window);
-
-}
+BBAPI BBWindow* openWindow(int w, int h, std::string name);
+void closeWindow(BBWindow *window);
+void createWindowSurface(BBWindow *window, VkInstance instance, VkSurfaceKHR *surface);
+VkExtent2D getExtent(BBWindow *window);
 
 #endif

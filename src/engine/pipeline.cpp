@@ -1,3 +1,12 @@
+//std libraries
+#include <fstream>
+#include <stdexcept>
+#include <iostream>
+#include <cassert>
+#include <stdexcept>
+
+#include <vulkan/vulkan_core.h>
+
 #include "pipeline.hpp"
 #include "buffers.hpp"
 #include "device.hpp"
@@ -6,16 +15,11 @@
 #include "config_pipeline.hpp"
 #include "fileIO.hpp"
 
-//std libraries
-#include <fstream>
-#include <stdexcept>
-#include <iostream>
-#include <vulkan/vulkan_core.h>
-#include <cassert>
-#include <stdexcept>
+//Make shader Modules
+static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
+static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
+static void cleanupShaderModules(GraphicsPipeline* pipeline);
 
-namespace bve
-{
 GraphicsPipeline* createGraphicsPipeline(
         Device* device,
         SwapChain* swapchain,
@@ -47,14 +51,14 @@ GraphicsPipeline* createGraphicsPipeline(
     //Here the vertex input info is put constructed 
     auto bindingDescriptions     = getBindingDescriptions();
     auto attributeDescriptions   = getAttributeDescriptions();
-    auto *vertexInputInfo        = config::vertexInputStateCreateInfo(&bindingDescriptions, &attributeDescriptions);
+    auto *vertexInputInfo        = vertexInputStateCreateInfo(&bindingDescriptions, &attributeDescriptions);
     //Some more configuration
-    auto *shaderStages           = config::shaderStagesCreateInfo(mainPipeline);
-    auto *viewportInfo           = config::viewportCreateInfo(mainPipeline->pipelineConfig);
+    auto *shaderStages           = shaderStagesCreateInfo(mainPipeline);
+    auto *viewportInfo           = viewportCreateInfo(mainPipeline->pipelineConfig);
 
     //Uses info from all the above objects and is translated to a final configuration
     //to the actual VkPipeline.
-    auto *pipelineCreateInfo     = config::pipelineCreateInfo(configInfo,
+    auto *pipelineCreateInfo     = createPipelineCreateInfo(configInfo,
                                                               viewportInfo,
                                                               shaderStages,
                                                               vertexInputInfo);
@@ -94,14 +98,14 @@ static void cleanupShaderModules(GraphicsPipeline* pipeline)
 
 PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets)
 {
-    auto *config = config::pipelineConfigDefault(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
+    auto *config = pipelineConfigDefault(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
     return config;
 }
 
 static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
 {
     pipeline->vertShaderModule = {};
-    auto createInfo = config::shaderModuleInfo(code);
+    auto createInfo = shaderModuleInfo(code);
 
 
     if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->vertShaderModule) != VK_SUCCESS)
@@ -113,7 +117,7 @@ static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector
 static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
 {
     pipeline->fragShaderModule = {};
-    auto createInfo = config::shaderModuleInfo(code);
+    auto createInfo = shaderModuleInfo(code);
 
 
     if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->fragShaderModule) != VK_SUCCESS)
@@ -122,13 +126,10 @@ static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector
     }
 }
 
-
-
-
-VkPipelineLayout createPipelineLayout(Device *device, bve::PipelineConfig *config)
+VkPipelineLayout createPipelineLayout(Device *device, PipelineConfig *config)
 {
     VkPipelineLayout pipelineLayout = {};
-    auto pipelineLayoutInfo = config::pipelineLayoutCreateInfo(config);
+    auto pipelineLayoutInfo = pipelineLayoutCreateInfo(config);
 
     if(vkCreatePipelineLayout(device->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
             VK_SUCCESS)
@@ -142,5 +143,3 @@ void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 }
-
-} // namespace bve

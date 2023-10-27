@@ -6,7 +6,7 @@
 
 struct VulkanImage
 {
-    bve::Device* device;
+    Device* device;
     VkFormat format;
     VkImage textureImage;
     VkDeviceMemory textureImageMemory;
@@ -25,8 +25,6 @@ struct VulkanImage
     uint64_t samplerCount;
 };
 
-namespace bve
-{
 VulkanImage* createTextureImage(char* dir, Device* device);
 void createTextureImageView(VulkanImage* image);
 void createTextureSampler(VulkanImage* image);
@@ -34,5 +32,4 @@ void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayo
 
 void destroyImage(VulkanImage *v);
 
-}
 #endif

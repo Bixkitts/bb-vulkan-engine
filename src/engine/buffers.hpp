@@ -10,8 +10,6 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
-namespace bve
-{
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area
 struct PerObjectMatrices
 {
@@ -83,5 +81,4 @@ void createImageWithInfo(
 // ------------------------------------
 void copyToDeviceMem(StagingBuffer *sb, std::vector<Vertex> &vertices);
 void copyToDeviceMem(StagingBuffer *sb, std::vector<uint32_t> &indeces);
-}
 #endif

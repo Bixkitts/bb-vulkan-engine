@@ -4,9 +4,6 @@
 #include "window.hpp"
 #include "defines.hpp"
 
-namespace bve
-{
-    BBAPI void runAppWithWindow(BBWindow* mainWindow);
-}
+BBAPI void runAppWithWindow(BBWindow* mainWindow);
 
 #endif

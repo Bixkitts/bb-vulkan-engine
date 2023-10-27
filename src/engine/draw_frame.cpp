@@ -1,3 +1,6 @@
+#include <vector>
+#include <chrono>
+
 #include "draw_frame.hpp"
 #include "buffers.hpp"
 #include "pipeline.hpp"
@@ -6,12 +9,6 @@
 #include <vulkan/vulkan_core.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-
-#include <vector>
-#include <chrono>
-
-namespace bve
-{
 
 void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkCommandBuffer> &commandBuffers, std::vector<UniformBuffer*> &uniformBuffers, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models)
 {
@@ -33,9 +30,4 @@ void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, std::vector<VkC
     {
         throw std::runtime_error("failed to run command from command buffer!");
     }
-
-}
-
-// 
-
 }

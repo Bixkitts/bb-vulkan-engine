@@ -6,11 +6,7 @@
 #include <stdexcept>
 #include <array>
 #include <vulkan/vulkan_core.h>
-
-namespace bve
-{
-
-    std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
+std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -154,5 +150,4 @@ void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU)
     vkQueueWaitIdle(theGPU->graphicsQueue_);
   
     vkFreeCommandBuffers(theGPU->logical, theGPU->commandPool, 1, &commandBuffer);
-}
 }

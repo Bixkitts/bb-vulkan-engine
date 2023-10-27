@@ -1,11 +1,9 @@
-#pragma once
+#ifndef CONFIG_BUFFERS
+#define CONFIG_BUFFERS
 #include <vulkan/vulkan.h>
 #include "device.hpp"
 
-namespace config
-{
+VkMemoryAllocateInfo memoryAllocateInfo(VkMemoryRequirements &memRequirements,VkMemoryPropertyFlags &properties, Device *theGPU);
+VkBufferCreateInfo bufferCreateInfo(VkDeviceSize &size, VkBufferUsageFlags &usage);
 
-    VkMemoryAllocateInfo memoryAllocateInfo(VkMemoryRequirements &memRequirements,VkMemoryPropertyFlags &properties, bve::Device *theGPU);
-    VkBufferCreateInfo bufferCreateInfo(VkDeviceSize &size, VkBufferUsageFlags &usage);
-
-}
+#endif

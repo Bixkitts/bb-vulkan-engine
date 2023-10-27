@@ -1,3 +1,5 @@
+#include <stb_image.h>
+
 #include "images.hpp"
 #include <stdexcept>
 #include <vulkan/vulkan.h>
@@ -5,10 +7,8 @@
 #include "buffers.hpp"
 #include "command_buffers.hpp"
 #include "defines.hpp"
+
 #define STB_IMAGE_IMPLEMENTATION
-#include <stb_image.h>
-namespace bve
-{
 
 static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& imageMemory, Device* device);
 
@@ -250,10 +250,3 @@ void createTextureSampler(VulkanImage* image)
         throw std::runtime_error("too many samplers for one image!");
     }
 }
-
-
-
-}
-
-
-

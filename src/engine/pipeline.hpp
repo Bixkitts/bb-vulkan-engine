@@ -1,75 +1,68 @@
 #ifndef BVE_PIPELINE
 #define BVE_PIPELINE
 
+#include <vector>
+#include <string>
+
+#include <vulkan/vulkan_core.h>
+
 #include "buffers.hpp"
 #include "device.hpp"
 #include "swap_chain.hpp"
 
-#include <vector>
-#include <string>
-#include <vulkan/vulkan_core.h>
-
-namespace bve
+struct PipelineConfig
 {
-    struct PipelineConfig
-    {
-        VkViewport viewport;
-        VkRect2D scissor;
-        VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-        VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-        VkPipelineMultisampleStateCreateInfo multisampleInfo;
-        VkPipelineColorBlendAttachmentState colorBlendAttachment;
-        VkPipelineColorBlendStateCreateInfo colorBlendInfo;
-        VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+    VkViewport viewport;
+    VkRect2D scissor;
+    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
+    VkPipelineRasterizationStateCreateInfo rasterizationInfo;
+    VkPipelineMultisampleStateCreateInfo multisampleInfo;
+    VkPipelineColorBlendAttachmentState colorBlendAttachment;
+    VkPipelineColorBlendStateCreateInfo colorBlendInfo;
+    VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
 
-        //std::vector<
+    //std::vector<
 
-        //Vk objects that need to be properly destroyed!
-        VkDescriptorSetLayout descriptorSetLayout;
-        std::vector<VkDescriptorSet> descriptorSets;
-        //VkDescriptorPool descriptorPool;
-        VkPipelineLayout pipelineLayout = nullptr;
-        VkRenderPass renderPass = nullptr;
+    //Vk objects that need to be properly destroyed!
+    VkDescriptorSetLayout descriptorSetLayout;
+    std::vector<VkDescriptorSet> descriptorSets;
+    //VkDescriptorPool descriptorPool;
+    VkPipelineLayout pipelineLayout = nullptr;
+    VkRenderPass renderPass = nullptr;
 
-        std::vector<UniformBuffer*> uniformBuffers; //pointer to the main vector of uniform Buffers.
-        
-        uint32_t subpass = 0; // There are subpasses created and 
-                              // configured in the RenderPass
-    };
-    struct GraphicsPipeline
-    {
-        Device* device;
-        SwapChain* swapchain;
-        VkPipeline graphicsPipeline;
-        VkShaderModule vertShaderModule;
-        VkShaderModule fragShaderModule;
-        PipelineConfig *pipelineConfig;
-    };
-
-    void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer);
+    std::vector<UniformBuffer*> uniformBuffers; //pointer to the main vector of uniform Buffers.
     
-    //move this function to an IO cpp file
-    std::vector<char> readFile(const std::string& filepath);
-    
-    PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
+    uint32_t subpass = 0; // There are subpasses created and 
+                          // configured in the RenderPass
+};
+struct GraphicsPipeline
+{
+    Device* device;
+    SwapChain* swapchain;
+    VkPipeline graphicsPipeline;
+    VkShaderModule vertShaderModule;
+    VkShaderModule fragShaderModule;
+    PipelineConfig *pipelineConfig;
+};
 
-    GraphicsPipeline* createGraphicsPipeline(
-            Device* device,
-            SwapChain* swapchain,
-            const std::string& vertFilepath, 
-            const std::string& fragFilepath,
-            PipelineConfig* configInfo);
+void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer);
 
-    void destroyPipeline(GraphicsPipeline* pipeline);
+//move this function to an IO cpp file
+std::vector<char> readFile(const std::string& filepath);
 
-    static void cleanupShaderModules(GraphicsPipeline* pipeline);
+PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
 
-    VkPipelineLayout createPipelineLayout(Device *device, bve::PipelineConfig *config);
-    
-//Make shader Modules
-    static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
-    static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
+GraphicsPipeline* createGraphicsPipeline(
+        Device* device,
+        SwapChain* swapchain,
+        const std::string& vertFilepath, 
+        const std::string& fragFilepath,
+        PipelineConfig* configInfo);
 
-}
+void destroyPipeline(GraphicsPipeline* pipeline);
+
+
+VkPipelineLayout createPipelineLayout(Device *device, PipelineConfig *config);
+
 
 #endif

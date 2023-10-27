@@ -4,8 +4,7 @@
 #include "model.hpp"
 #include "buffers.hpp"
 #include "images.hpp"
-namespace bve
-{
+
 typedef struct BBEntity
 {
    Model *model; 
@@ -14,10 +13,5 @@ typedef struct BBEntity
    // and resources for the entity
    VulkanImage *texture;
 } BBEntity;
-
-
-}
-
-
 
 #endif

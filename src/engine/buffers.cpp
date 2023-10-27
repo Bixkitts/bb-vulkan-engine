@@ -2,8 +2,6 @@
 #include "swap_chain.hpp"
 #include "config_buffers.hpp"
 #include <vulkan/vulkan_core.h>
-namespace bve
-{
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model)
 {
@@ -170,7 +168,7 @@ void createBuffer(
     VkDeviceMemory &bufferMemory,
     Device* theGPU) 
 {
-    VkBufferCreateInfo bufferInfo = config::bufferCreateInfo(size, usage);
+    VkBufferCreateInfo bufferInfo = bufferCreateInfo(size, usage);
 
     if (vkCreateBuffer(theGPU->logical, &bufferInfo, nullptr, &buffer) != VK_SUCCESS) 
     {
@@ -189,7 +187,7 @@ VkDeviceMemory allocateDeviceMemory(Device *theGPU, VkBuffer buffer,VkMemoryProp
     VkMemoryRequirements memRequirements;
     vkGetBufferMemoryRequirements(theGPU->logical, buffer, &memRequirements);
 
-    VkMemoryAllocateInfo allocInfo = config::memoryAllocateInfo(memRequirements, properties, theGPU);
+    VkMemoryAllocateInfo allocInfo = memoryAllocateInfo(memRequirements, properties, theGPU);
 
     if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &deviceMemory) != VK_SUCCESS) 
     {
@@ -271,5 +269,4 @@ void createImageWithInfo(
     {
         throw std::runtime_error("failed to bind image memory!");
     }
-}
 }

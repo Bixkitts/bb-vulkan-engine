@@ -1,6 +1,5 @@
 #include "fileIO.hpp"
-namespace bve
-{
+
 std::vector<char> readFile(const std::string& filepath)
 {
     std::ifstream file{filepath, std::ios::ate | std::ios::binary};
@@ -18,5 +17,4 @@ std::vector<char> readFile(const std::string& filepath)
 
     file.close();
     return buffer;
-}
 }

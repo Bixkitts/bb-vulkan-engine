@@ -1,8 +1,3 @@
-#include "swap_chain.hpp"
-#include "device.hpp"
-#include "buffers.hpp"
-
-// std
 #include <array>
 #include <cstdlib>
 #include <cstring>
@@ -11,8 +6,16 @@
 #include <set>
 #include <stdexcept>
 
-namespace bve 
-{
+#include "swap_chain.hpp"
+#include "device.hpp"
+#include "buffers.hpp"
+
+static void initSwapChain(SwapChain *swapchain);
+static void createSwapchainImageViews(SwapChain *swapchain);
+static void createDepthResources(SwapChain *swapchain);
+static void createRenderPass(SwapChain *swapchain);
+static void createFramebuffers(SwapChain *swapchain);
+static void createSyncObjects(SwapChain *swapchain);
 
 SwapChain* createSwapChain(Device* device, VkExtent2D extent)
 {
@@ -30,7 +33,7 @@ SwapChain* createSwapChain(Device* device, VkExtent2D extent)
 
 float extentAspectRatio(SwapChain* swapchain)
 {
-return static_cast<float>(swapchain->swapChainExtent.width) 
+    return static_cast<float>(swapchain->swapChainExtent.width) 
     / static_cast<float>(swapchain->swapChainExtent.height);
 }
 
@@ -124,7 +127,7 @@ void initSwapChain(SwapChain* swapchain)
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    bve::QueueFamilyIndices indices = findQueueFamilies(swapchain->device->physical, swapchain->device);
+    QueueFamilyIndices indices = findQueueFamilies(swapchain->device->physical, swapchain->device);
 
     uint32_t queueFamilyIndices[2];
     queueFamilyIndices[0]=indices.graphicsFamily;
@@ -429,5 +432,3 @@ VkFormat findDepthFormat(SwapChain* swapchain)
             VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
             swapchain->device);
 }
-
-}    // namespace bve

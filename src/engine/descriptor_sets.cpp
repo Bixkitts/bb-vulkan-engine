@@ -7,35 +7,48 @@
 #include "swap_chain.hpp"
 #include "config_pipeline.hpp"
 #include "fileIO.hpp"
-//--------------------------------------------------------------------
-// Decriptor Set stuff starts here!!
-//--------------------------------------------------------------------
-//
-namespace bve
-{
-VkDescriptorSetLayout createDescriptorSetLayout(Device *device)
+
+// Currently this function creates one predefined boring layout.
+// Need to make this dynamic at some point, allowing
+// lots of different resources to be bound.
+// Perhaps I'll make a couple of predefined sets with
+// specific combinations of descriptor slots.
+VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetLayout layoutSizeAndType)
 {
     VkDescriptorSetLayout descriptorSetLayout{};
+    VkDescriptorSetLayoutBinding bindings[layoutSizeAndType];
+    int bindingCount = 0;
 
-    VkDescriptorSetLayoutBinding uboLayoutBinding{};
-    uboLayoutBinding.binding            = 0;
-    uboLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    uboLayoutBinding.descriptorCount    = 1;
-    uboLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
-    uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
+    // use the BBDescriptorSetLayout enum in this pattern
+    // to build descriptor set layouts here
+    if ((layoutSizeAndType == BITCH_BASIC) || (layoutSizeAndType == BASIC))
+    {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding            = 0;
+        uboLayoutBinding.descriptorType     = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.descriptorCount    = 1;
+        uboLayoutBinding.stageFlags         = VK_SHADER_STAGE_VERTEX_BIT;
+        uboLayoutBinding.pImmutableSamplers = nullptr; // Optional
 
-    VkDescriptorSetLayoutBinding samplerLayoutBinding{};
-    samplerLayoutBinding.binding = 1;
-    samplerLayoutBinding.descriptorCount = 1;
-    samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    samplerLayoutBinding.pImmutableSamplers = nullptr;
-    samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        bindings[bindingCount] = uboLayoutBinding;
+        bindingCount++;
+    }
+    if ((layoutSizeAndType == BITCH_BASIC) || (layoutSizeAndType == BASIC))
+    {
+        VkDescriptorSetLayoutBinding samplerLayoutBinding{};
+        samplerLayoutBinding.binding = 1;
+        samplerLayoutBinding.descriptorCount = 1;
+        samplerLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerLayoutBinding.pImmutableSamplers = nullptr;
+        samplerLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
-    VkDescriptorSetLayoutBinding bindings[2] = {uboLayoutBinding, samplerLayoutBinding};
+        bindings[bindingCount] = samplerLayoutBinding;
+        bindingCount++;
+    }
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = 2;
+    layoutInfo.bindingCount = layoutSizeAndType;
     layoutInfo.pBindings = bindings;
 
     if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
@@ -66,7 +79,11 @@ VulkanDescriptorPool *createDescriptorPool(Device *device)
     return descriptorPool;
 }
 
-std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImage *texture)
+std::vector<VkDescriptorSet> createDescriptorSets(Device *device, 
+                VkDescriptorSetLayout descriptorSetLayout, 
+                VulkanDescriptorPool *descriptorPool, 
+                std::vector<UniformBuffer*> &uniformBuffers, 
+                VulkanImage *texture)
 {
     std::vector<VkDescriptorSet> descriptorSets{};
 
@@ -79,7 +96,8 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSe
     allocInfo.pSetLayouts = layouts.data();
     
     descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) 
+    {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
     for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
@@ -119,4 +137,3 @@ std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSe
 
 }
 
-}

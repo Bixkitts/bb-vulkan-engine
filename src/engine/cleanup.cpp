@@ -4,8 +4,6 @@
 #include "cleanup.hpp"
 #include "swap_chain.hpp"
 #include "device.hpp"
-namespace bve
-{
 // more things will... eventually be listed here!
 void cleanup(CleanupList *list)
 {
@@ -34,5 +32,4 @@ void cleanup(CleanupList *list)
     }
     destroyDevice(list->device);
     delete list;
-}
 }

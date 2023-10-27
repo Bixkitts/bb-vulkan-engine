@@ -1,25 +1,24 @@
 #ifndef CONFIG_PIPELINE
 #define CONFIG_PIPELINE
+
+#include <vulkan/vulkan_core.h>
+
 #include "buffers.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
-#include <vulkan/vulkan_core.h>
-namespace config
-{
-    //a default configuration for the pipeline containing all the info
-    //I'm going to need
-    bve::PipelineConfig *pipelineConfigDefault(bve::SwapChain *swapchain, std::vector<bve::UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
 
-    VkGraphicsPipelineCreateInfo *pipelineCreateInfo(bve::PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
+//a default configuration for the pipeline containing all the info
+//I'm going to need
+PipelineConfig *pipelineConfigDefault(SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
 
-    VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(bve::PipelineConfig *config);
-    VkRenderPassCreateInfo *renderPassCreateInfo(bve::SwapChain *swapchain);
+VkGraphicsPipelineCreateInfo *createPipelineCreateInfo(PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 
-    VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code);
-    VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions);
-    VkPipelineViewportStateCreateInfo *viewportCreateInfo(bve::PipelineConfig *configInfo);
-    VkPipelineShaderStageCreateInfo *shaderStagesCreateInfo(bve::GraphicsPipeline *mainPipeline);
-}
+VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(PipelineConfig *config);
+VkRenderPassCreateInfo *renderPassCreateInfo(SwapChain *swapchain);
 
+VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code);
+VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions);
+VkPipelineViewportStateCreateInfo *viewportCreateInfo(PipelineConfig *configInfo);
+VkPipelineShaderStageCreateInfo *shaderStagesCreateInfo(GraphicsPipeline *mainPipeline);
 
 #endif
