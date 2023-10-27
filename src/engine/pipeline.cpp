@@ -98,6 +98,8 @@ static void cleanupShaderModules(GraphicsPipeline* pipeline)
 
 PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets)
 {
+    // lmao indirection?
+    // I guess this may be expanded in future.
     auto *config = pipelineConfigDefault(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
     return config;
 }

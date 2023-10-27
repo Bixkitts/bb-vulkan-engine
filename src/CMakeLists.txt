@@ -38,6 +38,8 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/transform.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/transform.hpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/entity.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/entity.hpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/main_loader.cpp
+${CMAKE_CURRENT_SOURCE_DIR}/engine/main_loader.h
 )
 target_sources(testbin PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/testbin/Main.cpp

@@ -1,3 +1,9 @@
+#include <vulkan/vulkan_core.h>
+
+#include <vector>
+#include <array>
+
+#include "main_loader.h"
 #include "interface.hpp"
 #include "GLFW/glfw3.h"
 #include "buffers.hpp"
@@ -12,59 +18,59 @@
 #include "cleanup.hpp"
 #include "images.hpp"
 #include "entity.hpp"
-#include <vulkan/vulkan_core.h>
 
-#include <vector>
-#include <array>
 // Logical and physical device that everything needs access to.
 Device *device;
-
+// Swap chain that everybody needs to be aware of
 SwapChain *swapchain;
-// This should load a model from an external file
+
+// This will load graphical resources from directories
+// provided and build the descriptors and pipeline required. 
+// BUT WAIT. There's a catch.
+// It needs to be made in such a way that resources are reusable.
 BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char *fragShader)
 {
     BBEntity* entity       = new BBEntity{};
+
+    // This will need to actually load a model from a file
     entity->model          = loadModel(model);
+
+    // This already loads a texture from a file!
+    // yipee!
     entity->texture        = createTextureImage(texture, device);
                              createTextureImageView(entity->texture);
                              createTextureSampler(entity->texture);
     auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
-    //Vertex and index buffers from the loaded models
+
+    // Vertex and index buffers from the loaded models
     auto vertexBuffers     = createVertexBuffer(device, entity->model);
     auto indexBuffers      = createIndexBuffer(device, entity->model);
 
-    // I need to have like a pool of pipelines and bind the right ones for the right objects
-    // based on the shaders they use
-}
-
-    //create descriptor sets
+    // create descriptor sets
     auto descriptorPool      = createDescriptorPool(device);
     auto descriptorSetLayout = createDescriptorSetLayout(device, BITCH_BASIC);
     auto descriptorSets      = createDescriptorSets(device, 
                                             descriptorSetLayout,
                                             descriptorPool, 
                                             uniformBuffers, 
-                                            textureImageViews, 
-                                            textureSamplers);
+                                            entity->texture);
 
-    //create pipeline configuration with a hard coded default
+    //create pipeline configuration with hard coded default shit
     auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
     //creating the pipe line itself using the coded default
     auto pipeline          = createGraphicsPipeline(device, 
                                                   swapchain, 
-                                                  "../shaders/simple_shader.vert.spv", 
-                                                  "../shaders/simple_shader.frag.spv", 
+                                                  vertShader, 
+                                                  fragShader, 
                                                   pipelineConfig);
+    return entity;
+}
 
-// 
-BBAPI void *spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
+BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 {
-    auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
-    //Vertex and index buffers from the loaded models
-    auto vertexBuffers     = createVertexBuffer(device, entity->model);
-    auto indexBuffers      = createIndexBuffer(device, entity->model);
 
 }
+
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
 {
     //create vulkan physical and logical device and store it all in device struct
@@ -77,6 +83,11 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
 //    auto object1           = spawnObject(model, texture, worldCoords);
     //texture related loading, buffering, views and sampling
 
+    char model[]      = "whatever";
+    char texture[]    = "../textures/CADE.png";
+    char vertShader[] = "../shaders/simple_shader.vert.spv";
+    char fragShader[] = "../shaders/simple_shader.frag.spv";
+    createEntity(model, texture, vertShader, fragShader);
 
 
     //Create command buffers. Should be a return value instead of a parameter!

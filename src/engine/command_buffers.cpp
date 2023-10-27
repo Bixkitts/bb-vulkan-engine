@@ -1,11 +1,13 @@
+#include <stdexcept>
+#include <array>
+
+#include <vulkan/vulkan_core.h>
+
 #include "command_buffers.hpp"
 #include "buffers.hpp"
 #include "model.hpp"
 #include "swap_chain.hpp"
 
-#include <stdexcept>
-#include <array>
-#include <vulkan/vulkan_core.h>
 std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
 {
     std::vector<VkCommandBuffer> commandBuffers;
@@ -24,54 +26,52 @@ std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
     }
 
     return commandBuffers;
-
 }
 
 void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeline, uint32_t imageIndex, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models)
 {
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    
+    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }                
 
-        VkCommandBufferBeginInfo beginInfo{};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        
-        if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to begin recording command buffer!");
-        }                
+    VkRenderPassBeginInfo renderPassInfo = {};
+    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass = swapchain->renderPass;
+    renderPassInfo.framebuffer = swapchain->swapChainFramebuffers[imageIndex];
+    renderPassInfo.renderArea.offset = {0,0};
+    renderPassInfo.renderArea.extent = swapchain->swapChainExtent;
 
-        VkRenderPassBeginInfo renderPassInfo = {};
-        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-        renderPassInfo.renderPass = swapchain->renderPass;
-        renderPassInfo.framebuffer = swapchain->swapChainFramebuffers[imageIndex];
-        renderPassInfo.renderArea.offset = {0,0};
-        renderPassInfo.renderArea.extent = swapchain->swapChainExtent;
+    auto clearValues = new VkClearValue[2];
+    clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
+    clearValues[1].depthStencil = {1.0f, 0};
 
-        auto clearValues = new VkClearValue[2];
-        clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
-        clearValues[1].depthStencil = {1.0f, 0};
+    renderPassInfo.clearValueCount = 2;
+    renderPassInfo.pClearValues = clearValues;
 
-        renderPassInfo.clearValueCount = 2;
-        renderPassInfo.pClearValues = clearValues;
+    vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    bindPipeline(pipeline, commandBuffer);
 
-        bindPipeline(pipeline, commandBuffer);
+    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
 
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
-
-        for(int j = 0; j < indexBuffers.size(); j++)
-        {
-            // consider binding all vertex buffers at once (look in function)
-            bindVertexBuffer(vertexBuffers[j], commandBuffer);
-            bindIndexBuffer(indexBuffers[j], commandBuffer);
-            drawIndexBuffer(indexBuffers[j], commandBuffer);
-        }
-
-        vkCmdEndRenderPass(commandBuffer);
-        if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to record command buffer!");
-       }
+    for(int j = 0; j < indexBuffers.size(); j++)
+    {
+        // consider binding all vertex buffers at once (look in function)
+        bindVertexBuffer(vertexBuffers[j], commandBuffer);
+        bindIndexBuffer(indexBuffers[j], commandBuffer);
+        drawIndexBuffer(indexBuffers[j], commandBuffer);
     }
+
+    vkCmdEndRenderPass(commandBuffer);
+    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
+    {
+        throw std::runtime_error("failed to record command buffer!");
+   }
+}
 
 VkResult submitCommandBuffers(SwapChain *swapchain,
         const VkCommandBuffer* buffers, uint32_t* imageIndex) 
