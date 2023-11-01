@@ -84,6 +84,7 @@ PipelineConfig *pipelineConfigDefault(SwapChain *swapchain, std::vector<UniformB
 
     config->renderPass                                  = swapchain->renderPass;
 
+    // Oh dang this is important, uniform buffers!
     config->uniformBuffers                              = uniformBuffers;
 
     //Creating layouts and descriptors

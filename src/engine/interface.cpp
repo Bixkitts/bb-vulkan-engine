@@ -28,9 +28,9 @@ SwapChain *swapchain;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char *fragShader)
+BBAPI BBEntity createEntity(char *model, char *texture, char *vertShader, char *fragShader)
 {
-    BBEntity* entity       = new BBEntity{};
+    BBEntity entity       = new BBEntity_T{};
 
     // This will need to actually load a model from a file
     entity->model          = loadModel(model);
@@ -48,7 +48,7 @@ BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char 
 
     // create descriptor sets
     auto descriptorPool      = createDescriptorPool(device);
-    auto descriptorSetLayout = createDescriptorSetLayout(device, BITCH_BASIC);
+    auto descriptorSetLayout = createDescriptorSetLayout(device, DS_LAYOUT_BITCH_BASIC);
     auto descriptorSets      = createDescriptorSets(device, 
                                             descriptorSetLayout,
                                             descriptorPool, 
@@ -66,9 +66,18 @@ BBAPI BBEntity *createEntity(char *model, char *texture, char *vertShader, char 
     return entity;
 }
 
+// Once an entity is "created", it should be duplicated from then on.
 BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 {
 
+}
+
+BBAPI void initializeGFX(BBWindow *mainWindow)
+{
+    //create vulkan physical and logical device and store it all in device struct
+    device                 = deviceInit(mainWindow);
+    //create swap chain and store all the vulkan details in SwapChain struct
+    swapchain              = createSwapChain(device, getExtent(mainWindow));
 }
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
@@ -77,21 +86,16 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     device                 = deviceInit(mainWindow);
     //create swap chain and store all the vulkan details in SwapChain struct
     swapchain              = createSwapChain(device, getExtent(mainWindow));
-    //load models into vector of models
-
-
-//    auto object1           = spawnObject(model, texture, worldCoords);
-    //texture related loading, buffering, views and sampling
 
     char model[]      = "whatever";
     char texture[]    = "../textures/CADE.png";
     char vertShader[] = "../shaders/simple_shader.vert.spv";
     char fragShader[] = "../shaders/simple_shader.frag.spv";
-    createEntity(model, texture, vertShader, fragShader);
+    BBEntity *entity0 = createEntity(model, texture, vertShader, fragShader);
 
 
     //Create command buffers. Should be a return value instead of a parameter!
-    auto commandBuffers    = createCommandBuffers(pipeline);
+    auto commandBuffers    = createCommandBuffers(entity0->pipeline);
     #ifdef DEBUG
     std::cout<<"\n -------This is a Debug build!-------\n";
     #endif
@@ -109,6 +113,7 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     vkDeviceWaitIdle(device->logical);
 
     // Cleanup stuffs
+    /*
     auto cleanupList = new CleanupList{device, 
                                        pipeline,
                                        swapchain,
@@ -117,4 +122,5 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
                                        uniformBuffers,
                                        models};
     cleanup(cleanupList);
+    */
 }

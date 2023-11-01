@@ -21,7 +21,7 @@ VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetL
 
     // use the BBDescriptorSetLayout enum in this pattern
     // to build descriptor set layouts here
-    if ((layoutSizeAndType == BITCH_BASIC) || (layoutSizeAndType == BASIC))
+    if ((layoutSizeAndType == DS_LAYOUT_BITCH_BASIC) || (layoutSizeAndType == DS_LAYOUT_BASIC))
     {
         VkDescriptorSetLayoutBinding uboLayoutBinding{};
         uboLayoutBinding.binding            = 0;
@@ -33,7 +33,7 @@ VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetL
         bindings[bindingCount] = uboLayoutBinding;
         bindingCount++;
     }
-    if ((layoutSizeAndType == BITCH_BASIC) || (layoutSizeAndType == BASIC))
+    if ((layoutSizeAndType == DS_LAYOUT_BITCH_BASIC) || (layoutSizeAndType == DS_LAYOUT_BASIC))
     {
         VkDescriptorSetLayoutBinding samplerLayoutBinding{};
         samplerLayoutBinding.binding = 1;
@@ -57,21 +57,22 @@ VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetL
     return descriptorSetLayout;
 }
 
+
 VulkanDescriptorPool *createDescriptorPool(Device *device)
 {
     auto descriptorPool = new VulkanDescriptorPool{};
 
     VkDescriptorPoolSize poolSizes[2] = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-    poolSizes[0].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[0].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
     poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-    poolSizes[1].descriptorCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolSizes[1].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
     VkDescriptorPoolCreateInfo poolInfo{};
     poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
     poolInfo.poolSizeCount = 2;
     poolInfo.pPoolSizes = poolSizes;
-    poolInfo.maxSets = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
+    poolInfo.maxSets = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
     if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &descriptorPool->pool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
@@ -79,61 +80,71 @@ VulkanDescriptorPool *createDescriptorPool(Device *device)
     return descriptorPool;
 }
 
-std::vector<VkDescriptorSet> createDescriptorSets(Device *device, 
+VkDescriptorSet *createDescriptorSets(Device *device, 
                 VkDescriptorSetLayout descriptorSetLayout, 
                 VulkanDescriptorPool *descriptorPool, 
-                std::vector<UniformBuffer*> &uniformBuffers, 
+                UniformBuffer *uniformBuffers, 
                 VulkanImage *texture)
 {
-    std::vector<VkDescriptorSet> descriptorSets{};
+    VkDescriptorSet *descriptorSets = (VkDescriptorSet*)malloc(sizeof(VkDescriptorSet)*MAX_FRAMES_IN_FLIGHT);
 
-    std::vector<VkDescriptorSetLayout> layouts(MAX_FRAMES_IN_FLIGHT, descriptorSetLayout);
+    // The layout of these sets need to all be the same,
+    // as they will all be rendering the same resources.
+    VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT];
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
+    {
+        layouts[i] = descriptorSetLayout;
+    }
 
     VkDescriptorSetAllocateInfo allocInfo{};
     allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool = descriptorPool->pool;
-    allocInfo.descriptorSetCount = static_cast<uint32_t>(MAX_FRAMES_IN_FLIGHT);
-    allocInfo.pSetLayouts = layouts.data();
+    allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.pSetLayouts = layouts;
     
-    descriptorSets.resize(MAX_FRAMES_IN_FLIGHT);
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets.data()) != VK_SUCCESS) 
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to allocate descriptor sets!");
     }
-    for(size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
-        VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = uniformBuffers[i]->buffer;
-        bufferInfo.offset = 0;
-        bufferInfo.range = sizeof(PerObjectMatrices);
 
+    const int AMOUNT_OF_DESCRIPTORS = 3;
+    const int descriptorWriteCount = MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
+    VkWriteDescriptorSet descriptorWrites[descriptorWriteCount] = {};
+    for(int i = 0; i < descriptorWriteCount; i+=AMOUNT_OF_DESCRIPTORS)
+    {
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         //TODO: AHHHHH. Sort out the views and samplers thing.
-        imageInfo.imageView = texture->views[0];
-        imageInfo.sampler = texture->samplers[0];
+        imageInfo.imageView   = texture->views[0];
+        imageInfo.sampler     = texture->samplers[0];
 
-        VkWriteDescriptorSet descriptorWrites[2] = {};
-        descriptorWrites[0].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[0].dstSet = descriptorSets[i];
-        descriptorWrites[0].dstBinding = 0;
-        descriptorWrites[0].dstArrayElement = 0;
-        descriptorWrites[0].descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrites[0].descriptorCount = 1;
-        descriptorWrites[0].pBufferInfo = &bufferInfo;
+        VkDescriptorBufferInfo transBufferInfo{};
+        transBufferInfo.buffer = uniformBuffers[0].buffer;
+        transBufferInfo.offset = 0;
+        transBufferInfo.range  = sizeof(PerObjectMatrices);
 
-        descriptorWrites[1].sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[1].dstSet = descriptorSets[i];
-        descriptorWrites[1].dstBinding = 1;
-        descriptorWrites[1].dstArrayElement = 0;
-        descriptorWrites[1].descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrites[1].descriptorCount = 1;
-        descriptorWrites[1].pImageInfo = &imageInfo; // Optional
-                                                    //
-        vkUpdateDescriptorSets(device->logical, 2, descriptorWrites, 0, nullptr);
+        VkDescriptorBufferInfo viewBufferInfo{};
+        viewBufferInfo.buffer  = uniformBuffers[1].buffer;
+        viewBufferInfo.offset  = 0;
+        viewBufferInfo.range   = sizeof(ViewMatrices);
+
+        descriptorWrites[i].sType               = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[i].dstSet              = descriptorSets[i];
+        descriptorWrites[i].dstBinding          = 0;
+        descriptorWrites[i].dstArrayElement     = 0;
+        descriptorWrites[i].descriptorType      = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[i].descriptorCount     = 1;
+        descriptorWrites[i].pBufferInfo         = &transBufferInfo;
+
+        descriptorWrites[i+1].sType             = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[i+1].dstSet            = descriptorSets[i];
+        descriptorWrites[i+1].dstBinding        = 1;
+        descriptorWrites[i+1].dstArrayElement   = 0;
+        descriptorWrites[i+1].descriptorType    = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[i+1].descriptorCount   = 1;
+        descriptorWrites[i+1].pImageInfo        = &imageInfo; // Optional
     }
-
+    vkUpdateDescriptorSets(device->logical, descriptorWriteCount, descriptorWrites, 0, nullptr);
     return descriptorSets;
-
 }
 

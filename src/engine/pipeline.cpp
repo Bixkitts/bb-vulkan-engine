@@ -48,10 +48,11 @@ GraphicsPipeline* createGraphicsPipeline(
                                                                 //stays stored in the pipeline object 
                                                                 //for reference and vulkan deallocation
 
-    //Here the vertex input info is put constructed 
+    // Here the vertex input info is put constructed 
     auto bindingDescriptions     = getBindingDescriptions();
     auto attributeDescriptions   = getAttributeDescriptions();
     auto *vertexInputInfo        = vertexInputStateCreateInfo(&bindingDescriptions, &attributeDescriptions);
+
     //Some more configuration
     auto *shaderStages           = shaderStagesCreateInfo(mainPipeline);
     auto *viewportInfo           = viewportCreateInfo(mainPipeline->pipelineConfig);

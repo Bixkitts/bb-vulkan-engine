@@ -4,21 +4,22 @@
 #include <vulkan/vulkan_core.h>
 
 #include "device.hpp"
+#include "defines.hpp"
 #include "pipeline.hpp"
 #include "images.hpp"
 
-struct VulkanDescriptorPool
+typedef struct VulkanDescriptorPool
 {
     VkDescriptorPool pool;
     Device *device;
-};
+}VulkanDescriptorPool;
 
 enum BBDescriptorSetLayout
 {
     // Values indicate size of the layouts
-    BITCH_BASIC = 2,
-    BASIC       = 2,
-    WHATEVER    = 5
+    DS_LAYOUT_BITCH_BASIC = 2,
+    DS_LAYOUT_BASIC       = 2,
+    DS_LAYOUT_WHATEVER    = 5
 };
 
 VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetLayout layout);

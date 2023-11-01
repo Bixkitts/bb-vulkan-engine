@@ -7,8 +7,9 @@
 #include "buffers.hpp"
 #include "model.hpp"
 #include "swap_chain.hpp"
+#include "entity.hpp"
 
-std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
+std::vector<VkCommandBuffer> createPrimaryCommandBuffers(Device *device)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -16,10 +17,10 @@ std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = pipeline->device->commandPool;
+    allocInfo.commandPool = device->commandPool;
     allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
 
-    if(vkAllocateCommandBuffers(pipeline->device->logical, &allocInfo, commandBuffers.data()) !=
+    if(vkAllocateCommandBuffers(device->logical, &allocInfo, commandBuffers.data()) !=
             VK_SUCCESS)
     {
         throw std::runtime_error("failed to allocate command buffers!");
@@ -28,7 +29,7 @@ std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline)
     return commandBuffers;
 }
 
-void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeline, uint32_t imageIndex, SwapChain* swapchain, std::vector<VertexBuffer*> &vertexBuffers, std::vector<IndexBuffer*> &indexBuffers, std::vector<Model*> &models)
+void recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, BBEntity *entities, uint64_t entityCount, SwapChain* swapchain)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -52,20 +53,32 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer, GraphicsPipeline *pipeli
     renderPassInfo.clearValueCount = 2;
     renderPassInfo.pClearValues = clearValues;
 
+    // -------------------------- Start of Render Pass ---------------------------
+
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-    bindPipeline(pipeline, commandBuffer);
-
-    vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
-
-    for(int j = 0; j < indexBuffers.size(); j++)
+    // I should be building secondary command buffers on a per object basis
+    // And bind all their own pipelines.
+    // ACTUALLY maybe secondary buffers on a per-pipeline basis!
+    for(uint64_t i = 0; i < entityCount; i++)
     {
-        // consider binding all vertex buffers at once (look in function)
-        bindVertexBuffer(vertexBuffers[j], commandBuffer);
-        bindIndexBuffer(indexBuffers[j], commandBuffer);
-        drawIndexBuffer(indexBuffers[j], commandBuffer);
+        GraphicsPipeline *pipeline = entities[i].pipeline;
+        bindPipeline(pipeline, commandBuffer);
+
+        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
+
+        for(int j = 0; j < indexBuffers.size(); j++)
+        {
+            // consider binding all vertex buffers at once (look in function)
+            bindVertexBuffer(vertexBuffers[j], commandBuffer);
+            bindIndexBuffer(indexBuffers[j], commandBuffer);
+            drawIndexBuffer(indexBuffers[j], commandBuffer);
+        }
+
     }
 
+    // -------------------------- End of Render Pass ---------------------------
+    
     vkCmdEndRenderPass(commandBuffer);
     if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
     {

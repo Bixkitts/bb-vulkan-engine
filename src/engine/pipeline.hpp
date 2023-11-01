@@ -37,8 +37,8 @@ struct PipelineConfig
 };
 struct GraphicsPipeline
 {
-    Device* device;
-    SwapChain* swapchain;
+    Device *device;
+    SwapChain *swapchain;
     VkPipeline graphicsPipeline;
     VkShaderModule vertShaderModule;
     VkShaderModule fragShaderModule;
