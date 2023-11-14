@@ -1,9 +1,15 @@
 #ifndef INTERFACE
 #define INTERFACE
 
-#include "entity.hpp"
+#include <vulkan/vulkan_core.h>
+
+#include <vector>
+#include <array>
+
+#include "entity.h"
 #include "window.hpp"
 #include "defines.hpp"
+
 enum BBAPI BBAxis
 {
     BB_AXIS_X = 2,

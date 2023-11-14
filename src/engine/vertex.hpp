@@ -11,12 +11,10 @@
 
 struct Vertex
 {
+    // TODO:
+    // GLM stuff, remove :/
     glm::vec2 position;
     glm::vec2 texCoord;
-
-    static std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-    static std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-
 };
 std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
 std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();

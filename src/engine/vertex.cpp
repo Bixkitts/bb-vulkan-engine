@@ -1,5 +1,6 @@
 #include "vertex.hpp"
 
+// How the vertex buffer itself is bound and interpreted
 std::vector<VkVertexInputBindingDescription> getBindingDescriptions()
 {
     std::vector<VkVertexInputBindingDescription> bindingDescriptions(1);
@@ -9,7 +10,7 @@ std::vector<VkVertexInputBindingDescription> getBindingDescriptions()
         return bindingDescriptions;
 }
 
-// This describes how the data is laid out in the vertex buffer
+// This describes how the data is laid out PER VERTEX.
 // Currently, it's a position coordinate followed by a texture UV!
 std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions()
 {

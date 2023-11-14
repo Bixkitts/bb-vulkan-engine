@@ -1,8 +1,3 @@
-#include <vulkan/vulkan_core.h>
-
-#include <vector>
-#include <array>
-
 #include "main_loader.h"
 #include "interface.hpp"
 #include "GLFW/glfw3.h"
@@ -17,7 +12,7 @@
 #include "window.hpp"
 #include "cleanup.hpp"
 #include "images.hpp"
-#include "entity.hpp"
+#include "entity.h"
 
 // Logical and physical device that everything needs access to.
 Device *device;
@@ -45,9 +40,10 @@ BBAPI P_BBEntity createEntity(char *model, char *texture, char *vertShader, char
     // Remember, each frame in the swap chain needs
     // a separate one!
     createUniformBuffers(entity->transformBuffer, device, sizeof(PerObjectMatrices));
+    createUniformBuffers(entity->cameraBuffer, device, sizeof(ViewMatrices));
 
     // Vertex and index buffers from the loaded models
-    auto vertexBuffers     = createVertexBuffer(device, entity->model);
+    createVertexBuffer(entity->vBuffer, device, entity->model);
     auto indexBuffers      = createIndexBuffer(device, entity->model);
 
     // create descriptor sets

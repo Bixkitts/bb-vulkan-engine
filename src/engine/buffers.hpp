@@ -40,7 +40,7 @@ typedef VulkanBuffer UniformBuffer;
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model);
 IndexBuffer *createIndexBuffer(Device *device, Model *model);
-BBError *createUniformBuffer(UniformBuffer *uBuffer, Device *device, size_t contentsSize);
+BBError createUniformBuffer(UniformBuffer *uBuffer, Device *device, size_t contentsSize);
 
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
 std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*> models);

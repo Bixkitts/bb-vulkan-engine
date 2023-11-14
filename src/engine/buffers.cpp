@@ -3,9 +3,10 @@
 #include "config_buffers.hpp"
 #include <vulkan/vulkan_core.h>
 
-VertexBuffer *createVertexBuffer(Device *device, Model *model)
+BBError createVertexBuffer(VertexBuffer *vBuffer, Device *device, Model *model)
 {
-    StagingBuffer sbuffer = {};
+    // NOTE - maybe ZERO this
+    StagingBuffer sbuffer;
     sbuffer.device = device;
     assert(model->vertices.size() >= 3 && "Vertex count must be at least 3");
     VkDeviceSize bufferSize = sizeof(Vertex) * model->vertices.size();
@@ -57,18 +58,16 @@ IndexBuffer *createIndexBuffer(Device *device, Model *model)
     return ibuffer;
 }
 
-UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize)
+BBError createUniformBuffer(UniformBuffer *uBuffer, Device *device, size_t contentsSize)
 {
-    // MALLOC - NO FREE
-    UniformBuffer *ubuffer = (UniformBuffer*)calloc(1, sizeof(UniformBuffer));
-    ubuffer->device = device;
-    ubuffer->size = 1;  //a uniform buffer is going to typically contain a single struct
+    uBuffer->device = device;
+    uBuffer->size = 1;  //a uniform buffer is going to typically contain a single struct
     VkDeviceSize bufferSize = contentsSize;
-    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, ubuffer->buffer, ubuffer->deviceMemory, device); 
+    createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uBuffer->buffer, uBuffer->deviceMemory, device); 
 
-    vkMapMemory(device->logical, ubuffer->deviceMemory, 0, bufferSize, 0, &ubuffer->mapped);
+    vkMapMemory(device->logical, uBuffer->deviceMemory, 0, bufferSize, 0, &uBuffer->mapped);
 
-    return ubuffer;
+    return BB_ERROR_OK;
 }
 
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models)
@@ -96,15 +95,16 @@ std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*>
 
     return iBuffers;
 }
-BBError createUniformBuffers(UniformBuffer* ubuffer, Device *device, size_t contentsSize)
+BBError createUniformBuffers(UniformBuffer* uBuffer, Device *device, size_t contentsSize)
 {
-    ;
+    //MALLOC, NO FREE
+    uBuffer = (UniformBuffer*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(UniformBuffer));
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT ; i++)
     {
-        uBuffers[i] = createUniformBuffer(device, contentsSize);
+        createUniformBuffer(&uBuffer[i], device, contentsSize);
     } 
 
-    return uBuffers[0];
+    return BB_ERROR_OK;
 }
 void destroyBuffer(VulkanBuffer *v)
 {
