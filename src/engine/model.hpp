@@ -1,6 +1,10 @@
 #ifndef BVE_MODEL
 #define BVE_MODEL
 
+#include <cassert>
+#include <vulkan/vulkan_core.h>
+#include <cstring>
+#include <iostream>
 #include <glm/glm.hpp>
 #include <vulkan/vulkan_core.h>
 

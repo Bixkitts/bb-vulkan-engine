@@ -1,5 +1,5 @@
-#ifndef DESCRIPTOR_SETS
-#define DESCRIPTOR_SETS
+#ifndef BB_DESCRIPTOR_SETS
+#define BB_DESCRIPTOR_SETS
 
 #include <vulkan/vulkan_core.h>
 

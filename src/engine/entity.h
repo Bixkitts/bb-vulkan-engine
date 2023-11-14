@@ -1,5 +1,5 @@
-#ifndef ENTITY
-#define ENTITY
+#ifndef BB_ENTITY
+#define BB_ENTITY
 
 #include "descriptor_sets.hpp"
 #include "model.hpp"
@@ -22,6 +22,6 @@ typedef struct BBEntity
     BBDescriptorSetLayout descriptorSetLayout;
     VkDescriptorSet *descriptorSet;
     GraphicsPipeline *pipeline;
-} BBEntity;
+} BBEntity, *P_BBEntity;
 
 #endif

@@ -28,9 +28,10 @@ SwapChain *swapchain;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBEntity createEntity(char *model, char *texture, char *vertShader, char *fragShader)
+BBAPI P_BBEntity createEntity(char *model, char *texture, char *vertShader, char *fragShader)
 {
-    BBEntity entity       = new BBEntity_T{};
+    // replace this with init entity
+    BBEntity *entity       = new BBEntity{};
 
     // This will need to actually load a model from a file
     entity->model          = loadModel(model);
@@ -40,7 +41,10 @@ BBAPI BBEntity createEntity(char *model, char *texture, char *vertShader, char *
     entity->texture        = createTextureImage(texture, device);
                              createTextureImageView(entity->texture);
                              createTextureSampler(entity->texture);
-    auto uniformBuffers    = createUniformBuffers(device, sizeof(PerObjectMatrices));
+    // All the uniform buffers associated with an entity.
+    // Remember, each frame in the swap chain needs
+    // a separate one!
+    createUniformBuffers(entity->transformBuffer, device, sizeof(PerObjectMatrices));
 
     // Vertex and index buffers from the loaded models
     auto vertexBuffers     = createVertexBuffer(device, entity->model);
@@ -66,6 +70,11 @@ BBAPI BBEntity createEntity(char *model, char *texture, char *vertShader, char *
     return entity;
 }
 
+BBAPI void rotateEntity(BBEntity *entity, BBAxis axis)
+{
+
+}
+
 // Once an entity is "created", it should be duplicated from then on.
 BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 {
@@ -82,10 +91,7 @@ BBAPI void initializeGFX(BBWindow *mainWindow)
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
 {
-    //create vulkan physical and logical device and store it all in device struct
-    device                 = deviceInit(mainWindow);
-    //create swap chain and store all the vulkan details in SwapChain struct
-    swapchain              = createSwapChain(device, getExtent(mainWindow));
+    initializeGFX(mainWindow);
 
     char model[]      = "whatever";
     char texture[]    = "../textures/CADE.png";

@@ -2,14 +2,16 @@
 #define BVE_BUFFER_VERTEX
 
 #include <vulkan/vulkan_core.h>
-#include "vertex.hpp"
-#include "model.hpp"
 #include <iostream>
 #include <cstring>
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include <glm/glm.hpp>
+
+#include "vertex.hpp"
+#include "model.hpp"
+#include "error_handling.h"
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area
 struct PerObjectMatrices
 {
@@ -38,11 +40,11 @@ typedef VulkanBuffer UniformBuffer;
 
 VertexBuffer *createVertexBuffer(Device *device, Model *model);
 IndexBuffer *createIndexBuffer(Device *device, Model *model);
-UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize);
+BBError *createUniformBuffer(UniformBuffer *uBuffer, Device *device, size_t contentsSize);
 
 std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
 std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*> models);
-std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contentsSize);
+BBError createUniformBuffers(UniformBuffer *uBuffer, Device *device, size_t contentsSize);
 
 void destroyBuffer(VulkanBuffer *v);
 

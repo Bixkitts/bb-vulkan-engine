@@ -59,7 +59,8 @@ IndexBuffer *createIndexBuffer(Device *device, Model *model)
 
 UniformBuffer *createUniformBuffer(Device *device, size_t contentsSize)
 {
-    auto *ubuffer = new UniformBuffer{};
+    // MALLOC - NO FREE
+    UniformBuffer *ubuffer = (UniformBuffer*)calloc(1, sizeof(UniformBuffer));
     ubuffer->device = device;
     ubuffer->size = 1;  //a uniform buffer is going to typically contain a single struct
     VkDeviceSize bufferSize = contentsSize;
@@ -95,19 +96,15 @@ std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*>
 
     return iBuffers;
 }
-
-std::vector<UniformBuffer*> createUniformBuffers(Device *device, size_t contentsSize)
+BBError createUniformBuffers(UniformBuffer* ubuffer, Device *device, size_t contentsSize)
 {
-
-    std::vector<UniformBuffer*> uBuffers;
+    ;
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT ; i++)
     {
-        uBuffers.push_back(
-        createUniformBuffer(device, contentsSize)
-        );
+        uBuffers[i] = createUniformBuffer(device, contentsSize);
     } 
 
-    return uBuffers;
+    return uBuffers[0];
 }
 void destroyBuffer(VulkanBuffer *v)
 {
