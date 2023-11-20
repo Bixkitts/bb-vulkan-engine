@@ -15,27 +15,38 @@
 #include "entity.h"
 
 // Logical and physical device that everything needs access to.
-Device *device;
+static Device *device;
 // Swap chain that everybody needs to be aware of
-SwapChain *swapchain;
+static SwapChain *swapchain;
 
+// TODO: these do nothing yet!!
+// Have allocated memory pools to create buffers in
+// Maybe make these like their own struct with
+// more metadata about the allocation
+static VkDeviceMemory *memoryPool;
+static VkDeviceMemory *anotherMemoryPool;
+static VkDeviceMemory *yetAnotherMemoryPool;
 // This will load graphical resources from directories
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI P_BBEntity createEntity(char *model, char *texture, char *vertShader, char *fragShader)
+BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, char *vertShader, char *fragShader)
 {
-    // replace this with init entity
-    BBEntity *entity       = new BBEntity{};
+    // TODO: MALLOC without free
+    entity = (BBEntity*)calloc(1, sizeof(BBEntity));
 
     // This will need to actually load a model from a file
-    entity->model          = loadModel(model);
+    const char *modelDir = "literally whatever";
+    loadModel(entity->model, modelDir);
 
+    // TODO:
+    // I ought to be allocating resources from the memory pools up above!!
+    // ---------------------------------------------------------------------------
     // This already loads a texture from a file!
     // yipee!
-    entity->texture        = createTextureImage(texture, device);
-                             createTextureImageView(entity->texture);
-                             createTextureSampler(entity->texture);
+    createTextureImage(entity->texture, textureDir, device);
+    createTextureImageView(entity->texture);
+    createTextureSampler(entity->texture);
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
@@ -44,7 +55,7 @@ BBAPI P_BBEntity createEntity(char *model, char *texture, char *vertShader, char
 
     // Vertex and index buffers from the loaded models
     createVertexBuffer(entity->vBuffer, device, entity->model);
-    auto indexBuffers      = createIndexBuffer(device, entity->model);
+    createIndexBuffer(entity->iBuffer, device, entity->model);
 
     // create descriptor sets
     auto descriptorPool      = createDescriptorPool(device);
@@ -63,7 +74,7 @@ BBAPI P_BBEntity createEntity(char *model, char *texture, char *vertShader, char
                                                   vertShader, 
                                                   fragShader, 
                                                   pipelineConfig);
-    return entity;
+    return BB_ERROR_OK;
 }
 
 BBAPI void rotateEntity(BBEntity *entity, BBAxis axis)
@@ -93,7 +104,8 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     char texture[]    = "../textures/CADE.png";
     char vertShader[] = "../shaders/simple_shader.vert.spv";
     char fragShader[] = "../shaders/simple_shader.frag.spv";
-    BBEntity *entity0 = createEntity(model, texture, vertShader, fragShader);
+    P_BBEntity entity0;
+    createEntity(entity0, model, texture, vertShader, fragShader);
 
 
     //Create command buffers. Should be a return value instead of a parameter!

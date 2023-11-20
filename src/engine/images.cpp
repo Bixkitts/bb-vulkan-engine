@@ -1,12 +1,4 @@
-#include <stb_image.h>
-
 #include "images.hpp"
-#include <stdexcept>
-#include <vulkan/vulkan.h>
-#include <vulkan/vulkan_core.h>
-#include "buffers.hpp"
-#include "command_buffers.hpp"
-#include "defines.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -16,8 +8,11 @@ static void createImage(uint32_t width, uint32_t height, VkFormat format, VkImag
 // a directory on disk.
 // Currently allocates on load and delete, I need
 // to get my memory management together!
-VulkanImage* createTextureImage(char* dir, Device* device)
+BBError createTextureImage(VulkanImage *image, char *dir, Device *device)
 {
+    //TODO: MALLOC without free
+    image = (VulkanImage*)calloc(1, sizeof(VulkanImage));
+
     int texWidth, texHeight, texChannels;
     // Perhaps one day I should use a custom image loader....
     // *uuuuurgh*
@@ -42,8 +37,6 @@ VulkanImage* createTextureImage(char* dir, Device* device)
     vkUnmapMemory(device->logical, stagingBufferMemory);
     stbi_image_free(pixels);
 
-
-    auto image = new VulkanImage{};
     image->device = device;
     image->format = VK_FORMAT_R8G8B8A8_SRGB;
 
@@ -71,7 +64,7 @@ VulkanImage* createTextureImage(char* dir, Device* device)
     // yuck, reuse allocated memory!
     vkFreeMemory(device->logical, stagingBufferMemory, nullptr);
     
-    return image;
+    return BB_ERROR_OK;
 }
 
 void destroyImage(VulkanImage *v)

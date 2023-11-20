@@ -1,8 +1,17 @@
 #ifndef IMAGES
 #define IMAGES
 
+#include <stdexcept>
+#include <vulkan/vulkan.h>
+#include <vulkan/vulkan_core.h>
+#include <stb_image.h>
+
 #include "defines.hpp"
 #include "device.hpp"
+#include "error_handling.h"
+#include "buffers.hpp"
+#include "command_buffers.hpp"
+#include "defines.hpp"
 
 struct VulkanImage
 {
@@ -25,7 +34,7 @@ struct VulkanImage
     uint64_t samplerCount;
 };
 
-VulkanImage* createTextureImage(char* dir, Device* device);
+BBError createTextureImage(VulkanImage *image, char *dir, Device *device);
 void createTextureImageView(VulkanImage* image);
 void createTextureSampler(VulkanImage* image);
 void transitionImageLayout(VkImage image, VkFormat format, VkImageLayout oldLayout, VkImageLayout newLayout, Device* device);

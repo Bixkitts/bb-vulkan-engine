@@ -3,7 +3,7 @@
 // Placeholder for actually loading a model.
 // I should also have functions for generating
 // simple primitives here.
-BBError loadModel(Model *model, char *dir)
+BBError loadModel(Model *model, const char *dir)
 {
     // TODO:
     // Placeholder quad instead of model loading

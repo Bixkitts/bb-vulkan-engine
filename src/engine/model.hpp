@@ -25,7 +25,7 @@ struct Model
     uint32_t indexCount;
 };
 
-BBError loadModel(Model *model, char *dir);
+BBError loadModel(Model *model, const char *dir);
 
 Model *createModel(Device *device, std::vector<Vertex> &vertices); 
 void bindModel(Model *model, VkCommandBuffer commandBuffer);
