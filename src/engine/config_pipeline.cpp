@@ -1,11 +1,14 @@
 #include "config_pipeline.hpp"
-#include "buffers.hpp"
-#include "pipeline.hpp"
-#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
-PipelineConfig *pipelineConfigDefault(SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets)
+
+BBError createDefaultPipelineConfig(PipelineConfig *config,
+                                    SwapChain *swapchain, 
+                                    UniformBuffer *uniformBuffers, 
+                                    VkDescriptorSetLayout descriptorSetLayout, 
+                                    VkDescriptorSet *descriptorSets)
 {
-    auto *config                                 = new PipelineConfig{};
+    // TODO: MALLOC without free
+    config = (PipelineConfig*)calloc(1, sizeof(PipelineConfig));
     
     uint32_t width                               = swapchain->swapChainExtent.width;
     uint32_t height                              = swapchain->swapChainExtent.height;
@@ -92,38 +95,38 @@ PipelineConfig *pipelineConfigDefault(SwapChain *swapchain, std::vector<UniformB
     config->descriptorSets       = descriptorSets;
 
     config->pipelineLayout       = createPipelineLayout(swapchain->device, config);
-    return config;
+
+    return BB_ERROR_OK;
 }
-VkGraphicsPipelineCreateInfo *createPipelineCreateInfo(PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
+BBError createPipelineCreateInfo(VkGraphicsPipelineCreateInfo *createInfo, PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
 {
-    auto *pipelineInfo                      = new VkGraphicsPipelineCreateInfo{};
-    pipelineInfo->sType                     = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
-    pipelineInfo->stageCount                = 2;
-    pipelineInfo->pStages                   = shaderStages;
-    pipelineInfo->pVertexInputState         = vertexInputInfo;
-    pipelineInfo->pInputAssemblyState       = &configInfo->inputAssemblyInfo;
-    pipelineInfo->pViewportState            = viewportInfo;
-    pipelineInfo->pRasterizationState       = &configInfo->rasterizationInfo;
-    pipelineInfo->pMultisampleState         = &configInfo->multisampleInfo;
-    pipelineInfo->pColorBlendState          = &configInfo->colorBlendInfo;
-    pipelineInfo->pDepthStencilState        = &configInfo->depthStencilInfo;
-    pipelineInfo->pDynamicState             = nullptr;
-    pipelineInfo->layout                    = configInfo->pipelineLayout;
-    pipelineInfo->renderPass                = configInfo->renderPass;
-    pipelineInfo->subpass                   = configInfo->subpass;
-    pipelineInfo->basePipelineIndex         = -1;
-    pipelineInfo->basePipelineHandle        = VK_NULL_HANDLE;
-    return pipelineInfo;
+    createInfo->sType                     = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    // TODO: magic number 2
+    createInfo->stageCount                = 2;
+    createInfo->pStages                   = shaderStages;
+    createInfo->pVertexInputState         = vertexInputInfo;
+    createInfo->pInputAssemblyState       = &configInfo->inputAssemblyInfo;
+    createInfo->pViewportState            = viewportInfo;
+    createInfo->pRasterizationState       = &configInfo->rasterizationInfo;
+    createInfo->pMultisampleState         = &configInfo->multisampleInfo;
+    createInfo->pColorBlendState          = &configInfo->colorBlendInfo;
+    createInfo->pDepthStencilState        = &configInfo->depthStencilInfo;
+    createInfo->pDynamicState             = NULL;
+    createInfo->layout                    = configInfo->pipelineLayout;
+    createInfo->renderPass                = configInfo->renderPass;
+    createInfo->subpass                   = configInfo->subpass;
+    createInfo->basePipelineIndex         = -1;
+    createInfo->basePipelineHandle        = VK_NULL_HANDLE;
+    return BB_ERROR_OK;
 }
-VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(PipelineConfig *config)
+BBError pipelineLayoutCreateInfo(VkPipelineLayoutCreateInfo *createInfo, PipelineConfig *config)
 {
-    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
-    pipelineLayoutInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-    pipelineLayoutInfo.setLayoutCount          = 1;
-    pipelineLayoutInfo.pSetLayouts             = &config->descriptorSetLayout;
-    pipelineLayoutInfo.pushConstantRangeCount  = 0; 
-    pipelineLayoutInfo.pPushConstantRanges     = nullptr;
-    return pipelineLayoutInfo;
+    createInfo->sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
+    createInfo->setLayoutCount          = 1;
+    createInfo->pSetLayouts             = &config->descriptorSetLayout;
+    createInfo->pushConstantRangeCount  = 0; 
+    createInfo->pPushConstantRanges     = nullptr;
+    return BB_ERROR_OK;
 }
 VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code)
 {

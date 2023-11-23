@@ -8,6 +8,7 @@
 #include "pipeline.hpp"
 #include "images.hpp"
 
+// TODO: do I really need to have these in a struct?
 typedef struct VulkanDescriptorPool
 {
     VkDescriptorPool pool;
@@ -16,17 +17,17 @@ typedef struct VulkanDescriptorPool
 
 enum BBDescriptorSetLayout
 {
-    // Values indicate size of the layouts
-    DS_LAYOUT_BITCH_BASIC = 2,
-    DS_LAYOUT_BASIC       = 2,
-    DS_LAYOUT_WHATEVER    = 5
+    DS_LAYOUT_BITCH_BASIC,
+    DS_LAYOUT_BASIC,
+    DS_LAYOUT_WHATEVER,
+    DS_LAYOUT_AMOUNT_OF_LAYOUTS /* Keep this at the end of the enum */
 };
 
-VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetLayout layout);
+BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, Device *device, BBDescriptorSetLayout layoutSizeAndType);
 
-VulkanDescriptorPool *createDescriptorPool(Device *device);
+BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device);
 
 //TODO: Allow the linking of multiple textures instead of just one
-std::vector<VkDescriptorSet> createDescriptorSets(Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, std::vector<UniformBuffer*> &uniformBuffers, VulkanImage *texture);
+BBError createDescriptorSets(VkDescriptorSet *descriptorSets, Device *device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, UniformBuffer *uniformBuffers, VulkanImage *texture);
 
 #endif

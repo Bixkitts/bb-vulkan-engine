@@ -107,7 +107,7 @@ BBError createUniformBuffers(UniformBuffer* uBuffer, Device *device, size_t cont
 {
     //TODO: MALLOC, NO FREE
     uBuffer = (UniformBuffer*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(UniformBuffer));
-    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT ; i++)
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         createUniformBuffer(&uBuffer[i], device, contentsSize);
     } 

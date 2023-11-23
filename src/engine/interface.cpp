@@ -18,6 +18,10 @@
 static Device *device;
 // Swap chain that everybody needs to be aware of
 static SwapChain *swapchain;
+// The big main descriptor pool
+static VulkanDescriptorPool *descriptorPool;
+// A pool of descriptor set layouts
+static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_AMOUNT_OF_LAYOUTS] = { NULL };
 
 // TODO: these do nothing yet!!
 // Have allocated memory pools to create buffers in
@@ -33,6 +37,7 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, char *vertShader, char *fragShader)
 {
     // TODO: MALLOC without free
+    // Maybe replace this with a constructor
     entity = (BBEntity*)calloc(1, sizeof(BBEntity));
 
     // This will need to actually load a model from a file
@@ -58,13 +63,16 @@ BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, cha
     createIndexBuffer(entity->iBuffer, device, entity->model);
 
     // create descriptor sets
-    auto descriptorPool      = createDescriptorPool(device);
-    auto descriptorSetLayout = createDescriptorSetLayout(device, DS_LAYOUT_BITCH_BASIC);
-    auto descriptorSets      = createDescriptorSets(device, 
-                                            descriptorSetLayout,
-                                            descriptorPool, 
-                                            uniformBuffers, 
-                                            entity->texture);
+    BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
+    createDescriptorPool(descriptorPool, device);
+    if (descriptorSetLayoutPool[dsLayout] == NULL)
+        createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
+    createDescriptorSets(
+                         device, 
+                         descriptorSetLayoutPool[dsLayout],
+                         descriptorPool, 
+                         entity->transformBuffer, 
+                         entity->texture);
 
     //create pipeline configuration with hard coded default shit
     auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);

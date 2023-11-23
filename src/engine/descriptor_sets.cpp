@@ -13,9 +13,8 @@
 // lots of different resources to be bound.
 // Perhaps I'll make a couple of predefined sets with
 // specific combinations of descriptor slots.
-VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetLayout layoutSizeAndType)
+BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, Device *device, BBDescriptorSetLayout layoutSizeAndType)
 {
-    VkDescriptorSetLayout descriptorSetLayout{};
     VkDescriptorSetLayoutBinding bindings[layoutSizeAndType];
     int bindingCount = 0;
 
@@ -48,20 +47,24 @@ VkDescriptorSetLayout createDescriptorSetLayout(Device *device, BBDescriptorSetL
 
     VkDescriptorSetLayoutCreateInfo layoutInfo{};
     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-    layoutInfo.bindingCount = layoutSizeAndType;
+    layoutInfo.bindingCount = bindingCount;
     layoutInfo.pBindings = bindings;
 
-    if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor set layout!");
+    if (vkCreateDescriptorSetLayout(device->logical, &layoutInfo, nullptr, &layout)
+            != VK_SUCCESS) 
+    {
+        return BB_ERROR_DESCRIPTOR_LAYOUT;
     }
-    return descriptorSetLayout;
+    return BB_ERROR_OK;
 }
 
 
-VulkanDescriptorPool *createDescriptorPool(Device *device)
+BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device)
 {
-    auto descriptorPool = new VulkanDescriptorPool{};
+    // TODO: MALLOC without free
+    pool = (VulkanDescriptorPool*)calloc(1, sizeof(VulkanDescriptorPool));
 
+    // TODO: magic number 2?
     VkDescriptorPoolSize poolSizes[2] = {};
     poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
@@ -74,19 +77,23 @@ VulkanDescriptorPool *createDescriptorPool(Device *device)
     poolInfo.pPoolSizes = poolSizes;
     poolInfo.maxSets = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
-    if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &descriptorPool->pool) != VK_SUCCESS) {
+    if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &pool->pool) != VK_SUCCESS) {
         throw std::runtime_error("failed to create descriptor pool!");
+        return BB_ERROR_DESCRIPTOR_POOL;
     }
-    return descriptorPool;
+    return BB_ERROR_OK;
 }
 
-VkDescriptorSet *createDescriptorSets(Device *device, 
+BBError createDescriptorSets(
+                VkDescriptorSet *descriptorSets,
+                Device *device, 
                 VkDescriptorSetLayout descriptorSetLayout, 
                 VulkanDescriptorPool *descriptorPool, 
                 UniformBuffer *uniformBuffers, 
                 VulkanImage *texture)
 {
-    VkDescriptorSet *descriptorSets = (VkDescriptorSet*)malloc(sizeof(VkDescriptorSet)*MAX_FRAMES_IN_FLIGHT);
+    // TODO: MALLOC without free
+    descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
 
     // The layout of these sets need to all be the same,
     // as they will all be rendering the same resources.
@@ -104,9 +111,10 @@ VkDescriptorSet *createDescriptorSets(Device *device,
     
     if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets) != VK_SUCCESS) 
     {
-        throw std::runtime_error("failed to allocate descriptor sets!");
+        return BB_ERROR_DESCRIPTOR_SET;
     }
 
+    // TODO: magic number 3
     const int AMOUNT_OF_DESCRIPTORS = 3;
     const int descriptorWriteCount = MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
     VkWriteDescriptorSet descriptorWrites[descriptorWriteCount] = {};
@@ -115,6 +123,7 @@ VkDescriptorSet *createDescriptorSets(Device *device,
         VkDescriptorImageInfo imageInfo{};
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         //TODO: AHHHHH. Sort out the views and samplers thing.
+        //They need to be encoded depending on what image or sampler type it is
         imageInfo.imageView   = texture->views[0];
         imageInfo.sampler     = texture->samplers[0];
 
@@ -145,6 +154,6 @@ VkDescriptorSet *createDescriptorSets(Device *device,
         descriptorWrites[i+1].pImageInfo        = &imageInfo; // Optional
     }
     vkUpdateDescriptorSets(device->logical, descriptorWriteCount, descriptorWrites, 0, nullptr);
-    return descriptorSets;
+    return BB_ERROR_OK;
 }
 

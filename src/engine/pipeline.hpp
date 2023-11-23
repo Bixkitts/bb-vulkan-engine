@@ -12,6 +12,7 @@
 
 struct PipelineConfig
 {
+    //TODO: data alignment
     VkViewport viewport;
     VkRect2D scissor;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
@@ -21,16 +22,16 @@ struct PipelineConfig
     VkPipelineColorBlendStateCreateInfo colorBlendInfo;
     VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
 
-    //std::vector<
-
-    //Vk objects that need to be properly destroyed!
+    //TODO: Vk objects that need to be properly destroyed!
     VkDescriptorSetLayout descriptorSetLayout;
-    std::vector<VkDescriptorSet> descriptorSets;
-    //VkDescriptorPool descriptorPool;
-    VkPipelineLayout pipelineLayout = nullptr;
-    VkRenderPass renderPass = nullptr;
+    VkDescriptorSet *descriptorSets;
+    uint64_t descriptorSetCount;
 
-    std::vector<UniformBuffer*> uniformBuffers; //pointer to the main vector of uniform Buffers.
+    VkPipelineLayout pipelineLayout;
+    VkRenderPass renderPass;
+
+    UniformBuffer *uniformBuffers; //pointer to the main vector of uniform Buffers.
+    uint64_t uniformBufferCount;
     
     uint32_t subpass = 0; // There are subpasses created and 
                           // configured in the RenderPass
@@ -47,7 +48,8 @@ struct GraphicsPipeline
 
 void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer);
 
-//move this function to an IO cpp file
+// TODO: std string and vector replacement
+// and move this function to an IO translation unit
 std::vector<char> readFile(const std::string& filepath);
 
 PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);

@@ -9,11 +9,11 @@
 
 //a default configuration for the pipeline containing all the info
 //I'm going to need
-PipelineConfig *pipelineConfigDefault(SwapChain *swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
+BBError createDefaultPipelineConfig(PipelineConfig *config, SwapChain *swapchain, UniformBuffer *uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet *descriptorSets);
 
-VkGraphicsPipelineCreateInfo *createPipelineCreateInfo(PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
+BBError createPipelineCreateInfo(VkGraphicsPipelineCreateInfo createInfo, PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 
-VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo(PipelineConfig *config);
+BBError pipelineLayoutCreateInfo(VkPipelineLayoutCreateInfo *createInfo, PipelineConfig *config);
 VkRenderPassCreateInfo *renderPassCreateInfo(SwapChain *swapchain);
 
 VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code);
