@@ -120,7 +120,7 @@ BBError createDescriptorSets(
     // TODO: magic number 3
     const int AMOUNT_OF_DESCRIPTORS = 3;
     const int descriptorWriteCount = MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
-    VkWriteDescriptorSet descriptorWrites[descriptorWriteCount] = {};
+    VkWriteDescriptorSet descriptorWrites[descriptorWriteCount] = { 0 };
     for(int i = 0; i < descriptorWriteCount; i+=AMOUNT_OF_DESCRIPTORS)
     {
         VkDescriptorImageInfo imageInfo{};
