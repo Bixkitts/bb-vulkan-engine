@@ -103,10 +103,14 @@ BBError createIndexBuffers(Device *device, std::vector<Model*> models)
 //
     return BB_ERROR_UNKNOWN;
 }
-BBError createUniformBuffers(UniformBuffer* uBuffer, Device *device, size_t contentsSize)
+BBError createUniformBuffers(UniformBuffer *uBuffer, Device *device, size_t contentsSize)
 {
     //TODO: MALLOC, NO FREE
     uBuffer = (UniformBuffer*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(UniformBuffer));
+    if (uBuffer == NULL)
+    {
+        return BB_ERROR_MEM;
+    }
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
     {
         createUniformBuffer(&uBuffer[i], device, contentsSize);

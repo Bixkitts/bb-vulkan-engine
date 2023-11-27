@@ -63,22 +63,24 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device)
 {
     // TODO: MALLOC without free
     pool = (VulkanDescriptorPool*)calloc(1, sizeof(VulkanDescriptorPool));
-
+    if (pool == NULL) {
+        return BB_ERROR_MEM;
+    }
     // TODO: magic number 2?
     VkDescriptorPoolSize poolSizes[2] = {};
-    poolSizes[0].type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+    poolSizes[0].type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
-    poolSizes[1].type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+    poolSizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     poolSizes[1].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
     VkDescriptorPoolCreateInfo poolInfo{};
-    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-    poolInfo.poolSizeCount = 2;
-    poolInfo.pPoolSizes = poolSizes;
-    poolInfo.maxSets = (uint32_t)MAX_FRAMES_IN_FLIGHT;
+    poolInfo.sType               = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.poolSizeCount       = 2;
+    poolInfo.pPoolSizes          = poolSizes;
+    poolInfo.maxSets             = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
     if (vkCreateDescriptorPool(device->logical, &poolInfo, nullptr, &pool->pool) != VK_SUCCESS) {
-        throw std::runtime_error("failed to create descriptor pool!");
+        fprintf(stderr, "\nfailed to create descriptor pool");
         return BB_ERROR_DESCRIPTOR_POOL;
     }
     return BB_ERROR_OK;
@@ -94,6 +96,9 @@ BBError createDescriptorSets(
 {
     // TODO: MALLOC without free
     descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
+    if (descriptorSets == NULL) {
+        return BB_ERROR_MEM;
+    }
 
     // The layout of these sets need to all be the same,
     // as they will all be rendering the same resources.
@@ -104,16 +109,14 @@ BBError createDescriptorSets(
     }
 
     VkDescriptorSetAllocateInfo allocInfo{};
-    allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-    allocInfo.descriptorPool = descriptorPool->pool;
+    allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    allocInfo.descriptorPool     = descriptorPool->pool;
     allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
-    allocInfo.pSetLayouts = layouts;
+    allocInfo.pSetLayouts        = layouts;
     
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets) != VK_SUCCESS) 
-    {
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets) != VK_SUCCESS) {
         return BB_ERROR_DESCRIPTOR_SET;
     }
-
     // TODO: magic number 3
     const int AMOUNT_OF_DESCRIPTORS = 3;
     const int descriptorWriteCount = MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
@@ -127,15 +130,11 @@ BBError createDescriptorSets(
         imageInfo.imageView   = texture->views[0];
         imageInfo.sampler     = texture->samplers[0];
 
+        // TODO: moar uniform buffers is possible....
         VkDescriptorBufferInfo transBufferInfo{};
         transBufferInfo.buffer = uniformBuffers[0].buffer;
         transBufferInfo.offset = 0;
         transBufferInfo.range  = sizeof(PerObjectMatrices);
-
-        VkDescriptorBufferInfo viewBufferInfo{};
-        viewBufferInfo.buffer  = uniformBuffers[1].buffer;
-        viewBufferInfo.offset  = 0;
-        viewBufferInfo.range   = sizeof(ViewMatrices);
 
         descriptorWrites[i].sType               = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
         descriptorWrites[i].dstSet              = descriptorSets[i];

@@ -18,12 +18,9 @@
 typedef struct PerObjectMatrices
 {
     glm::mat4 model;
-}PerObjectMatrices;
-typedef struct ViewMatrices
-{
     glm::mat4 view;
     glm::mat4 proj;
-}ViewMatrices;
+}PerObjectMatrices;
 //-------------------------------------------------------------------------------
 typedef struct VulkanBuffer
 {

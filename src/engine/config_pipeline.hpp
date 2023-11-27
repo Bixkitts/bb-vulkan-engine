@@ -7,10 +7,6 @@
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
 
-//a default configuration for the pipeline containing all the info
-//I'm going to need
-BBError createDefaultPipelineConfig(PipelineConfig *config, SwapChain *swapchain, UniformBuffer *uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, VkDescriptorSet *descriptorSets);
-
 BBError createPipelineCreateInfo(VkGraphicsPipelineCreateInfo createInfo, PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 
 BBError pipelineLayoutCreateInfo(VkPipelineLayoutCreateInfo *createInfo, PipelineConfig *config);

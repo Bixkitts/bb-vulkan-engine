@@ -10,61 +10,59 @@
 #include "device.hpp"
 #include "swap_chain.hpp"
 
-struct PipelineConfig
+typedef struct PipelineConfig
 {
     //TODO: data alignment
-    VkViewport viewport;
-    VkRect2D scissor;
+    VkViewport                             viewport;
+    VkRect2D                               scissor;
     VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
     VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-    VkPipelineMultisampleStateCreateInfo multisampleInfo;
-    VkPipelineColorBlendAttachmentState colorBlendAttachment;
-    VkPipelineColorBlendStateCreateInfo colorBlendInfo;
-    VkPipelineDepthStencilStateCreateInfo depthStencilInfo;
+    VkPipelineMultisampleStateCreateInfo   multisampleInfo;
+    VkPipelineColorBlendAttachmentState    colorBlendAttachment;
+    VkPipelineColorBlendStateCreateInfo    colorBlendInfo;
+    VkPipelineDepthStencilStateCreateInfo  depthStencilInfo;
 
     //TODO: Vk objects that need to be properly destroyed!
-    VkDescriptorSetLayout descriptorSetLayout;
-    VkDescriptorSet *descriptorSets;
-    uint64_t descriptorSetCount;
+    VkDescriptorSetLayout                  descriptorSetLayout;
+    VkDescriptorSet                       *descriptorSets;
+    uint64_t                               descriptorSetCount;
 
-    VkPipelineLayout pipelineLayout;
-    VkRenderPass renderPass;
+    VkPipelineLayout                       pipelineLayout;
+    VkRenderPass                           renderPass;
 
-    UniformBuffer *uniformBuffers; //pointer to the main vector of uniform Buffers.
-    uint64_t uniformBufferCount;
-    
-    uint32_t subpass = 0; // There are subpasses created and 
-                          // configured in the RenderPass
-};
-struct GraphicsPipeline
+    //pointer to the main vector of uniform Buffers.
+    UniformBuffer                         *uniformBuffers;     
+    uint64_t                               uniformBufferCount;
+    // There are subpasses created and
+    // configured in the RenderPass     
+    uint32_t                               subpass = 0; 
+} PipelineConfig;
+typedef struct GraphicsPipeline
 {
-    Device *device;
-    SwapChain *swapchain;
-    VkPipeline graphicsPipeline;
-    VkShaderModule vertShaderModule;
-    VkShaderModule fragShaderModule;
+    Device         *device;
+    SwapChain      *swapchain;
+    VkPipeline      graphicsPipeline;
+    VkShaderModule  vertShaderModule;
+    VkShaderModule  fragShaderModule;
     PipelineConfig *pipelineConfig;
-};
-
-void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer);
-
+} GraphicsPipeline;
+void              bindPipeline           (GraphicsPipeline* pipeline, 
+                                          VkCommandBuffer commandBuffer);
 // TODO: std string and vector replacement
 // and move this function to an IO translation unit
-std::vector<char> readFile(const std::string& filepath);
-
-PipelineConfig* defaultPipelineConfigInfo(SwapChain* swapchain, std::vector<UniformBuffer*> &uniformBuffers, VkDescriptorSetLayout descriptorSetLayout, std::vector<VkDescriptorSet> &descriptorSets);
-
-GraphicsPipeline* createGraphicsPipeline(
-        Device* device,
-        SwapChain* swapchain,
-        const std::string& vertFilepath, 
-        const std::string& fragFilepath,
-        PipelineConfig* configInfo);
-
-void destroyPipeline(GraphicsPipeline* pipeline);
-
-
-VkPipelineLayout createPipelineLayout(Device *device, PipelineConfig *config);
-
+std::vector<char> readFile               (const std::string& filepath);
+GraphicsPipeline* createGraphicsPipeline (GraphicsPipeline *pipeline,
+                                          const Device* device,
+                                          const SwapChain* swapchain,
+                                          const std::string& vertFilepath, 
+                                          const std::string& fragFilepath,
+                                          const PipelineConfig* configInfo);
+void              destroyPipeline        (GraphicsPipeline* pipeline);
+VkPipelineLayout  createPipelineLayout   (Device *device, PipelineConfig *config);
+BBError           createPipelineConfig   (PipelineConfig *config,
+                                          const SwapChain *swapchain, 
+                                          const UniformBuffer *uniformBuffers, 
+                                          const VkDescriptorSetLayout descriptorSetLayout, 
+                                          const VkDescriptorSet *descriptorSets);
 
 #endif

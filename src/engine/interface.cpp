@@ -13,6 +13,7 @@
 #include "cleanup.hpp"
 #include "images.hpp"
 #include "entity.h"
+#include <vulkan/vulkan_core.h>
 
 // Logical and physical device that everything needs access to.
 static Device *device;
@@ -34,16 +35,13 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, char *vertShader, char *fragShader)
-{
+BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, char *vertShader, char *fragShader){
     // TODO: MALLOC without free
     // Maybe replace this with a constructor
     entity = (BBEntity*)calloc(1, sizeof(BBEntity));
-
     // This will need to actually load a model from a file
     const char *modelDir = "literally whatever";
     loadModel(entity->model, modelDir);
-
     // TODO:
     // I ought to be allocating resources from the memory pools up above!!
     // ---------------------------------------------------------------------------
@@ -55,33 +53,32 @@ BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, cha
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers(entity->transformBuffer, device, sizeof(PerObjectMatrices));
-    createUniformBuffers(entity->cameraBuffer, device, sizeof(ViewMatrices));
-
-    // Vertex and index buffers from the loaded models
+    createUniformBuffers(entity->uBuffer, device, sizeof(PerObjectMatrices));
     createVertexBuffer(entity->vBuffer, device, entity->model);
     createIndexBuffer(entity->iBuffer, device, entity->model);
-
-    // create descriptor sets
     BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
+    // TODO: instead of checking NULL maybe call this sort 
+    // of stuff on init
     createDescriptorPool(descriptorPool, device);
-    if (descriptorSetLayoutPool[dsLayout] == NULL)
+    if (descriptorSetLayoutPool[dsLayout] == NULL){
         createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
-    createDescriptorSets(
+    }
+    VkDescriptorSet *descriptorSet = NULL;
+    createDescriptorSets(descriptorSet,
                          device, 
                          descriptorSetLayoutPool[dsLayout],
                          descriptorPool, 
-                         entity->transformBuffer, 
+                         entity->uBuffer, 
                          entity->texture);
-
     //create pipeline configuration with hard coded default shit
-    auto pipelineConfig    = defaultPipelineConfigInfo(swapchain, uniformBuffers, descriptorSetLayout, descriptorSets);
+    PipelineConfig *config = NULL;
+    createPipelineConfig(config, swapchain, entity->, descriptorSetLayout, descriptorSets);
     //creating the pipe line itself using the coded default
-    auto pipeline          = createGraphicsPipeline(device, 
-                                                  swapchain, 
-                                                  vertShader, 
-                                                  fragShader, 
-                                                  pipelineConfig);
+    createGraphicsPipeline(device, 
+                          swapchain, 
+                          vertShader, 
+                          fragShader, 
+                          pipelineConfig);
     return BB_ERROR_OK;
 }
 
