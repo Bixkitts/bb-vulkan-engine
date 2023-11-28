@@ -14,7 +14,7 @@
 // Perhaps I'll make a couple of predefined sets with
 // specific combinations of descriptor slots.
 BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, 
-                                  Device *device, 
+                                  Device device, 
                                   BBDescriptorSetLayout layoutSizeAndType)
 {
     VkDescriptorSetLayoutBinding bindings[layoutSizeAndType];
@@ -61,7 +61,7 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout layout,
 }
 
 
-BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device)
+BBError createDescriptorPool(VulkanDescriptorPool *pool, Device device)
 {
     // TODO: MALLOC without free
     pool = (VulkanDescriptorPool*)calloc(1, sizeof(VulkanDescriptorPool));
@@ -89,7 +89,7 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device)
 }
 
 BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
-                             Device *device, 
+                             Device device, 
                              VkDescriptorSetLayout descriptorSetLayout, 
                              VulkanDescriptorPool *descriptorPool, 
                              UniformBuffer *uniformBuffers, 

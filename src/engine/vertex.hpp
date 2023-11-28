@@ -22,13 +22,13 @@ typedef struct Vertex
 
 typedef struct VertexInputBindingDescriptions
 {
-    VkVertexInputBindingDescription data;
+    VkVertexInputBindingDescription data[BB_VERTEX_INPUT_BINDING_DESC_COUNT];
     uint32_t                        count;
 }VertexInputBindingDescriptions;
 
 typedef struct VertexInputAttributeDescriptions
 {
-    VkVertexInputAttributeDescription data;
+    VkVertexInputAttributeDescription data[BB_VERTEX_INPUT_ATTRIBUTE_DESC_COUNT];
     uint32_t                          count;
 }VertexInputAttributeDescriptions;
 

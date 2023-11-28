@@ -3,7 +3,10 @@
 #include <vulkan/vulkan.h>
 #include "device.hpp"
 
-VkMemoryAllocateInfo memoryAllocateInfo(VkMemoryRequirements &memRequirements,VkMemoryPropertyFlags &properties, Device *theGPU);
-VkBufferCreateInfo bufferCreateInfo(VkDeviceSize &size, VkBufferUsageFlags &usage);
+VkMemoryAllocateInfo memoryAllocateInfo (const VkMemoryRequirements memRequirements,
+                                         const VkMemoryPropertyFlags properties, 
+                                         const Device theGPU);
+VkBufferCreateInfo   bufferCreateInfo   (const VkDeviceSize size, 
+                                         const VkBufferUsageFlags usage);
 
 #endif

@@ -7,9 +7,9 @@
 #include "buffers.hpp"
 #include "model.hpp"
 #include "swap_chain.hpp"
-#include "entity.hpp"
+#include "entity.h"
 
-std::vector<VkCommandBuffer> createPrimaryCommandBuffers(Device *device)
+std::vector<VkCommandBuffer> createPrimaryCommandBuffers(Device device)
 {
     std::vector<VkCommandBuffer> commandBuffers;
     commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
@@ -29,7 +29,7 @@ std::vector<VkCommandBuffer> createPrimaryCommandBuffers(Device *device)
     return commandBuffers;
 }
 
-void recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, BBEntity *entities, uint64_t entityCount, SwapChain* swapchain)
+void recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, BBEntity entities, uint64_t entityCount, SwapChain* swapchain)
 {
     VkCommandBufferBeginInfo beginInfo{};
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -131,7 +131,7 @@ VkResult submitCommandBuffers(SwapChain *swapchain,
     return result;
 }
 
-VkCommandBuffer beginSingleTimeCommands(Device* theGPU) 
+VkCommandBuffer beginSingleTimeCommands(Device theGPU) 
 {
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -150,7 +150,7 @@ VkCommandBuffer beginSingleTimeCommands(Device* theGPU)
     return commandBuffer;
 }
 
-void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device* theGPU) 
+void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device theGPU) 
 {
     vkEndCommandBuffer(commandBuffer);
   

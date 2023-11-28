@@ -14,7 +14,8 @@ VkApplicationInfo appInfo()
     appInfo.apiVersion = VK_API_VERSION_1_0;
     return appInfo;
 }
-VkInstanceCreateInfo instanceCreateInfo(VkApplicationInfo &appInfo, std::vector<const char*> &extensions )
+VkInstanceCreateInfo instanceCreateInfo(VkApplicationInfo appInfo, 
+                                        std::vector<const char*> extensions)
 {
     VkInstanceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -23,7 +24,9 @@ VkInstanceCreateInfo instanceCreateInfo(VkApplicationInfo &appInfo, std::vector<
     createInfo.ppEnabledExtensionNames = extensions.data();
     return createInfo;
 }
-VkDeviceQueueCreateInfo queueCreateInfo(std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos, uint32_t &queueFamily, float &queuePriority )
+VkDeviceQueueCreateInfo queueCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+                                        uint32_t queueFamily, 
+                                        float queuePriority)
 {
     VkDeviceQueueCreateInfo queueCreateInfo = {};
     queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -33,7 +36,7 @@ VkDeviceQueueCreateInfo queueCreateInfo(std::vector<VkDeviceQueueCreateInfo> &qu
     queueCreateInfos.push_back(queueCreateInfo);
     return queueCreateInfo;
 }
-VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices &queueFamilyIndices)
+VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices queueFamilyIndices)
 {
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -42,7 +45,9 @@ VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices &queueFamilyIndices)
             VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     return poolInfo;
 }
-VkDeviceCreateInfo logicalCreateInfo(std::vector<VkDeviceQueueCreateInfo> &queueCreateInfos, VkPhysicalDeviceFeatures &deviceFeatures, const std::vector<const char *> &deviceExtensions )
+VkDeviceCreateInfo logicalCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+                                     VkPhysicalDeviceFeatures deviceFeatures, 
+                                     const std::vector<const char *> deviceExtensions)
 {
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;

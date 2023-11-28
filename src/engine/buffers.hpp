@@ -10,6 +10,7 @@
 #include <glm/glm.hpp>
 
 #include "vertex.hpp"
+#include "swap_chain.hpp"
 #include "model.hpp"
 #include "error_handling.h"
 
@@ -22,49 +23,50 @@ typedef struct PerObjectMatrices
     glm::mat4 proj;
 }PerObjectMatrices;
 //-------------------------------------------------------------------------------
-typedef struct VulkanBuffer
+typedef struct VulkanBuffer_S
 {
-    Device        *device;
+    Device         device;
     VkBuffer       buffer;
     VkDeviceMemory deviceMemory;
     void          *mapped;       //pointer to mapped buffer if that is the case
     uint32_t       size;
-}VulkanBuffer;
+}VulkanBuffer_T, *VulkanBuffer;
 
 
-typedef VulkanBuffer StagingBuffer;
-typedef VulkanBuffer VertexBuffer;
-typedef VulkanBuffer IndexBuffer;
-typedef VulkanBuffer UniformBuffer;
+typedef VulkanBuffer_T StagingBuffer_T, *StagingBuffer;
+typedef VulkanBuffer_T VertexBuffer_T, *VertexBuffer;
+typedef VulkanBuffer_T IndexBuffer_T, *IndexBuffer;
+typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffer;
 
-BBError         createVertexBuffer      (VertexBuffer *vBuffer, 
-                                         Device *device, Model *model);
-BBError         createIndexBuffer       (IndexBuffer *iBuffer, 
-                                         Device *device, 
+BBError         createVertexBuffer      (VertexBuffer vBuffer, 
+                                         Device device, 
                                          Model *model);
-BBError         createUniformBuffer     (UniformBuffer *uBuffer, 
-                                         Device *device, 
+BBError         createIndexBuffer       (IndexBuffer iBuffer, 
+                                         Device device, 
+                                         Model *model);
+BBError         createUniformBuffer     (UniformBuffer uBuffer, 
+                                         Device device, 
                                          size_t contentsSize);
 
 //TODO:
 //Don't need these yet, each entity should typically only need
 //one buffer each
-//std::vector<VertexBuffer*> createVertexBuffers(Device *device, std::vector<Model*> models);
-//std::vector<IndexBuffer*> createIndexBuffers(Device *device, std::vector<Model*> models);
-BBError         createUniformBuffers    (UniformBuffer *uBuffer, 
-                                         Device *device, 
+//std::vector<VertexBuffer*> createVertexBuffers(Device device, std::vector<Model*> models);
+//std::vector<IndexBuffer*> createIndexBuffers(Device device, std::vector<Model*> models);
+BBError         createUniformBuffers    (UniformBuffer uBuffer, 
+                                         Device device, 
                                          size_t contentsSize);
 
-void            destroyBuffer           (VulkanBuffer *v);
+void            destroyBuffer           (VulkanBuffer v);
 
 // These functions should maybe be bundled in with drawing
-void            drawVertexBuffer        (VertexBuffer *vertexBuffer, 
+void            drawVertexBuffer        (VertexBuffer vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindVertexBuffer        (VertexBuffer *vertexBuffer, 
+void            bindVertexBuffer        (VertexBuffer vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            drawIndexBuffer         (IndexBuffer *indexBuffer, 
+void            drawIndexBuffer         (IndexBuffer indexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindIndexBuffer         (IndexBuffer *indexBuffer, 
+void            bindIndexBuffer         (IndexBuffer indexBuffer, 
                                          VkCommandBuffer commandBuffer);
 
 // big main buffer creation function
@@ -73,17 +75,17 @@ void            createBuffer            (VkDeviceSize size,
                                          VkMemoryPropertyFlags properties,
                                          VkBuffer buffer,
                                          VkDeviceMemory bufferMemory,
-                                         Device *theGPU);
+                                         Device theGPU);
 
-VkCommandBuffer beginSingleTimeCommands (Device *theGPU);
+VkCommandBuffer beginSingleTimeCommands (Device theGPU);
 void            endSingleTimeCommands   (VkCommandBuffer commandBuffer, 
-                                         Device *theGPU);
+                                         Device theGPU);
 
-void            copyBuffer              (Device *theGPU, 
+void            copyBuffer              (Device theGPU, 
                                          VkBuffer srcBuffer, 
                                          VkBuffer dstBuffer, 
                                          VkDeviceSize size);
-void            copyBufferToImage       (Device *theGPU,
+void            copyBufferToImage       (Device theGPU,
                                          VkBuffer buffer, 
                                          VkImage image, 
                                          uint32_t width, 
@@ -92,21 +94,21 @@ void            copyBufferToImage       (Device *theGPU,
 //----------------------------------------------------
 //Allocation Stuff, maybe moved to it's own files
 //
-VkDeviceMemory  allocateDeviceMemory    (Device *theGPU, 
+VkDeviceMemory  allocateDeviceMemory    (Device theGPU, 
                                          VkBuffer buffer,
                                          VkMemoryPropertyFlags properties, 
                                          VkDeviceSize size);
 //----------------------------------------------------
-void            createImageWithInfo     (const VkImageCreateInfo &imageInfo,
-                                         VkMemoryPropertyFlags properties,
-                                         VkImage &image,
-                                         VkDeviceMemory &imageMemory,
-                                         Device *theGPU);
+void            createImageWithInfo     (const VkImageCreateInfo imageInfo,
+                                         const VkMemoryPropertyFlags properties,
+                                         VkImage image,
+                                         VkDeviceMemory imageMemory,
+                                         Device theGPU);
 // ------------------------------------
-void            copyVertsToDeviceMem    (StagingBuffer *sb, 
+void            copyVertsToDeviceMem    (StagingBuffer sb, 
                                          Vertex *vertices, 
                                          uint32_t vertexCount);
-void            copyIndecesToDeviceMem  (StagingBuffer *sb, 
+void            copyIndecesToDeviceMem  (StagingBuffer sb, 
                                          uint32_t *indeces, 
                                          uint32_t indexCount);
 #endif

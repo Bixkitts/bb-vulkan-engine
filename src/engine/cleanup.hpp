@@ -7,7 +7,7 @@
 #include "buffers.hpp"
 struct CleanupList  //A list of objects that will need to have cleanup code called
 {
-    Device *device;    
+    Device device;    
     GraphicsPipeline *pipeline;
     SwapChain *swapchain;
     std::vector<VertexBuffer*> vertexBuffers;

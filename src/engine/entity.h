@@ -8,19 +8,19 @@
 #include "pipeline.hpp"
 #include <vulkan/vulkan_core.h>
 
-typedef struct BBEntity
+typedef struct BBEntity_S
 {
-    Device                *device;       
+    Device                 device;       
     Model                 *model;
 
-    UniformBuffer         *uBuffer;
+    UniformBuffer          uBuffer;
 
-    VertexBuffer          *vBuffer;
-    IndexBuffer           *iBuffer;
-    VulkanImage           *texture;
+    VertexBuffer           vBuffer;
+    IndexBuffer            iBuffer;
+    VulkanImage            texture;
     BBDescriptorSetLayout  descriptorSetLayout;
     VkDescriptorSet       *descriptorSet;
     GraphicsPipeline      *pipeline;
-} BBEntity, *P_BBEntity;
+} BBEntity_T, *BBEntity;
 
 #endif

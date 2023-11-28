@@ -2,7 +2,7 @@
 #include <chrono>
 
 #include "draw_frame.hpp"
-#include "entity.hpp"
+#include "entity.h"
 #include "buffers.hpp"
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
@@ -11,7 +11,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, BBEntity *entities, uint64_t entityCount)
+void drawFrame(SwapChain* swapchain, GraphicsPipeline *pipeline, BBEntity entities, uint64_t entityCount)
 {
     uint32_t imageIndex;
     auto result = acquireNextImage(swapchain, &imageIndex);

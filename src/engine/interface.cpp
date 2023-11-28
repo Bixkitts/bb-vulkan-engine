@@ -16,7 +16,7 @@
 #include <vulkan/vulkan_core.h>
 
 // Logical and physical device that everything needs access to.
-static Device *device;
+static Device device = NULL;
 // Swap chain that everybody needs to be aware of
 static SwapChain *swapchain;
 // The big main descriptor pool
@@ -35,31 +35,32 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBError createEntity(P_BBEntity entity, char *model, char *textureDir, char *vertShader, char *fragShader){
+BBAPI BBError createEntity(BBEntity entity, 
+                           char *model, char *textureDir, char *vertShader, char *fragShader){
+    BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
     // TODO: MALLOC without free
     // Maybe replace this with a constructor
-    entity = (BBEntity*)calloc(1, sizeof(BBEntity));
+    entity = (BBEntity)calloc(1, sizeof(BBEntity));
     // This will need to actually load a model from a file
     const char *modelDir = "literally whatever";
-    loadModel(entity->model, modelDir);
+    loadModel                            (entity->model, modelDir);
     // TODO:
     // I ought to be allocating resources from the memory pools up above!!
     // ---------------------------------------------------------------------------
     // This already loads a texture from a file!
     // yipee!
-    createTextureImage(entity->texture, textureDir, device);
-    createTextureImageView(entity->texture);
-    createTextureSampler(entity->texture);
+    createTextureImage                            (entity->texture, textureDir, device);
+    createTextureImageView                            (entity->texture);
+    createTextureSampler                            (entity->texture);
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers(entity->uBuffer, device, sizeof(PerObjectMatrices));
-    createVertexBuffer(entity->vBuffer, device, entity->model);
-    createIndexBuffer(entity->iBuffer, device, entity->model);
-    BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
+    createUniformBuffers                            (entity->uBuffer, device, sizeof(PerObjectMatrices));
+    createVertexBuffer                            (entity->vBuffer, device, entity->model);
+    createIndexBuffer                            (entity->iBuffer, device, entity->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
-    createDescriptorPool(descriptorPool, device);
+    createDescriptorPool                            (descriptorPool, device);
     if (descriptorSetLayoutPool[dsLayout] == NULL){
         createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
     }

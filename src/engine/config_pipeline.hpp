@@ -17,10 +17,8 @@ void    createPipelineLayoutCreateInfo   (VkPipelineLayoutCreateInfo *createInfo
 void    createShaderModuleCreateInfo     (VkShaderModuleCreateInfo *shadermodCreateInfo, 
                                           const std::vector<char> &code);
 void    createVertexInputStateCreateInfo (VkPipelineVertexInputStateCreateInfo *vertexInputCreateInfo,
-                                          VkVertexInputBindingDescription *bindingDescriptions, 
-                                          uint32_t bindingDescriptionCount,
-                                          VkVertexInputAttributeDescription *attributeDescriptions,
-                                          uint32_t attributeDescriptionCount);
+                                          VertexInputBindingDescriptions *bindingDescriptions, 
+                                          VertexInputAttributeDescriptions *attributeDescriptions);
 void    createViewportCreateInfo         (VkPipelineViewportStateCreateInfo *viewportCreateInfo, 
                                           PipelineConfig *configInfo);
 void    createShaderStagesCreateInfo     (VkPipelineShaderStageCreateInfo *shaderStageCreateInfo, 

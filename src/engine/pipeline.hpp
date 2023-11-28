@@ -41,7 +41,7 @@ typedef struct PipelineConfig
 } PipelineConfig;
 typedef struct GraphicsPipeline
 {
-    Device         *device;
+    Device          device;
     SwapChain      *swapchain;
     VkPipeline      graphicsPipeline;
     VkShaderModule  vertShaderModule;
@@ -52,14 +52,14 @@ typedef struct GraphicsPipeline
 void              bindPipeline           (GraphicsPipeline* pipeline, 
                                           VkCommandBuffer commandBuffer);
 GraphicsPipeline *createGraphicsPipeline (GraphicsPipeline *pipeline,
-                                          const Device* device,
+                                          const Device device,
                                           const SwapChain* swapchain,
                                           const std::string& vertFilepath, 
                                           const std::string& fragFilepath,
                                           const PipelineConfig* configInfo);
 void              destroyPipeline        (GraphicsPipeline* pipeline);
 BBError           createPipelineLayout   (VkPipelineLayout *layout, 
-                                          Device *device, 
+                                          Device device, 
                                           PipelineConfig *config);
 BBError           createPipelineConfig   (PipelineConfig *config,
                                           const SwapChain *swapchain, 

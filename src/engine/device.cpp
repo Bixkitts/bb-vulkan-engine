@@ -54,9 +54,9 @@ void DestroyDebugUtilsMessengerEXT(
 }
 // end of local callback functions
 
-Device* deviceInit(BBWindow* deviceWindow) 
+Device deviceInit(BBWindow* deviceWindow) 
 {
-    Device* theGPU = new Device;
+    Device theGPU = new Device;
     theGPU->window = deviceWindow;
     createInstance(theGPU);
     setupDebugMessenger(theGPU); 
@@ -68,7 +68,7 @@ Device* deviceInit(BBWindow* deviceWindow)
     return theGPU;
 }
 
-void destroyDevice(Device* device) 
+void destroyDevice(Device device) 
 {
     vkDestroyCommandPool(device->logical, device->commandPool, nullptr);
   
@@ -85,7 +85,7 @@ void destroyDevice(Device* device)
     delete device;
 }
 
-static void createInstance(Device* theGPU) 
+static void createInstance(Device theGPU) 
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) 
     {
@@ -120,7 +120,7 @@ static void createInstance(Device* theGPU)
     hasGflwRequiredInstanceExtensions();
 }
 
-static void pickPhysicalDevice(Device* theGPU) 
+static void pickPhysicalDevice(Device theGPU) 
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(theGPU->instance, &deviceCount, nullptr);
@@ -150,7 +150,7 @@ static void pickPhysicalDevice(Device* theGPU)
     std::cout << "physical device: " << theGPU->physicalProperties.deviceName << std::endl;
 }
 
-static void createLogicalDevice(Device* theGPU) 
+static void createLogicalDevice(Device theGPU) 
 {
     QueueFamilyIndices indices = findQueueFamilies(theGPU->physical, theGPU);
   
@@ -188,7 +188,7 @@ static void createLogicalDevice(Device* theGPU)
     vkGetDeviceQueue(theGPU->logical, indices.presentFamily, 0, &theGPU->presentQueue_);
 }
 
-static void createCommandPool(Device* theGPU) 
+static void createCommandPool(Device theGPU) 
 {
     QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physical, theGPU);
   
@@ -201,7 +201,7 @@ static void createCommandPool(Device* theGPU)
 }
 
 
-bool isDeviceSuitable(VkPhysicalDevice device, Device* theGPU) 
+bool isDeviceSuitable(VkPhysicalDevice device, Device theGPU) 
 {
     QueueFamilyIndices indices = findQueueFamilies(device, theGPU);
   
@@ -235,7 +235,7 @@ void populateDebugMessengerCreateInfo(
     createInfo.pUserData = nullptr;  // Optional
 }
 
-static void setupDebugMessenger(Device* theGPU)
+static void setupDebugMessenger(Device theGPU)
 {
     if (!enableValidationLayers) return;
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
@@ -338,7 +338,7 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device* theGPU) 
+QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device theGPU) 
 {
     QueueFamilyIndices indices;
   
@@ -371,7 +371,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device* theGPU)
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device* theGPU) 
+SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device theGPU) 
 {
     SwapChainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, theGPU->surface_, &details.capabilities);
@@ -404,7 +404,7 @@ VkFormat findSupportedFormat(
     const std::vector<VkFormat> &candidates, 
     VkImageTiling tiling, 
     VkFormatFeatureFlags features,
-    Device* theGPU) 
+    Device theGPU) 
 {
     for (VkFormat format : candidates) 
     {
@@ -424,7 +424,7 @@ VkFormat findSupportedFormat(
 }
 
 //Query the physical device for the types of memory available to allocate
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device* theGPU) 
+uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device theGPU) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(theGPU->physical, &memProperties);

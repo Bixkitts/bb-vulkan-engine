@@ -43,16 +43,14 @@ void createShaderModuleCreateInfo(VkShaderModuleCreateInfo *createInfo,
     createInfo->pCode       = reinterpret_cast<const uint32_t*>(code.data());
 }
 void createVertexInputStateCreateInfo(VkPipelineVertexInputStateCreateInfo *createInfo, 
-                                      VkVertexInputBindingDescription *bindingDescriptions, 
-                                      uint32_t bindingDescriptionCount,
-                                      VkVertexInputAttributeDescription *attributeDescriptions,
-                                      uint32_t attributeDescriptionCount)
+                                      VertexInputBindingDescriptions *bindingDescriptions, 
+                                      VertexInputAttributeDescriptions *attributeDescriptions)
 {
     createInfo->sType                           = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-    createInfo->vertexAttributeDescriptionCount = attributeDescriptionCount;
-    createInfo->vertexBindingDescriptionCount   = bindingDescriptionCount;
-    createInfo->pVertexAttributeDescriptions    = attributeDescriptions;
-    createInfo->pVertexBindingDescriptions      = bindingDescriptions;
+    createInfo->vertexAttributeDescriptionCount = attributeDescriptions->count;
+    createInfo->vertexBindingDescriptionCount   = bindingDescriptions->count;
+    createInfo->pVertexAttributeDescriptions    = attributeDescriptions->data;
+    createInfo->pVertexBindingDescriptions      = bindingDescriptions->data;
 }
 void viewportCreateInfo(VkPipelineViewportStateCreateInfo *viewportCreateInfo, 
                         PipelineConfig *configInfo)

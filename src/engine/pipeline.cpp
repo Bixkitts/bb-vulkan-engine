@@ -28,21 +28,19 @@ BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
     VkPipelineShaderStageCreateInfo      shaderStageCreateInfo   = {};
     VkPipelineViewportStateCreateInfo    viewportStateCreateInfo = {};
     VkGraphicsPipelineCreateInfo         pipelineCreateInfo      = {};
-    VertexInputBindingDescriptions 
-        inputBindingDescriptions[BB_VERTEX_INPUT_BINDING_DESC_COUNT]     = {0};
-    VertexInputAttributeDescriptions 
-        inputAttributeDescriptions[BB_VERTEX_INPUT_ATTRIBUTE_DESC_COUNT] = {0};
+    VertexInputBindingDescriptions       inputBindingDescriptions   = {0};
+    VertexInputAttributeDescriptions     inputAttributeDescriptions = {0};
     pipeline->device         = device;
     pipeline->swapchain      = swapchain;
     pipeline->pipelineConfig = configInfo;
     BBError er = BB_ERROR_UNKNOWN;
 
-    // TODO: a whole bunch of stdlib shit
+    // TODO: stdlib shit
     const std::vector<char> vertCode = readFile(vertFilepath);
     const std::vector<char> fragCode = readFile(fragFilepath);
 
-    getVertexInputBindingDescriptions(inputBindingDescriptions);
-    getVertexInputAttributeDescriptions(inputAttributeDescriptions);
+    getVertexInputBindingDescriptions   (&inputBindingDescriptions);
+    getVertexInputAttributeDescriptions (&inputAttributeDescriptions);
 
     if (configInfo->pipelineLayout != VK_NULL_HANDLE){
         er = BB_ERROR_PIPELINE_CREATE;
@@ -63,25 +61,25 @@ BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
         goto error_exit;
     }
 
-    createVertexInputStateCreateInfo(&vertexInputCreateInfo, 
-                                     &bindingDescriptions, 
-                                     &attributeDescriptions);
-    createShaderStagesCreateInfo    (&shaderStageCreateInfo, 
-                                     pipeline);
-    createViewportCreateInfo        (&viewportStateCreateInfo, 
-                                     configInfo);
-    createPipelineCreateInfo        (&pipelineCreateInfo,
-                                     configInfo,
-                                     &viewportStateCreateInfo,
-                                     &shaderStageCreateInfo,
-                                     &vertexInputCreateInfo);
+    createVertexInputStateCreateInfo (&vertexInputCreateInfo, 
+                                      &inputBindingDescriptions, 
+                                      &inputAttributeDescriptions);
+    createShaderStagesCreateInfo     (&shaderStageCreateInfo, 
+                                      pipeline);
+    createViewportCreateInfo         (&viewportStateCreateInfo, 
+                                      configInfo);
+    createPipelineCreateInfo         (&pipelineCreateInfo,
+                                      configInfo,
+                                      &viewportStateCreateInfo,
+                                      &shaderStageCreateInfo,
+                                      &vertexInputCreateInfo);
     if(
-    vkCreateGraphicsPipelines       (device->logical,
-                                     VK_NULL_HANDLE,
-                                     1,
-                                     &pipelineCreateInfo,
-                                     nullptr,
-                                     &pipeline->graphicsPipeline) 
+    vkCreateGraphicsPipelines        (device->logical,
+                                      VK_NULL_HANDLE,
+                                      1,
+                                      &pipelineCreateInfo,
+                                      nullptr,
+                                      &pipeline->graphicsPipeline) 
     != VK_SUCCESS){
         er = BB_ERROR_PIPELINE_CREATE;
         goto error_exit;
@@ -156,10 +154,11 @@ void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
 }
 
 BBError createPipelineConfig(PipelineConfig *config,
-                             const SwapChain *swapchain, 
-                             const UniformBuffer *uniformBuffers, 
+                             SwapChain *swapchain, 
+                             const UBuffer uniformBuffers, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
-                             const VkDescriptorSet *descriptorSets)
+                             VkDescriptorSet *descriptorSets,
+                             VkPipelineLayout pipelineLayout)
 {
     // TODO: MALLOC without free
     config = (PipelineConfig*)calloc(1, sizeof(PipelineConfig));
