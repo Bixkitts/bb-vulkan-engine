@@ -21,12 +21,12 @@ BBError createVertexBuffer(VertexBuffer *vBuffer, Device *device, Model *model)
 
     copyVertsToDeviceMem(&sbuffer, model->vertices, model->vertexCount);
     
-    auto *vbuffer = new VertexBuffer{};
-    vbuffer->device = device;
-    vbuffer->size = model->vertexCount;
-    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vbuffer->buffer, vbuffer->deviceMemory, vbuffer->device);
+    vBuffer = (VertexBuffer*)calloc(1, sizeof(VertexBuffer));
+    vBuffer->device = device;
+    vBuffer->size = model->vertexCount;
+    createBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, vBuffer->buffer, vBuffer->deviceMemory, vBuffer->device);
 
-    copyBuffer(device, sbuffer.buffer, vbuffer->buffer, bufferSize);
+    copyBuffer(device, sbuffer.buffer, vBuffer->buffer, bufferSize);
    
     destroyBuffer(&sbuffer); 
 

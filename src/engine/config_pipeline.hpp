@@ -7,14 +7,22 @@
 #include "pipeline.hpp"
 #include "swap_chain.hpp"
 
-BBError createPipelineCreateInfo(VkGraphicsPipelineCreateInfo createInfo, PipelineConfig *configInfo, VkPipelineViewportStateCreateInfo *viewportInfo,VkPipelineShaderStageCreateInfo *shaderStages,VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
-
-BBError pipelineLayoutCreateInfo(VkPipelineLayoutCreateInfo *createInfo, PipelineConfig *config);
-VkRenderPassCreateInfo *renderPassCreateInfo(SwapChain *swapchain);
-
-VkShaderModuleCreateInfo shaderModuleInfo(const std::vector<char> &code);
-VkPipelineVertexInputStateCreateInfo *vertexInputStateCreateInfo(std::vector<VkVertexInputBindingDescription> *bindingDescriptions, std::vector<VkVertexInputAttributeDescription> *attributeDescriptions);
-VkPipelineViewportStateCreateInfo *viewportCreateInfo(PipelineConfig *configInfo);
-VkPipelineShaderStageCreateInfo *shaderStagesCreateInfo(GraphicsPipeline *mainPipeline);
-
+void    createPipelineCreateInfo         (VkGraphicsPipelineCreateInfo *createInfo, 
+                                          PipelineConfig *configInfo, 
+                                          VkPipelineViewportStateCreateInfo *viewportInfo,
+                                          VkPipelineShaderStageCreateInfo *shaderStages,
+                                          VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
+void    createPipelineLayoutCreateInfo   (VkPipelineLayoutCreateInfo *createInfo, 
+                                          PipelineConfig *config);
+void    createShaderModuleCreateInfo     (VkShaderModuleCreateInfo *shadermodCreateInfo, 
+                                          const std::vector<char> &code);
+void    createVertexInputStateCreateInfo (VkPipelineVertexInputStateCreateInfo *vertexInputCreateInfo,
+                                          VkVertexInputBindingDescription *bindingDescriptions, 
+                                          uint32_t bindingDescriptionCount,
+                                          VkVertexInputAttributeDescription *attributeDescriptions,
+                                          uint32_t attributeDescriptionCount);
+void    createViewportCreateInfo         (VkPipelineViewportStateCreateInfo *viewportCreateInfo, 
+                                          PipelineConfig *configInfo);
+void    createShaderStagesCreateInfo     (VkPipelineShaderStageCreateInfo *shaderStageCreateInfo, 
+                                          GraphicsPipeline *mainPipeline);
 #endif

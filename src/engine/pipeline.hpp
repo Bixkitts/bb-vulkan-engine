@@ -9,6 +9,9 @@
 #include "buffers.hpp"
 #include "device.hpp"
 #include "swap_chain.hpp"
+#include "model.hpp"
+#include "error_handling.h"
+#include "fileIO.hpp"
 
 typedef struct PipelineConfig
 {
@@ -30,7 +33,6 @@ typedef struct PipelineConfig
     VkPipelineLayout                       pipelineLayout;
     VkRenderPass                           renderPass;
 
-    //pointer to the main vector of uniform Buffers.
     UniformBuffer                         *uniformBuffers;     
     uint64_t                               uniformBufferCount;
     // There are subpasses created and
@@ -46,19 +48,19 @@ typedef struct GraphicsPipeline
     VkShaderModule  fragShaderModule;
     PipelineConfig *pipelineConfig;
 } GraphicsPipeline;
+
 void              bindPipeline           (GraphicsPipeline* pipeline, 
                                           VkCommandBuffer commandBuffer);
-// TODO: std string and vector replacement
-// and move this function to an IO translation unit
-std::vector<char> readFile               (const std::string& filepath);
-GraphicsPipeline* createGraphicsPipeline (GraphicsPipeline *pipeline,
+GraphicsPipeline *createGraphicsPipeline (GraphicsPipeline *pipeline,
                                           const Device* device,
                                           const SwapChain* swapchain,
                                           const std::string& vertFilepath, 
                                           const std::string& fragFilepath,
                                           const PipelineConfig* configInfo);
 void              destroyPipeline        (GraphicsPipeline* pipeline);
-VkPipelineLayout  createPipelineLayout   (Device *device, PipelineConfig *config);
+BBError           createPipelineLayout   (VkPipelineLayout *layout, 
+                                          Device *device, 
+                                          PipelineConfig *config);
 BBError           createPipelineConfig   (PipelineConfig *config,
                                           const SwapChain *swapchain, 
                                           const UniformBuffer *uniformBuffers, 

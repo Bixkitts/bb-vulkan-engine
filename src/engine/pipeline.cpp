@@ -1,92 +1,108 @@
-//std libraries
-#include <fstream>
-#include <stdexcept>
-#include <iostream>
-#include <cassert>
-#include <stdexcept>
-
+#include "pipeline.hpp"
+#include "config_pipeline.hpp"
+#include "error_handling.h"
+#include "vertex.hpp"
 #include <vulkan/vulkan_core.h>
 
-#include "pipeline.hpp"
-#include "buffers.hpp"
-#include "device.hpp"
-#include "model.hpp"
-#include "swap_chain.hpp"
-#include "config_pipeline.hpp"
-#include "fileIO.hpp"
-
 //Make shader Modules
-static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
-static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code);
-static void cleanupShaderModules(GraphicsPipeline* pipeline);
+static BBError createVertShaderModule (GraphicsPipeline *pipeline, 
+                                       const std::vector<char>& code);
+static BBError createFragShaderModule (GraphicsPipeline *pipeline, 
+                                       const std::vector<char>& code);
+static void    cleanupShaderModules   (GraphicsPipeline* pipeline);
 
-GraphicsPipeline* createGraphicsPipeline(GraphicsPipeline *pipeline,
-                                         Device *device,
-                                         SwapChain *swapchain,
-                                         const std::string &vertFilepath, 
-                                         const std::string &fragFilepath,
-                                         const PipelineConfig *configInfo)
+BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
+                                Device *device,
+                                SwapChain *swapchain,
+                                const std::string &vertFilepath, 
+                                const std::string &fragFilepath,
+                                PipelineConfig *configInfo)
 {
+    // TODO: MALLOC without free
     pipeline = (GraphicsPipeline*)calloc(1, sizeof(GraphicsPipeline));
+    if (pipeline == NULL) {
+        return BB_ERROR_MEM;
+    }
+
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo   = {};
+    VkPipelineShaderStageCreateInfo      shaderStageCreateInfo   = {};
+    VkPipelineViewportStateCreateInfo    viewportStateCreateInfo = {};
+    VkGraphicsPipelineCreateInfo         pipelineCreateInfo      = {};
+    VertexInputBindingDescriptions 
+        inputBindingDescriptions[BB_VERTEX_INPUT_BINDING_DESC_COUNT]     = {0};
+    VertexInputAttributeDescriptions 
+        inputAttributeDescriptions[BB_VERTEX_INPUT_ATTRIBUTE_DESC_COUNT] = {0};
+    pipeline->device         = device;
+    pipeline->swapchain      = swapchain;
+    pipeline->pipelineConfig = configInfo;
+    BBError er = BB_ERROR_UNKNOWN;
 
     // TODO: a whole bunch of stdlib shit
-    assert(configInfo->pipelineLayout != VK_NULL_HANDLE && "Cannot create graphics pipeline: no pipelineLayout provided in configInfo");
-    assert(configInfo->renderPass != VK_NULL_HANDLE && "Cannot create graphics pipeline: no renderPass provided in configInfo");
     const std::vector<char> vertCode = readFile(vertFilepath);
     const std::vector<char> fragCode = readFile(fragFilepath);
-    std::cout<< "Vertex Shader Code Size: " << vertCode.size() << '\n';
-    std::cout<< "Fragment Shader Code Size: " << fragCode.size() << '\n';
 
-    pipeline->device = device;
-    pipeline->swapchain = swapchain;
-    createVertShaderModule(pipeline, vertCode);             //These create the VkShaderModules
-    createFragShaderModule(pipeline, fragCode);             //stored in the GraphicsPipeline
-    
-    pipeline->pipelineConfig = configInfo;       //The default configuration I've passed in
-                                                                //stays stored in the pipeline object 
-                                                                //for reference and vulkan deallocation
+    getVertexInputBindingDescriptions(inputBindingDescriptions);
+    getVertexInputAttributeDescriptions(inputAttributeDescriptions);
 
-    // Here the vertex input info is put constructed 
-    auto bindingDescriptions     = getBindingDescriptions();
-    auto attributeDescriptions   = getAttributeDescriptions();
-    auto *vertexInputInfo        = vertexInputStateCreateInfo(&bindingDescriptions, &attributeDescriptions);
-
-    //Some more configuration
-    auto *shaderStages           = shaderStagesCreateInfo(mainPipeline);
-    auto *viewportInfo           = viewportCreateInfo(mainPipeline->pipelineConfig);
-
-    //Uses info from all the above objects and is translated to a final configuration
-    //to the actual VkPipeline.
-    auto *pipelineCreateInfo     = createPipelineCreateInfo(configInfo,
-                                                              viewportInfo,
-                                                              shaderStages,
-                                                              vertexInputInfo);
-    //-------------------------------------------------------------------
-
-
-    if(vkCreateGraphicsPipelines(device->logical,
-                                 VK_NULL_HANDLE,
-                                 1,
-                                 pipelineCreateInfo,
-                                 nullptr,
-                                 &mainPipeline->graphicsPipeline) != VK_SUCCESS)
-    {
-        throw std::runtime_error("pipeline not created successfully \n");
+    if (configInfo->pipelineLayout != VK_NULL_HANDLE){
+        er = BB_ERROR_PIPELINE_CREATE;
+        goto error_exit;
     }
-    cleanupShaderModules(mainPipeline);
-    return mainPipeline;
+    if (configInfo->renderPass != VK_NULL_HANDLE){
+         er = BB_ERROR_PIPELINE_CREATE;
+        goto error_exit;
+    }
+
+    er = createVertShaderModule(pipeline, vertCode);    
+    if (er != BB_ERROR_OK){
+        goto error_exit;
+    }
+    er = createFragShaderModule(pipeline, fragCode);
+    if (er != BB_ERROR_OK){
+        vkDestroyShaderModule(pipeline->device->logical, pipeline->vertShaderModule, NULL);
+        goto error_exit;
+    }
+
+    createVertexInputStateCreateInfo(&vertexInputCreateInfo, 
+                                     &bindingDescriptions, 
+                                     &attributeDescriptions);
+    createShaderStagesCreateInfo    (&shaderStageCreateInfo, 
+                                     pipeline);
+    createViewportCreateInfo        (&viewportStateCreateInfo, 
+                                     configInfo);
+    createPipelineCreateInfo        (&pipelineCreateInfo,
+                                     configInfo,
+                                     &viewportStateCreateInfo,
+                                     &shaderStageCreateInfo,
+                                     &vertexInputCreateInfo);
+    if(
+    vkCreateGraphicsPipelines       (device->logical,
+                                     VK_NULL_HANDLE,
+                                     1,
+                                     &pipelineCreateInfo,
+                                     nullptr,
+                                     &pipeline->graphicsPipeline) 
+    != VK_SUCCESS){
+        er = BB_ERROR_PIPELINE_CREATE;
+        goto error_exit;
+    }
+    cleanupShaderModules(pipeline);
+    return BB_ERROR_OK;
+
+error_exit:
+    free(pipeline);
+    pipeline = NULL;
+    return er;
 }
 
+// TODO: make sure this actually destroys everything
 void destroyPipeline(GraphicsPipeline* pipeline)
 {
-    //decouple cleanup from pipeline maybe
-    
     vkDestroyPipelineLayout(pipeline->device->logical, pipeline->pipelineConfig->pipelineLayout, nullptr);
-    //vkDestroyDescriptorPool(pipeline->device->logical, pipeline->pipelineConfig->descriptorPool, nullptr);
     vkDestroyDescriptorSetLayout(pipeline->device->logical, pipeline->pipelineConfig->descriptorSetLayout, nullptr);
     vkDestroyPipeline(pipeline->device->logical, pipeline->graphicsPipeline, nullptr);
-    delete pipeline->pipelineConfig;
-    delete pipeline;
+    free(pipeline->pipelineConfig);
+    free(pipeline);
 }
  
 static void cleanupShaderModules(GraphicsPipeline* pipeline)
@@ -95,41 +111,43 @@ static void cleanupShaderModules(GraphicsPipeline* pipeline)
     vkDestroyShaderModule(pipeline->device->logical, pipeline->fragShaderModule, nullptr);
 }
 
-static void createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
+static BBError createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
 {
     pipeline->vertShaderModule = {};
-    auto createInfo = shaderModuleInfo(code);
+    VkShaderModuleCreateInfo createInfo = {};
+    createShaderModuleCreateInfo(&createInfo, code);
 
-
-    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->vertShaderModule) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create shader module \n");        
+    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->vertShaderModule) != VK_SUCCESS) {
+        fprintf(stderr, "\nfailed to create shader module");
+        return BB_ERROR_SHADER_MODULE;
     }
+    return BB_ERROR_OK;
 }
 
-static void createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
+static BBError createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
 {
     pipeline->fragShaderModule = {};
-    auto createInfo = shaderModuleInfo(code);
+    VkShaderModuleCreateInfo createInfo = {};
+    createShaderModuleCreateInfo(&createInfo, code);
 
-
-    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->fragShaderModule) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create shader module \n");        
+    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->fragShaderModule) != VK_SUCCESS) {
+        fprintf(stderr, "\nfailed to create shader module");        
+        return BB_ERROR_SHADER_MODULE;
     }
+    return BB_ERROR_OK;
 }
 
-VkPipelineLayout createPipelineLayout(Device *device, PipelineConfig *config)
+BBError createPipelineLayout(VkPipelineLayout *layout, Device *device, PipelineConfig *config)
 {
     VkPipelineLayout pipelineLayout = {};
-    auto pipelineLayoutInfo = pipelineLayoutCreateInfo(config);
+    VkPipelineLayoutCreateInfo createInfo = {};
+    createPipelineLayoutCreateInfo(&createInfo, config);
 
-    if(vkCreatePipelineLayout(device->logical, &pipelineLayoutInfo, nullptr, &pipelineLayout) !=
-            VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to create pipeline layout!");
+    if (vkCreatePipelineLayout(device->logical, &createInfo, nullptr, &pipelineLayout) 
+        != VK_SUCCESS) {
+        return BB_ERROR_PIPELINE_LAYOUT_CREATE;
     }
-    return pipelineLayout;
+    return BB_ERROR_OK;
 }
 
 void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)

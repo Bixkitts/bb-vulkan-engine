@@ -13,7 +13,9 @@
 // lots of different resources to be bound.
 // Perhaps I'll make a couple of predefined sets with
 // specific combinations of descriptor slots.
-BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, Device *device, BBDescriptorSetLayout layoutSizeAndType)
+BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, 
+                                  Device *device, 
+                                  BBDescriptorSetLayout layoutSizeAndType)
 {
     VkDescriptorSetLayoutBinding bindings[layoutSizeAndType];
     int bindingCount = 0;
@@ -86,13 +88,12 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool, Device *device)
     return BB_ERROR_OK;
 }
 
-BBError createDescriptorSets(
-                VkDescriptorSet *descriptorSets,
-                Device *device, 
-                VkDescriptorSetLayout descriptorSetLayout, 
-                VulkanDescriptorPool *descriptorPool, 
-                UniformBuffer *uniformBuffers, 
-                VulkanImage *texture)
+BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
+                             Device *device, 
+                             VkDescriptorSetLayout descriptorSetLayout, 
+                             VulkanDescriptorPool *descriptorPool, 
+                             UniformBuffer *uniformBuffers, 
+                             VulkanImage *texture)
 {
     // TODO: MALLOC without free
     descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
@@ -103,8 +104,7 @@ BBError createDescriptorSets(
     // The layout of these sets need to all be the same,
     // as they will all be rendering the same resources.
     VkDescriptorSetLayout layouts[MAX_FRAMES_IN_FLIGHT];
-    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++)
-    {
+    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
         layouts[i] = descriptorSetLayout;
     }
 
@@ -120,7 +120,7 @@ BBError createDescriptorSets(
     // TODO: magic number 3
     const int AMOUNT_OF_DESCRIPTORS = 3;
     const int descriptorWriteCount = MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
-    VkWriteDescriptorSet descriptorWrites[descriptorWriteCount] = { 0 };
+    VkWriteDescriptorSet descriptorWrites[descriptorWriteCount];
     for(int i = 0; i < descriptorWriteCount; i+=AMOUNT_OF_DESCRIPTORS)
     {
         VkDescriptorImageInfo imageInfo{};

@@ -9,14 +9,30 @@
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
-struct Vertex
+#define BB_VERTEX_INPUT_BINDING_DESC_COUNT 1
+#define BB_VERTEX_INPUT_ATTRIBUTE_DESC_COUNT 2
+
+typedef struct Vertex
 {
     // TODO:
     // GLM stuff, remove :/
     glm::vec2 position;
     glm::vec2 texCoord;
-};
-std::vector<VkVertexInputBindingDescription> getBindingDescriptions();
-std::vector<VkVertexInputAttributeDescription> getAttributeDescriptions();
+}Vertex;
+
+typedef struct VertexInputBindingDescriptions
+{
+    VkVertexInputBindingDescription data;
+    uint32_t                        count;
+}VertexInputBindingDescriptions;
+
+typedef struct VertexInputAttributeDescriptions
+{
+    VkVertexInputAttributeDescription data;
+    uint32_t                          count;
+}VertexInputAttributeDescriptions;
+
+void getVertexInputBindingDescriptions   (VertexInputBindingDescriptions *bindingDescriptions);
+void getVertexInputAttributeDescriptions (VertexInputAttributeDescriptions *attributeDescriptions);
 
 #endif
