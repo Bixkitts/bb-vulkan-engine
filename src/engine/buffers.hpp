@@ -33,58 +33,58 @@ typedef struct VulkanBuffer_S
 }VulkanBuffer_T, *VulkanBuffer;
 
 
-typedef VulkanBuffer_T StagingBuffer_T, *StagingBuffer;
-typedef VulkanBuffer_T VertexBuffer_T, *VertexBuffer;
-typedef VulkanBuffer_T IndexBuffer_T, *IndexBuffer;
-typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffer;
+typedef VulkanBuffer_T StagingBuffer_T, *StagingBuffers;
+typedef VulkanBuffer_T VertexBuffer_T,  *VertexBuffers;
+typedef VulkanBuffer_T IndexBuffer_T,   *IndexBuffers;
+typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffers;
 
-BBError         createVertexBuffer      (VertexBuffer vBuffer, 
-                                         Device device, 
+BBError         createVertexBuffer      (VertexBuffers vBuffer, 
+                                         const Device device, 
                                          Model *model);
-BBError         createIndexBuffer       (IndexBuffer iBuffer, 
-                                         Device device, 
+BBError         createIndexBuffer       (IndexBuffers iBuffer, 
+                                         const Device device, 
                                          Model *model);
-BBError         createUniformBuffer     (UniformBuffer uBuffer, 
-                                         Device device, 
-                                         size_t contentsSize);
+BBError         createUniformBuffer     (UniformBuffers uBuffer, 
+                                         const Device device, 
+                                         const size_t contentsSize);
 
 //TODO:
 //Don't need these yet, each entity should typically only need
 //one buffer each
 //std::vector<VertexBuffer*> createVertexBuffers(Device device, std::vector<Model*> models);
 //std::vector<IndexBuffer*> createIndexBuffers(Device device, std::vector<Model*> models);
-BBError         createUniformBuffers    (UniformBuffer uBuffer, 
-                                         Device device, 
-                                         size_t contentsSize);
+BBError         createUniformBuffers    (UniformBuffers uBuffer, 
+                                         const Device device, 
+                                         const size_t contentsSize);
 
 void            destroyBuffer           (VulkanBuffer v);
 
 // These functions should maybe be bundled in with drawing
-void            drawVertexBuffer        (VertexBuffer vertexBuffer, 
+void            drawVertexBuffer        (VertexBuffers vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindVertexBuffer        (VertexBuffer vertexBuffer, 
+void            bindVertexBuffer        (VertexBuffers vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            drawIndexBuffer         (IndexBuffer indexBuffer, 
+void            drawIndexBuffer         (IndexBuffers indexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindIndexBuffer         (IndexBuffer indexBuffer, 
+void            bindIndexBuffer         (IndexBuffers indexBuffer, 
                                          VkCommandBuffer commandBuffer);
 
 // big main buffer creation function
-void            createBuffer            (VkDeviceSize size,
-                                         VkBufferUsageFlags usage,
-                                         VkMemoryPropertyFlags properties,
+BBError         createBuffer            (const VkDeviceSize size,
+                                         const VkBufferUsageFlags usage,
+                                         const VkMemoryPropertyFlags properties,
                                          VkBuffer buffer,
                                          VkDeviceMemory bufferMemory,
-                                         Device theGPU);
+                                         const Device theGPU);
 
 VkCommandBuffer beginSingleTimeCommands (Device theGPU);
 void            endSingleTimeCommands   (VkCommandBuffer commandBuffer, 
                                          Device theGPU);
 
-void            copyBuffer              (Device theGPU, 
-                                         VkBuffer srcBuffer, 
+void            copyBuffer              (const Device theGPU, 
+                                         const VkBuffer srcBuffer, 
                                          VkBuffer dstBuffer, 
-                                         VkDeviceSize size);
+                                         const VkDeviceSize size);
 void            copyBufferToImage       (Device theGPU,
                                          VkBuffer buffer, 
                                          VkImage image, 
@@ -105,10 +105,10 @@ void            createImageWithInfo     (const VkImageCreateInfo imageInfo,
                                          VkDeviceMemory imageMemory,
                                          Device theGPU);
 // ------------------------------------
-void            copyVertsToDeviceMem    (StagingBuffer sb, 
+void            copyVertsToDeviceMem    (StagingBuffers sb, 
                                          Vertex *vertices, 
                                          uint32_t vertexCount);
-void            copyIndecesToDeviceMem  (StagingBuffer sb, 
+void            copyIndecesToDeviceMem  (StagingBuffers sb, 
                                          uint32_t *indeces, 
                                          uint32_t indexCount);
 #endif

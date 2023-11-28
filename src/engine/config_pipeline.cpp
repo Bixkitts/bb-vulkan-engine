@@ -1,37 +1,28 @@
 #include "config_pipeline.hpp"
 
 void createPipelineCreateInfo(VkGraphicsPipelineCreateInfo *createInfo, 
-                                 PipelineConfig *configInfo, 
-                                 VkPipelineViewportStateCreateInfo *viewportInfo,
-                                 VkPipelineShaderStageCreateInfo *shaderStages,
-                                 VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
+                              PipelineConfig config, 
+                              VkPipelineViewportStateCreateInfo *viewportInfo,
+                              VkPipelineShaderStageCreateInfo *shaderStages,
+                              VkPipelineVertexInputStateCreateInfo *vertexInputInfo  )
 {
     createInfo->sType                     = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     // TODO: magic number 2
     createInfo->stageCount                = 2;
     createInfo->pStages                   = shaderStages;
     createInfo->pVertexInputState         = vertexInputInfo;
-    createInfo->pInputAssemblyState       = &configInfo->inputAssemblyInfo;
+    createInfo->pInputAssemblyState       = &config->inputAssemblyInfo;
     createInfo->pViewportState            = viewportInfo;
-    createInfo->pRasterizationState       = &configInfo->rasterizationInfo;
-    createInfo->pMultisampleState         = &configInfo->multisampleInfo;
-    createInfo->pColorBlendState          = &configInfo->colorBlendInfo;
-    createInfo->pDepthStencilState        = &configInfo->depthStencilInfo;
+    createInfo->pRasterizationState       = &config->rasterizationInfo;
+    createInfo->pMultisampleState         = &config->multisampleInfo;
+    createInfo->pColorBlendState          = &config->colorBlendInfo;
+    createInfo->pDepthStencilState        = &config->depthStencilInfo;
     createInfo->pDynamicState             = NULL;
-    createInfo->layout                    = configInfo->pipelineLayout;
-    createInfo->renderPass                = configInfo->renderPass;
-    createInfo->subpass                   = configInfo->subpass;
+    createInfo->layout                    = config->pipelineLayout;
+    createInfo->renderPass                = config->renderPass;
+    createInfo->subpass                   = config->subpass;
     createInfo->basePipelineIndex         = -1;
     createInfo->basePipelineHandle        = VK_NULL_HANDLE;
-}
-void createPipelineLayoutCreateInfo(VkPipelineLayoutCreateInfo *createInfo, 
-                                       PipelineConfig *config)
-{
-    createInfo->sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
-    createInfo->setLayoutCount          = 1;
-    createInfo->pSetLayouts             = &config->descriptorSetLayout;
-    createInfo->pushConstantRangeCount  = 0; 
-    createInfo->pPushConstantRanges     = nullptr;
 }
 
 // TODO: stdlib shit
@@ -52,18 +43,18 @@ void createVertexInputStateCreateInfo(VkPipelineVertexInputStateCreateInfo *crea
     createInfo->pVertexAttributeDescriptions    = attributeDescriptions->data;
     createInfo->pVertexBindingDescriptions      = bindingDescriptions->data;
 }
-void viewportCreateInfo(VkPipelineViewportStateCreateInfo *viewportCreateInfo, 
-                        PipelineConfig *configInfo)
+void viewportCreateInfo(VkPipelineViewportStateCreateInfo *createInfo, 
+                        PipelineConfig configInfo)
 {
-    viewportCreateInfo->sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
-    viewportCreateInfo->viewportCount = 1;
-    viewportCreateInfo->pViewports    = &configInfo->viewport;
-    viewportCreateInfo->scissorCount  = 1;
-    viewportCreateInfo->pScissors     = &configInfo->scissor;
+    createInfo->sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+    createInfo->viewportCount = 1;
+    createInfo->pViewports    = &configInfo->viewport;
+    createInfo->scissorCount  = 1;
+    createInfo->pScissors     = &configInfo->scissor;
 }
 void createShaderStagesCreateInfo(VkPipelineShaderStageCreateInfo *createInfo, 
                                   uint32_t shaderStageCount, 
-                                  GraphicsPipeline *mainPipeline)
+                                  GraphicsPipeline mainPipeline)
 {
     createInfo[0].sType   = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     createInfo[0].stage   = VK_SHADER_STAGE_VERTEX_BIT;

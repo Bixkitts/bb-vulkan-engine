@@ -19,7 +19,7 @@ BBError createGraphicsPipeline (GraphicsPipeline pipeline,
                                 PipelineConfig configInfo)
 {
     // TODO: MALLOC without free
-    pipeline = (GraphicsPipeline)calloc(1, sizeof(GraphicsPipeline));
+    pipeline = (GraphicsPipeline)calloc(1, sizeof(GraphicsPipeline_T));
     if (pipeline == NULL) {
         return BB_ERROR_MEM;
     }
@@ -144,13 +144,18 @@ static BBError createFragShaderModule(GraphicsPipeline pipeline, const std::vect
 
 BBError createPipelineLayout(VkPipelineLayout *pipelineLayout, 
                              const Device device, 
-                             const PipelineConfig config)
+                             const VkDescriptorSetLayout *descriptorSetLayout)
 {
     VkPipelineLayoutCreateInfo createInfo = {};
-    createPipelineLayoutCreateInfo(&createInfo, config);
+    createInfo.sType                   = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO; 
+    createInfo.setLayoutCount          = 1;
+    createInfo.pSetLayouts             = descriptorSetLayout;
+    createInfo.pushConstantRangeCount  = 0; 
+    createInfo.pPushConstantRanges     = NULL;
 
     if (vkCreatePipelineLayout(device->logical, &createInfo, NULL, pipelineLayout) 
         != VK_SUCCESS){
+        fprintf(stderr, "\nfailed to create pipeline layout");
         return BB_ERROR_PIPELINE_LAYOUT_CREATE;
     }
     return BB_ERROR_OK;
@@ -163,9 +168,9 @@ void bindPipeline(GraphicsPipeline pipeline, VkCommandBuffer commandBuffer)
 
 BBError createPipelineConfig(PipelineConfig config,
                              const SwapChain swapchain, 
-                             UniformBuffer *uniformBuffers, 
+                             UniformBuffers *uniformBuffers, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
-                              VkDescriptorSet *descriptorSets,
+                             VkDescriptorSet *descriptorSets,
                              const VkPipelineLayout pipelineLayout)
 {
     // TODO: MALLOC without free

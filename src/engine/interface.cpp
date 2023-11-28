@@ -3,7 +3,7 @@
 // Logical and physical device that everything needs access to.
 static Device device = NULL;
 // Swap chain that everybody needs to be aware of
-static SwapChain *swapchain;
+static SwapChain swapchain;
 // The big main descriptor pool
 static VulkanDescriptorPool *descriptorPool;
 // A pool of descriptor set layouts
@@ -45,7 +45,7 @@ BBAPI BBError createEntity(BBEntity entity,
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers   (entity->uBuffer, device, sizeof(PerObjectMatrices));
+    createUniformBuffers   (entity->uBuffers, device, sizeof(PerObjectMatrices));
     createVertexBuffer     (entity->vBuffer, device, entity->model);
     createIndexBuffer      (entity->iBuffer, device, entity->model);
     // TODO: instead of checking NULL maybe call this sort 
@@ -59,13 +59,25 @@ BBAPI BBError createEntity(BBEntity entity,
                             device, 
                             descriptorSetLayoutPool[dsLayout],
                             descriptorPool, 
-                            entity->uBuffer, 
+                            entity->uBuffers, 
                             entity->texture);
+    VkPipelineLayout pipelineLayout = NULL;
+    createPipelineLayout(&pipelineLayout,
+                         device,
+                         &descriptorSetLayoutPool[dsLayout]);
     //create pipeline configuration with hard coded default shit
-    PipelineConfig config = NULL;
-    createPipelineConfig   (config, swapchain, entity->, descriptorSetLayout, descriptorSets);
+    PipelineConfig pipelineConfig = NULL;
+    createPipelineConfig   (pipelineConfig, 
+                            swapchain, 
+                            // TODO: uniform buffers here?
+                            &entity->uBuffers, 
+                            descriptorSetLayoutPool[dsLayout], 
+                            descriptorSets,
+                            pipelineLayout);
     //creating the pipe line itself using the coded default
-    createGraphicsPipeline (device, 
+    GraphicsPipeline pipeline = NULL;
+    createGraphicsPipeline (pipeline,
+                            device, 
                             swapchain, 
                             vertShader, 
                             fragShader, 

@@ -13,10 +13,10 @@ typedef struct BBEntity_S
     Device                 device;       
     Model                 *model;
 
-    UniformBuffer          uBuffer;
+    UniformBuffers          uBuffers;
 
-    VertexBuffer           vBuffer;
-    IndexBuffer            iBuffer;
+    VertexBuffers           vBuffer;
+    IndexBuffers            iBuffer;
     VulkanImage            texture;
     BBDescriptorSetLayout  descriptorSetLayout;
     VkDescriptorSet       *descriptorSet;

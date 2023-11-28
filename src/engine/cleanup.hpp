@@ -10,9 +10,9 @@ struct CleanupList  //A list of objects that will need to have cleanup code call
     Device device;    
     GraphicsPipeline *pipeline;
     SwapChain *swapchain;
-    std::vector<VertexBuffer*> vertexBuffers;
-    std::vector<IndexBuffer*> indexBuffers;
-    std::vector<UniformBuffer*> uniformBuffers;
+    std::vector<VertexBuffers*> vertexBuffers;
+    std::vector<IndexBuffers*> indexBuffers;
+    std::vector<UniformBuffers*> uniformBuffers;
     std::vector<Model*> models;
 };
 

@@ -12,12 +12,12 @@
 void drawFrame           (SwapChain* swapchain, 
                           GraphicsPipeline *pipeline, 
                           std::vector<VkCommandBuffer> &commandBuffers, 
-                          std::vector<UniformBuffer*> &uniformBuffers, 
-                          std::vector<VertexBuffer*> &vertexBuffers, 
-                          std::vector<IndexBuffer*> &indexBuffers, 
+                          std::vector<UniformBuffers*> &uniformBuffers, 
+                          std::vector<VertexBuffers*> &vertexBuffers, 
+                          std::vector<IndexBuffers*> &indexBuffers, 
                           std::vector<Model*> &models);
 void updateUniformBuffer (uint32_t currentImage, 
                           SwapChain *swapchain, 
-                          std::vector<UniformBuffer*> &uniformBuffers);
+                          std::vector<UniformBuffers*> &uniformBuffers);
 
 #endif

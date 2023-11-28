@@ -35,7 +35,7 @@ BBError createDescriptorSets       (VkDescriptorSet *descriptorSets,
                                     Device device, 
                                     VkDescriptorSetLayout descriptorSetLayout, 
                                     VulkanDescriptorPool *descriptorPool, 
-                                    UniformBuffer uniformBuffers, 
+                                    UniformBuffers uniformBuffers, 
                                     VulkanImage texture);
 
 #endif

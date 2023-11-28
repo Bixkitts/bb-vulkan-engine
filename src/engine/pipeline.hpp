@@ -33,7 +33,7 @@ typedef struct PipelineConfig_S
     VkPipelineLayout                       pipelineLayout;
     VkRenderPass                           renderPass;
 
-    UniformBuffer                         *uniformBuffers;     
+    UniformBuffers                         *uniformBuffers;     
     uint64_t                               uniformBufferCount;
     // There are subpasses created and
     // configured in the RenderPass     
@@ -61,10 +61,10 @@ BBError           createGraphicsPipeline (GraphicsPipeline pipeline,
 void              destroyPipeline        (GraphicsPipeline pipeline);
 BBError           createPipelineLayout   (VkPipelineLayout *layout, 
                                           const Device device, 
-                                          const PipelineConfig config);
+                                          const VkDescriptorSetLayout *descriptorSetLayout);
 BBError           createPipelineConfig   (PipelineConfig config,
-                                          const SwapChain wapchain, 
-                                          UniformBuffer *uniformBuffers, 
+                                          const SwapChain swapchain, 
+                                          UniformBuffers *uniformBuffers, 
                                           const VkDescriptorSetLayout descriptorSetLayout, 
                                           VkDescriptorSet *descriptorSets,
                                           const VkPipelineLayout pipelineLayout);

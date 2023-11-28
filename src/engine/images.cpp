@@ -42,7 +42,7 @@ BBError createTextureImage (VulkanImage image,
     imageSize = texWidth * texHeight * 4;
 
     //TODO: MALLOC without free
-    image = (VulkanImage)calloc(1, sizeof(VulkanImage));
+    image = (VulkanImage)calloc(1, sizeof(VulkanImage_T));
     if (image == NULL){
         return BB_ERROR_MEM;
     }

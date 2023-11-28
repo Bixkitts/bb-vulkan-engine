@@ -14,6 +14,7 @@ typedef enum BBError
     BB_ERROR_PIPELINE_CREATE,
     BB_ERROR_PIPELINE_LAYOUT_CREATE,
     BB_ERROR_IMAGE_CREATE,
+    BB_ERROR_GPU_BUFFER_CREATE,
     BB_ERROR_TYPE_COUNT // The amount of different errors
 }BBError;
 
