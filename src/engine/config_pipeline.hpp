@@ -8,19 +8,19 @@
 #include "swap_chain.hpp"
 
 void    createPipelineCreateInfo         (VkGraphicsPipelineCreateInfo *createInfo, 
-                                          PipelineConfig *configInfo, 
+                                          PipelineConfig configInfo, 
                                           VkPipelineViewportStateCreateInfo *viewportInfo,
                                           VkPipelineShaderStageCreateInfo *shaderStages,
                                           VkPipelineVertexInputStateCreateInfo *vertexInputInfo );
 void    createPipelineLayoutCreateInfo   (VkPipelineLayoutCreateInfo *createInfo, 
-                                          PipelineConfig *config);
+                                          PipelineConfig config);
 void    createShaderModuleCreateInfo     (VkShaderModuleCreateInfo *shadermodCreateInfo, 
                                           const std::vector<char> &code);
 void    createVertexInputStateCreateInfo (VkPipelineVertexInputStateCreateInfo *vertexInputCreateInfo,
                                           VertexInputBindingDescriptions *bindingDescriptions, 
                                           VertexInputAttributeDescriptions *attributeDescriptions);
 void    createViewportCreateInfo         (VkPipelineViewportStateCreateInfo *viewportCreateInfo, 
-                                          PipelineConfig *configInfo);
+                                          PipelineConfig configInfo);
 void    createShaderStagesCreateInfo     (VkPipelineShaderStageCreateInfo *shaderStageCreateInfo, 
-                                          GraphicsPipeline *mainPipeline);
+                                          GraphicsPipeline mainPipeline);
 #endif

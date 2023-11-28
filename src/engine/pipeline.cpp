@@ -5,29 +5,29 @@
 #include <vulkan/vulkan_core.h>
 
 //Make shader Modules
-static BBError createVertShaderModule (GraphicsPipeline *pipeline, 
+static BBError createVertShaderModule (GraphicsPipeline pipeline, 
                                        const std::vector<char>& code);
-static BBError createFragShaderModule (GraphicsPipeline *pipeline, 
+static BBError createFragShaderModule (GraphicsPipeline pipeline, 
                                        const std::vector<char>& code);
-static void    cleanupShaderModules   (GraphicsPipeline* pipeline);
+static void    cleanupShaderModules   (GraphicsPipeline pipeline);
 
-BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
-                                Device *device,
-                                SwapChain *swapchain,
+BBError createGraphicsPipeline (GraphicsPipeline pipeline,
+                                Device device,
+                                SwapChain swapchain,
                                 const std::string &vertFilepath, 
                                 const std::string &fragFilepath,
-                                PipelineConfig *configInfo)
+                                PipelineConfig configInfo)
 {
     // TODO: MALLOC without free
-    pipeline = (GraphicsPipeline*)calloc(1, sizeof(GraphicsPipeline));
+    pipeline = (GraphicsPipeline)calloc(1, sizeof(GraphicsPipeline));
     if (pipeline == NULL) {
         return BB_ERROR_MEM;
     }
 
-    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo   = {};
-    VkPipelineShaderStageCreateInfo      shaderStageCreateInfo   = {};
-    VkPipelineViewportStateCreateInfo    viewportStateCreateInfo = {};
-    VkGraphicsPipelineCreateInfo         pipelineCreateInfo      = {};
+    VkPipelineVertexInputStateCreateInfo vertexInputCreateInfo      = {};
+    VkPipelineShaderStageCreateInfo      shaderStageCreateInfo      = {};
+    VkPipelineViewportStateCreateInfo    viewportStateCreateInfo    = {};
+    VkGraphicsPipelineCreateInfo         pipelineCreateInfo         = {};
     VertexInputBindingDescriptions       inputBindingDescriptions   = {0};
     VertexInputAttributeDescriptions     inputAttributeDescriptions = {0};
     pipeline->device         = device;
@@ -47,7 +47,7 @@ BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
         goto error_exit;
     }
     if (configInfo->renderPass != VK_NULL_HANDLE){
-         er = BB_ERROR_PIPELINE_CREATE;
+        er = BB_ERROR_PIPELINE_CREATE;
         goto error_exit;
     }
 
@@ -78,7 +78,7 @@ BBError createGraphicsPipeline (GraphicsPipeline *pipeline,
                                       VK_NULL_HANDLE,
                                       1,
                                       &pipelineCreateInfo,
-                                      nullptr,
+                                      NULL,
                                       &pipeline->graphicsPipeline) 
     != VK_SUCCESS){
         er = BB_ERROR_PIPELINE_CREATE;
@@ -94,35 +94,42 @@ error_exit:
 }
 
 // TODO: make sure this actually destroys everything
-void destroyPipeline(GraphicsPipeline* pipeline)
+void destroyPipeline(GraphicsPipeline pipeline)
 {
-    vkDestroyPipelineLayout(pipeline->device->logical, pipeline->pipelineConfig->pipelineLayout, nullptr);
-    vkDestroyDescriptorSetLayout(pipeline->device->logical, pipeline->pipelineConfig->descriptorSetLayout, nullptr);
-    vkDestroyPipeline(pipeline->device->logical, pipeline->graphicsPipeline, nullptr);
-    free(pipeline->pipelineConfig);
-    free(pipeline);
+    vkDestroyPipelineLayout      (pipeline->device->logical, 
+                                  pipeline->pipelineConfig->pipelineLayout, 
+                                  NULL);
+    vkDestroyDescriptorSetLayout (pipeline->device->logical, 
+                                  pipeline->pipelineConfig->descriptorSetLayout, 
+                                  NULL);
+    vkDestroyPipeline            (pipeline->device->logical, 
+                                  pipeline->graphicsPipeline, 
+                                  NULL);
+    free                         (pipeline->pipelineConfig);
+    free                         (pipeline);
 }
  
-static void cleanupShaderModules(GraphicsPipeline* pipeline)
+static void cleanupShaderModules(GraphicsPipeline pipeline)
 {
     vkDestroyShaderModule(pipeline->device->logical, pipeline->vertShaderModule, nullptr);
     vkDestroyShaderModule(pipeline->device->logical, pipeline->fragShaderModule, nullptr);
 }
 
-static BBError createVertShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
+static BBError createVertShaderModule(GraphicsPipeline pipeline, const std::vector<char>& code)
 {
     pipeline->vertShaderModule = {};
     VkShaderModuleCreateInfo createInfo = {};
     createShaderModuleCreateInfo(&createInfo, code);
 
-    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->vertShaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(pipeline->device->logical, &createInfo, nullptr, &pipeline->vertShaderModule) 
+    != VK_SUCCESS){
         fprintf(stderr, "\nfailed to create shader module");
         return BB_ERROR_SHADER_MODULE;
     }
     return BB_ERROR_OK;
 }
 
-static BBError createFragShaderModule(GraphicsPipeline *pipeline, const std::vector<char>& code)
+static BBError createFragShaderModule(GraphicsPipeline pipeline, const std::vector<char>& code)
 {
     pipeline->fragShaderModule = {};
     VkShaderModuleCreateInfo createInfo = {};
@@ -135,36 +142,40 @@ static BBError createFragShaderModule(GraphicsPipeline *pipeline, const std::vec
     return BB_ERROR_OK;
 }
 
-BBError createPipelineLayout(VkPipelineLayout *layout, Device *device, PipelineConfig *config)
+BBError createPipelineLayout(VkPipelineLayout *pipelineLayout, 
+                             const Device device, 
+                             const PipelineConfig config)
 {
-    VkPipelineLayout pipelineLayout = {};
     VkPipelineLayoutCreateInfo createInfo = {};
     createPipelineLayoutCreateInfo(&createInfo, config);
 
-    if (vkCreatePipelineLayout(device->logical, &createInfo, nullptr, &pipelineLayout) 
-        != VK_SUCCESS) {
+    if (vkCreatePipelineLayout(device->logical, &createInfo, NULL, pipelineLayout) 
+        != VK_SUCCESS){
         return BB_ERROR_PIPELINE_LAYOUT_CREATE;
     }
     return BB_ERROR_OK;
 }
 
-void bindPipeline(GraphicsPipeline* pipeline, VkCommandBuffer commandBuffer)
+void bindPipeline(GraphicsPipeline pipeline, VkCommandBuffer commandBuffer)
 {
     vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->graphicsPipeline);
 }
 
-BBError createPipelineConfig(PipelineConfig *config,
-                             SwapChain *swapchain, 
-                             const UBuffer uniformBuffers, 
+BBError createPipelineConfig(PipelineConfig config,
+                             const SwapChain swapchain, 
+                             UniformBuffer *uniformBuffers, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
-                             VkDescriptorSet *descriptorSets,
-                             VkPipelineLayout pipelineLayout)
+                              VkDescriptorSet *descriptorSets,
+                             const VkPipelineLayout pipelineLayout)
 {
     // TODO: MALLOC without free
-    config = (PipelineConfig*)calloc(1, sizeof(PipelineConfig));
+    config = (PipelineConfig)calloc(1, sizeof(PipelineConfig));
+    if (config == NULL){
+        return BB_ERROR_MEM;
+    }
     
-    uint32_t width                               = swapchain->swapChainExtent.width;
-    uint32_t height                              = swapchain->swapChainExtent.height;
+    uint32_t width                                       = swapchain->swapChainExtent.width;
+    uint32_t height                                      = swapchain->swapChainExtent.height;
 
     config->inputAssemblyInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     config->inputAssemblyInfo.topology                   = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
@@ -174,6 +185,7 @@ BBError createPipelineConfig(PipelineConfig *config,
 
     config->viewport.x                                   = 0.0f;
     config->viewport.y                                   = 0.0f;
+    // TODO: replace cast
     config->viewport.width                               = static_cast<float>(width);
     config->viewport.height                              = static_cast<float>(height);
     config->viewport.minDepth                            = 0.0f;
@@ -181,7 +193,6 @@ BBError createPipelineConfig(PipelineConfig *config,
 
     config->scissor.offset                               = {0, 0};
     config->scissor.extent                               = {width, height};
-
 
     config->rasterizationInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     config->rasterizationInfo.depthClampEnable           = VK_FALSE;
@@ -199,15 +210,15 @@ BBError createPipelineConfig(PipelineConfig *config,
     config->multisampleInfo.sampleShadingEnable          = VK_FALSE;
     config->multisampleInfo.rasterizationSamples         = VK_SAMPLE_COUNT_1_BIT;
     config->multisampleInfo.minSampleShading             = 1.0f;           // Optional
-    config->multisampleInfo.pSampleMask                  = nullptr;             // Optional
+    config->multisampleInfo.pSampleMask                  = NULL;             // Optional
     config->multisampleInfo.alphaToCoverageEnable        = VK_FALSE;  // Optional
     config->multisampleInfo.alphaToOneEnable             = VK_FALSE;       // Optional
     config->multisampleInfo.pNext                        = NULL;
     config->multisampleInfo.flags                        = 0;
 
     config->colorBlendAttachment.colorWriteMask          =
-        VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
-        VK_COLOR_COMPONENT_A_BIT;
+    VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT |
+    VK_COLOR_COMPONENT_A_BIT;
     config->colorBlendAttachment.blendEnable             = VK_FALSE;
     config->colorBlendAttachment.srcColorBlendFactor     = VK_BLEND_FACTOR_ONE;   // Optional
     config->colorBlendAttachment.dstColorBlendFactor     = VK_BLEND_FACTOR_ZERO;  // Optional
@@ -226,28 +237,26 @@ BBError createPipelineConfig(PipelineConfig *config,
     config->colorBlendInfo.blendConstants[2]             = 0.0f;  // Optional
     config->colorBlendInfo.blendConstants[3]             = 0.0f;  // Optional
 
-    config->depthStencilInfo.sType                      = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
-    config->depthStencilInfo.depthTestEnable            = VK_TRUE;
-    config->depthStencilInfo.depthWriteEnable           = VK_TRUE;
-    config->depthStencilInfo.depthCompareOp             = VK_COMPARE_OP_LESS;
-    config->depthStencilInfo.depthBoundsTestEnable      = VK_FALSE;
-    config->depthStencilInfo.minDepthBounds             = 0.0f;  // Optional
-    config->depthStencilInfo.maxDepthBounds             = 1.0f;  // Optional
-    config->depthStencilInfo.stencilTestEnable          = VK_FALSE;
-    config->depthStencilInfo.front                      = {};  // Optional
-    config->depthStencilInfo.back                       = {};   // Optional
-    config->depthStencilInfo.pNext                      = NULL;
+    config->depthStencilInfo.sType                       = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+    config->depthStencilInfo.depthTestEnable             = VK_TRUE;
+    config->depthStencilInfo.depthWriteEnable            = VK_TRUE;
+    config->depthStencilInfo.depthCompareOp              = VK_COMPARE_OP_LESS;
+    config->depthStencilInfo.depthBoundsTestEnable       = VK_FALSE;
+    config->depthStencilInfo.minDepthBounds              = 0.0f;  // Optional
+    config->depthStencilInfo.maxDepthBounds              = 1.0f;  // Optional
+    config->depthStencilInfo.stencilTestEnable           = VK_FALSE;
+    config->depthStencilInfo.front                       = {};  // Optional
+    config->depthStencilInfo.back                        = {};   // Optional
+    config->depthStencilInfo.pNext                       = NULL;
 
-    config->renderPass                                  = swapchain->renderPass;
+    config->renderPass                                   = swapchain->renderPass;
 
-    // Oh dang this is important, uniform buffers!
-    config->uniformBuffers                              = uniformBuffers;
+    config->uniformBuffers                               = uniformBuffers;
 
     //Creating layouts and descriptors
-    config->descriptorSetLayout  = descriptorSetLayout;
-    config->descriptorSets       = descriptorSets;
+    config->descriptorSetLayout                          = descriptorSetLayout;
+    config->descriptorSets                               = descriptorSets;
 
-    config->pipelineLayout       = createPipelineLayout(swapchain->device, config);
-
+    config->pipelineLayout                               = pipelineLayout;
     return BB_ERROR_OK;
 }

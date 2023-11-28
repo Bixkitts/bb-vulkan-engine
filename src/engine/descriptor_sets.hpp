@@ -12,7 +12,7 @@
 typedef struct VulkanDescriptorPool
 {
     VkDescriptorPool pool;
-    Device device;
+    Device           device;
 }VulkanDescriptorPool;
 
 enum BBDescriptorSetLayout
@@ -23,11 +23,19 @@ enum BBDescriptorSetLayout
     DS_LAYOUT_AMOUNT_OF_LAYOUTS /* Keep this at the end of the enum */
 };
 
-BBError createDescriptorSetLayout(VkDescriptorSetLayout layout, Device device, BBDescriptorSetLayout layoutSizeAndType);
+BBError createDescriptorSetLayout  (VkDescriptorSetLayout layout, 
+                                    Device device, 
+                                    BBDescriptorSetLayout layoutSizeAndType);
 
-BBError createDescriptorPool(VulkanDescriptorPool *pool, Device device);
+BBError createDescriptorPool       (VulkanDescriptorPool *pool, 
+                                    Device device);
 
 //TODO: Allow the linking of multiple textures instead of just one
-BBError createDescriptorSets(VkDescriptorSet *descriptorSets, Device device, VkDescriptorSetLayout descriptorSetLayout, VulkanDescriptorPool *descriptorPool, UniformBuffer *uniformBuffers, VulkanImage *texture);
+BBError createDescriptorSets       (VkDescriptorSet *descriptorSets, 
+                                    Device device, 
+                                    VkDescriptorSetLayout descriptorSetLayout, 
+                                    VulkanDescriptorPool *descriptorPool, 
+                                    UniformBuffer uniformBuffers, 
+                                    VulkanImage texture);
 
 #endif

@@ -1,19 +1,4 @@
-#include "main_loader.h"
 #include "interface.hpp"
-#include "GLFW/glfw3.h"
-#include "buffers.hpp"
-#include "command_buffers.hpp"
-#include "device.hpp"
-#include "draw_frame.hpp"
-#include "descriptor_sets.hpp"
-#include "model.hpp"
-#include "pipeline.hpp" 
-#include "swap_chain.hpp"
-#include "window.hpp"
-#include "cleanup.hpp"
-#include "images.hpp"
-#include "entity.h"
-#include <vulkan/vulkan_core.h>
 
 // Logical and physical device that everything needs access to.
 static Device device = NULL;
@@ -36,50 +21,55 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
 BBAPI BBError createEntity(BBEntity entity, 
-                           char *model, char *textureDir, char *vertShader, char *fragShader){
+                           char *model, 
+                           char *textureDir, 
+                           char *vertShader, 
+                           char *fragShader)
+{
     BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
     // TODO: MALLOC without free
-    // Maybe replace this with a constructor
     entity = (BBEntity)calloc(1, sizeof(BBEntity));
     // This will need to actually load a model from a file
     const char *modelDir = "literally whatever";
-    loadModel                            (entity->model, modelDir);
+    loadModel(entity->model, modelDir);
     // TODO:
     // I ought to be allocating resources from the memory pools up above!!
     // ---------------------------------------------------------------------------
     // This already loads a texture from a file!
     // yipee!
-    createTextureImage                            (entity->texture, textureDir, device);
-    createTextureImageView                            (entity->texture);
-    createTextureSampler                            (entity->texture);
+    createTextureImage     (entity->texture, 
+                            textureDir, 
+                            device);
+    createTextureImageView (entity->texture);
+    createTextureSampler   (entity->texture);
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers                            (entity->uBuffer, device, sizeof(PerObjectMatrices));
-    createVertexBuffer                            (entity->vBuffer, device, entity->model);
-    createIndexBuffer                            (entity->iBuffer, device, entity->model);
+    createUniformBuffers   (entity->uBuffer, device, sizeof(PerObjectMatrices));
+    createVertexBuffer     (entity->vBuffer, device, entity->model);
+    createIndexBuffer      (entity->iBuffer, device, entity->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
-    createDescriptorPool                            (descriptorPool, device);
     if (descriptorSetLayoutPool[dsLayout] == NULL){
         createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
     }
-    VkDescriptorSet *descriptorSet = NULL;
-    createDescriptorSets(descriptorSet,
-                         device, 
-                         descriptorSetLayoutPool[dsLayout],
-                         descriptorPool, 
-                         entity->uBuffer, 
-                         entity->texture);
+    VkDescriptorSet *descriptorSets = NULL;
+    // TODO: Descriptor set stuff
+    createDescriptorSets   (descriptorSets,
+                            device, 
+                            descriptorSetLayoutPool[dsLayout],
+                            descriptorPool, 
+                            entity->uBuffer, 
+                            entity->texture);
     //create pipeline configuration with hard coded default shit
-    PipelineConfig *config = NULL;
-    createPipelineConfig(config, swapchain, entity->, descriptorSetLayout, descriptorSets);
+    PipelineConfig config = NULL;
+    createPipelineConfig   (config, swapchain, entity->, descriptorSetLayout, descriptorSets);
     //creating the pipe line itself using the coded default
-    createGraphicsPipeline(device, 
-                          swapchain, 
-                          vertShader, 
-                          fragShader, 
-                          pipelineConfig);
+    createGraphicsPipeline (device, 
+                            swapchain, 
+                            vertShader, 
+                            fragShader, 
+                            pipelineConfig);
     return BB_ERROR_OK;
 }
 
@@ -96,10 +86,10 @@ BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 
 BBAPI void initializeGFX(BBWindow *mainWindow)
 {
-    //create vulkan physical and logical device and store it all in device struct
+    // TODO: return values
     device                 = deviceInit(mainWindow);
-    //create swap chain and store all the vulkan details in SwapChain struct
     swapchain              = createSwapChain(device, getExtent(mainWindow));
+    createDescriptorPool   (descriptorPool, device);
 }
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
@@ -110,7 +100,7 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     char texture[]    = "../textures/CADE.png";
     char vertShader[] = "../shaders/simple_shader.vert.spv";
     char fragShader[] = "../shaders/simple_shader.frag.spv";
-    P_BBEntity entity0;
+    BBEntity entity0;
     createEntity(entity0, model, texture, vertShader, fragShader);
 
 

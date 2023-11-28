@@ -13,7 +13,7 @@
 #include "error_handling.h"
 #include "fileIO.hpp"
 
-typedef struct PipelineConfig
+typedef struct PipelineConfig_S
 {
     //TODO: data alignment
     VkViewport                             viewport;
@@ -38,33 +38,35 @@ typedef struct PipelineConfig
     // There are subpasses created and
     // configured in the RenderPass     
     uint32_t                               subpass = 0; 
-} PipelineConfig;
-typedef struct GraphicsPipeline
+} PipelineConfig_T, *PipelineConfig;
+
+typedef struct GraphicsPipeline_S
 {
     Device          device;
-    SwapChain      *swapchain;
+    SwapChain       swapchain;
     VkPipeline      graphicsPipeline;
     VkShaderModule  vertShaderModule;
     VkShaderModule  fragShaderModule;
-    PipelineConfig *pipelineConfig;
-} GraphicsPipeline;
+    PipelineConfig  pipelineConfig;
+} GraphicsPipeline_T, *GraphicsPipeline;
 
-void              bindPipeline           (GraphicsPipeline* pipeline, 
+void              bindPipeline           (GraphicsPipeline pipeline, 
                                           VkCommandBuffer commandBuffer);
-GraphicsPipeline *createGraphicsPipeline (GraphicsPipeline *pipeline,
+BBError           createGraphicsPipeline (GraphicsPipeline pipeline,
                                           const Device device,
-                                          const SwapChain* swapchain,
+                                          const SwapChain swapchain,
                                           const std::string& vertFilepath, 
                                           const std::string& fragFilepath,
-                                          const PipelineConfig* configInfo);
-void              destroyPipeline        (GraphicsPipeline* pipeline);
+                                          const PipelineConfig configInfo);
+void              destroyPipeline        (GraphicsPipeline pipeline);
 BBError           createPipelineLayout   (VkPipelineLayout *layout, 
-                                          Device device, 
-                                          PipelineConfig *config);
-BBError           createPipelineConfig   (PipelineConfig *config,
-                                          const SwapChain *swapchain, 
-                                          const UniformBuffer *uniformBuffers, 
+                                          const Device device, 
+                                          const PipelineConfig config);
+BBError           createPipelineConfig   (PipelineConfig config,
+                                          const SwapChain wapchain, 
+                                          UniformBuffer *uniformBuffers, 
                                           const VkDescriptorSetLayout descriptorSetLayout, 
-                                          const VkDescriptorSet *descriptorSets);
+                                          VkDescriptorSet *descriptorSets,
+                                          const VkPipelineLayout pipelineLayout);
 
 #endif

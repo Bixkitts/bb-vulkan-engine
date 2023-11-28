@@ -92,8 +92,8 @@ BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
                              Device device, 
                              VkDescriptorSetLayout descriptorSetLayout, 
                              VulkanDescriptorPool *descriptorPool, 
-                             UniformBuffer *uniformBuffers, 
-                             VulkanImage *texture)
+                             UniformBuffer uniformBuffers, 
+                             VulkanImage texture)
 {
     // TODO: MALLOC without free
     descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));

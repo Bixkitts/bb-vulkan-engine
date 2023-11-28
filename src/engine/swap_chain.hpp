@@ -10,45 +10,42 @@
 
 const int MAX_FRAMES_IN_FLIGHT = 2;
 
-struct SwapChain
+typedef struct SwapChain_S
 {
     VkFormat swapChainImageFormat;
     VkExtent2D swapChainExtent;
 
-    std::vector<VkFramebuffer> swapChainFramebuffers;
-    VkRenderPass renderPass;
-
-    std::vector<VkImage> depthImages;
+    std::vector<VkFramebuffer>  swapChainFramebuffers;
+    VkRenderPass                renderPass;
+    //TODO: stdlib shit
+    std::vector<VkImage>        depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
-    std::vector<VkImageView> depthImageViews;
-    std::vector<VkImage> swapChainImages;
-    std::vector<VkImageView> swapChainImageViews;
+    std::vector<VkImageView>    depthImageViews;
+    std::vector<VkImage>        swapChainImages;
+    std::vector<VkImageView>    swapChainImageViews;
 
-    Device *device;
-    VkExtent2D windowExtent;
+    Device                      device;
+    VkExtent2D                  windowExtent;
+    VkSwapchainKHR              swapChain;
 
-    VkSwapchainKHR swapChain;
-
-    std::vector<VkSemaphore> imageAvailableSemaphores;
-    std::vector<VkSemaphore> renderFinishedSemaphores;
-    std::vector<VkFence> inFlightFences;
-    size_t currentFrame = 0;
+    std::vector<VkSemaphore>    imageAvailableSemaphores;
+    std::vector<VkSemaphore>    renderFinishedSemaphores;
+    std::vector<VkFence>        inFlightFences;
+    size_t                      currentFrame;
     
-};
+}SwapChain_T, *SwapChain;
 
-SwapChain *createSwapChain(Device *device, VkExtent2D windowExtent);
-void destroySwapchain(SwapChain* swapchain);
-float extentAspectRatio(SwapChain *swapchain); 
+SwapChain         *createSwapChain         (Device device, VkExtent2D windowExtent);
+void               destroySwapchain        (SwapChain swapchain);
+float              extentAspectRatio       (SwapChain swapchain); 
 
-VkFormat findDepthFormat(SwapChain *swapchain);
+VkFormat           findDepthFormat         (SwapChain swapchain);
 
-VkResult acquireNextImage(SwapChain *swapchain, uint32_t *imageIndex);
+VkResult           acquireNextImage        (SwapChain swapchain, uint32_t *imageIndex);
 
-// Helper functions
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR> &availableFormats);
-VkPresentModeKHR chooseSwapPresentMode(
-        const std::vector<VkPresentModeKHR> &availablePresentModes);
-VkExtent2D chooseSwapExtent(SwapChain *swapchain, const VkSurfaceCapabilitiesKHR &capabilities);
+// TODO: stdlib shit, and returns
+VkSurfaceFormatKHR chooseSwapSurfaceFormat (const std::vector<VkSurfaceFormatKHR> &availableFormats);
+VkPresentModeKHR   chooseSwapPresentMode   (const std::vector<VkPresentModeKHR> &availablePresentModes);
+VkExtent2D         chooseSwapExtent        (SwapChain swapchain, const VkSurfaceCapabilitiesKHR capabilities);
 
 #endif
