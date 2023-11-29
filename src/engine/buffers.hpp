@@ -2,7 +2,6 @@
 #define BVE_BUFFER_VERTEX
 
 #include <vulkan/vulkan_core.h>
-#include <iostream>
 #include <cstring>
 
 #define GLM_FORCE_RADIANS
@@ -10,7 +9,6 @@
 #include <glm/glm.hpp>
 
 #include "vertex.hpp"
-#include "swap_chain.hpp"
 #include "model.hpp"
 #include "error_handling.h"
 
@@ -23,7 +21,7 @@ typedef struct PerObjectMatrices
     glm::mat4 proj;
 }PerObjectMatrices;
 //-------------------------------------------------------------------------------
-typedef struct VulkanBuffer_S
+typedef struct
 {
     Device         device;
     VkBuffer       buffer;
@@ -38,13 +36,13 @@ typedef VulkanBuffer_T VertexBuffer_T,  *VertexBuffers;
 typedef VulkanBuffer_T IndexBuffer_T,   *IndexBuffers;
 typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffers;
 
-BBError         createVertexBuffer      (VertexBuffers vBuffer, 
+BBError         createVertexBuffer      (VertexBuffers *vBuffer, 
                                          const Device device, 
                                          Model *model);
-BBError         createIndexBuffer       (IndexBuffers iBuffer, 
+BBError         createIndexBuffer       (IndexBuffers *iBuffer, 
                                          const Device device, 
                                          Model *model);
-BBError         createUniformBuffer     (UniformBuffers uBuffer, 
+BBError         createUniformBuffer     (UniformBuffers *uBuffer, 
                                          const Device device, 
                                          const size_t contentsSize);
 
@@ -53,7 +51,7 @@ BBError         createUniformBuffer     (UniformBuffers uBuffer,
 //one buffer each
 //std::vector<VertexBuffer*> createVertexBuffers(Device device, std::vector<Model*> models);
 //std::vector<IndexBuffer*> createIndexBuffers(Device device, std::vector<Model*> models);
-BBError         createUniformBuffers    (UniformBuffers uBuffer, 
+BBError         createUniformBuffers    (UniformBuffers *uBuffer, 
                                          const Device device, 
                                          const size_t contentsSize);
 

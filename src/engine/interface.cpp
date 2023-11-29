@@ -46,7 +46,7 @@ BBAPI BBError createEntity(BBEntity entity,
     // Remember, each frame in the swap chain needs
     // a separate one!
     createUniformBuffers   (entity->uBuffers, device, sizeof(PerObjectMatrices));
-    createVertexBuffer     (entity->vBuffer, device, entity->model);
+    createVertexBuffer     (&entity->vBuffer, device, entity->model);
     createIndexBuffer      (entity->iBuffer, device, entity->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init

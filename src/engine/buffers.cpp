@@ -1,16 +1,16 @@
 #include "config_buffers.hpp"
 #include "buffers.hpp"
 
-BBError createVertexBuffer(VertexBuffers vBuffer, 
+BBError createVertexBuffer(VertexBuffers *vBuffer, 
                            const Device device, 
                            Model *model)
 {
-    // NOTE - maybe ZERO this
-    StagingBuffer_T sBuffer = {};
+    VkDeviceSize    bufferSize  = sizeof(Vertex) * model->vertexCount;
+    StagingBuffer_T sBuffer     = {};
+    VertexBuffers   vBuffer_ref = *vBuffer;
     sBuffer.device = device;
     // TODO:
     // assert(model->vertexCount >= 3 && "Vertex count must be at least 3");
-    VkDeviceSize bufferSize = sizeof(Vertex) * model->vertexCount;
     createBuffer         (bufferSize,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -18,24 +18,28 @@ BBError createVertexBuffer(VertexBuffers vBuffer,
                           sBuffer.deviceMemory,
                           sBuffer.device);
     copyVertsToDeviceMem (&sBuffer, model->vertices, model->vertexCount);
-    vBuffer = (VertexBuffers)calloc(1, sizeof(VertexBuffer_T));
-    vBuffer->device = device;
-    vBuffer->size   = model->vertexCount;
+    // TODO: MALLOC without free
+    *vBuffer = (VertexBuffers)calloc(1, sizeof(VertexBuffer_T));
+    if (*vBuffer == NULL){
+        return BB_ERROR_MEM;
+    }
+    vBuffer_ref->device = device;
+    vBuffer_ref->size   = model->vertexCount;
     createBuffer         (bufferSize, 
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                          vBuffer->buffer, 
-                          vBuffer->deviceMemory, 
-                          vBuffer->device);
+                          vBuffer_ref->buffer, 
+                          vBuffer_ref->deviceMemory, 
+                          vBuffer_ref->device);
     copyBuffer           (device, 
                           sBuffer.buffer, 
-                          vBuffer->buffer, 
+                          vBuffer_ref->buffer, 
                           bufferSize);
     destroyBuffer        (&sBuffer); 
     return BB_ERROR_OK;
 }
 
-BBError createIndexBuffer(IndexBuffers iBuffer, 
+BBError createIndexBuffer(IndexBuffers *iBuffer, 
                           const Device device, 
                           Model *model)
 {
@@ -54,20 +58,20 @@ BBError createIndexBuffer(IndexBuffers iBuffer,
                             model->indexCount);
     
     // TODO: MALLOC without free
-    IndexBuffers ibuffer = (IndexBuffers)calloc(1, sizeof(IndexBuffer_T));
+    (*iBuffer) = (IndexBuffers)calloc(1, sizeof(IndexBuffer_T));
 
-    ibuffer->device = device;
-    ibuffer->size   = model->indexCount;
+    (*iBuffer)->device = device;
+    (*iBuffer)->size   = model->indexCount;
     createBuffer           (bufferSize, 
                             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                            ibuffer->buffer, 
-                            ibuffer->deviceMemory, 
-                            ibuffer->device);
+                            (*iBuffer)->buffer, 
+                            (*iBuffer)->deviceMemory, 
+                            (*iBuffer)->device);
 
     copyBuffer             (device, 
                             sbuffer.buffer, 
-                            ibuffer->buffer, 
+                            (*iBuffer)->buffer, 
                             bufferSize);
    
     destroyBuffer          (&sbuffer); 
@@ -75,25 +79,25 @@ BBError createIndexBuffer(IndexBuffers iBuffer,
     return BB_ERROR_OK;
 }
 
-BBError createUniformBuffer(UniformBuffers uBuffer, 
+BBError createUniformBuffer(UniformBuffers *uBuffer, 
                             const Device device, 
                             const size_t contentsSize)
 {
-    uBuffer->device = device;
-    uBuffer->size   = 1;
+    (*uBuffer)->device = device;
+    (*uBuffer)->size   = 1;
     VkDeviceSize bufferSize = contentsSize;
     createBuffer (bufferSize, 
                   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-                  uBuffer->buffer, 
-                  uBuffer->deviceMemory, 
+                  (*uBuffer)->buffer, 
+                  (*uBuffer)->deviceMemory, 
                   device); 
     vkMapMemory  (device->logical, 
-                  uBuffer->deviceMemory, 
+                  (*uBuffer)->deviceMemory, 
                   0, 
                   bufferSize, 
                   0, 
-                  &uBuffer->mapped);
+                  &(*uBuffer)->mapped);
 
     return BB_ERROR_OK;
 }
@@ -128,7 +132,9 @@ BBError createIndexBuffers(const Device device, std::vector<Model*> models)
 //
     return BB_ERROR_UNKNOWN;
 }
-BBError createUniformBuffers(UniformBuffers uBuffer, const Device device, const size_t contentsSize)
+BBError createUniformBuffers(UniformBuffers *uBuffer, 
+                             Device const device, 
+                             const size_t contentsSize)
 {
     //TODO: MALLOC, NO FREE
     uBuffer = (UniformBuffers)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(UniformBuffer_T));
