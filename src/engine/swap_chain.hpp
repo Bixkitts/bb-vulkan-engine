@@ -8,7 +8,7 @@
 
 #include "device.hpp"
 
-const int MAX_FRAMES_IN_FLIGHT = 2;
+#define MAX_FRAMES_IN_FLIGHT 2
 
 typedef struct SwapChain_S
 {

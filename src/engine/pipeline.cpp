@@ -168,7 +168,7 @@ void bindPipeline(GraphicsPipeline pipeline, VkCommandBuffer commandBuffer)
 
 BBError createPipelineConfig(PipelineConfig config,
                              const SwapChain swapchain, 
-                             UniformBuffers *uniformBuffers, 
+                             UniformBuffer *uniformBuffers, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
                              VkDescriptorSet *descriptorSets,
                              const VkPipelineLayout pipelineLayout)

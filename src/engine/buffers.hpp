@@ -11,6 +11,7 @@
 #include "vertex.hpp"
 #include "model.hpp"
 #include "error_handling.h"
+#include "swap_chain.hpp"
 
 //TODO: GLM shit
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area
@@ -31,40 +32,38 @@ typedef struct
 }VulkanBuffer_T, *VulkanBuffer;
 
 
-typedef VulkanBuffer_T StagingBuffer_T, *StagingBuffers;
-typedef VulkanBuffer_T VertexBuffer_T,  *VertexBuffers;
-typedef VulkanBuffer_T IndexBuffer_T,   *IndexBuffers;
-typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffers;
+typedef VulkanBuffer_T StagingBuffer_T, *StagingBuffer;
+typedef VulkanBuffer_T VertexBuffer_T,  *VertexBuffer;
+typedef VulkanBuffer_T IndexBuffer_T,   *IndexBuffer;
+typedef VulkanBuffer_T UniformBuffer_T, *UniformBuffer;
 
-BBError         createVertexBuffer      (VertexBuffers *vBuffer, 
+typedef UniformBuffer *UniformBufferArray;
+
+BBError         createVertexBuffer      (VertexBuffer *vBuffer, 
                                          const Device device, 
                                          Model *model);
-BBError         createIndexBuffer       (IndexBuffers *iBuffer, 
+BBError         createIndexBuffer       (IndexBuffer *iBuffer, 
                                          const Device device, 
                                          Model *model);
-BBError         createUniformBuffer     (UniformBuffers *uBuffer, 
+BBError         createUniformBuffer     (UniformBuffer *uBuffer, 
                                          const Device device, 
                                          const size_t contentsSize);
-
-//TODO:
-//Don't need these yet, each entity should typically only need
-//one buffer each
-//std::vector<VertexBuffer*> createVertexBuffers(Device device, std::vector<Model*> models);
-//std::vector<IndexBuffer*> createIndexBuffers(Device device, std::vector<Model*> models);
-BBError         createUniformBuffers    (UniformBuffers *uBuffer, 
+// Helper function to create a uniform buffer
+// at a 
+BBError         createUniformBuffers    (UniformBufferArray *uBuffer, 
                                          const Device device, 
                                          const size_t contentsSize);
 
 void            destroyBuffer           (VulkanBuffer v);
 
 // These functions should maybe be bundled in with drawing
-void            drawVertexBuffer        (VertexBuffers vertexBuffer, 
+void            drawVertexBuffer        (VertexBuffer vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindVertexBuffer        (VertexBuffers vertexBuffer, 
+void            bindVertexBuffer        (VertexBuffer vertexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            drawIndexBuffer         (IndexBuffers indexBuffer, 
+void            drawIndexBuffer         (IndexBuffer indexBuffer, 
                                          VkCommandBuffer commandBuffer);
-void            bindIndexBuffer         (IndexBuffers indexBuffer, 
+void            bindIndexBuffer         (IndexBuffer indexBuffer, 
                                          VkCommandBuffer commandBuffer);
 
 // big main buffer creation function
@@ -103,10 +102,10 @@ void            createImageWithInfo     (const VkImageCreateInfo imageInfo,
                                          VkDeviceMemory imageMemory,
                                          Device theGPU);
 // ------------------------------------
-void            copyVertsToDeviceMem    (StagingBuffers sb, 
+void            copyVertsToDeviceMem    (StagingBuffer sb, 
                                          Vertex *vertices, 
                                          uint32_t vertexCount);
-void            copyIndecesToDeviceMem  (StagingBuffers sb, 
+void            copyIndecesToDeviceMem  (StagingBuffer sb, 
                                          uint32_t *indeces, 
                                          uint32_t indexCount);
 #endif

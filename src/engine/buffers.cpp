@@ -1,13 +1,13 @@
 #include "config_buffers.hpp"
 #include "buffers.hpp"
 
-BBError createVertexBuffer(VertexBuffers *vBuffer, 
+BBError createVertexBuffer(VertexBuffer *vBuffer, 
                            const Device device, 
                            Model *model)
 {
     VkDeviceSize    bufferSize  = sizeof(Vertex) * model->vertexCount;
     StagingBuffer_T sBuffer     = {};
-    VertexBuffers   vBuffer_ref = *vBuffer;
+    VertexBuffer   vBuffer_ref = *vBuffer;
     sBuffer.device = device;
     // TODO:
     // assert(model->vertexCount >= 3 && "Vertex count must be at least 3");
@@ -19,7 +19,7 @@ BBError createVertexBuffer(VertexBuffers *vBuffer,
                           sBuffer.device);
     copyVertsToDeviceMem (&sBuffer, model->vertices, model->vertexCount);
     // TODO: MALLOC without free
-    *vBuffer = (VertexBuffers)calloc(1, sizeof(VertexBuffer_T));
+    *vBuffer = (VertexBuffer)calloc(1, sizeof(VertexBuffer_T));
     if (*vBuffer == NULL){
         return BB_ERROR_MEM;
     }
@@ -39,7 +39,7 @@ BBError createVertexBuffer(VertexBuffers *vBuffer,
     return BB_ERROR_OK;
 }
 
-BBError createIndexBuffer(IndexBuffers *iBuffer, 
+BBError createIndexBuffer(IndexBuffer *iBuffer,
                           const Device device, 
                           Model *model)
 {
@@ -58,7 +58,7 @@ BBError createIndexBuffer(IndexBuffers *iBuffer,
                             model->indexCount);
     
     // TODO: MALLOC without free
-    (*iBuffer) = (IndexBuffers)calloc(1, sizeof(IndexBuffer_T));
+    (*iBuffer) = (IndexBuffer)calloc(1, sizeof(IndexBuffer_T));
 
     (*iBuffer)->device = device;
     (*iBuffer)->size   = model->indexCount;
@@ -79,10 +79,15 @@ BBError createIndexBuffer(IndexBuffers *iBuffer,
     return BB_ERROR_OK;
 }
 
-BBError createUniformBuffer(UniformBuffers *uBuffer, 
+BBError createUniformBuffer(UniformBuffer *uBuffer, 
                             const Device device, 
                             const size_t contentsSize)
 {
+    // TODO: MALLOC without free
+    (*uBuffer) = (UniformBuffer)calloc(1, sizeof(UniformBuffer_T));
+    if (*uBuffer == NULL){
+        return BB_ERROR_MEM;
+    }
     (*uBuffer)->device = device;
     (*uBuffer)->size   = 1;
     VkDeviceSize bufferSize = contentsSize;
@@ -102,47 +107,18 @@ BBError createUniformBuffer(UniformBuffers *uBuffer,
     return BB_ERROR_OK;
 }
 
-// we don't need a different vertex buffer for each frame,
-// I'll leave this dormant for now.
-BBError createVertexBuffers(VertexBuffers vBuffer, const Device device, Model *model)
-{
-//    std::vector<VertexBuffer*> vBuffers;
-//    for(int i = 0; i < models.size(); i++)
-//    {
-//        vBuffers.push_back(
-//        createVertexBuffer(device, models[i])
-//        );
-//    } 
-//
-//    return vBuffers;
-    return BB_ERROR_UNKNOWN;
-}
-
-// TODO:
-// just like above I don't need multiple index buffers per entity
-BBError createIndexBuffers(const Device device, std::vector<Model*> models)
-{
-//    std::vector<IndexBuffer*> iBuffers;
-//    for(int i = 0; i < models.size(); i++)
-//    {
-//        iBuffers.push_back(
-//        createIndexBuffer(device, models[i])
-//        );
-//    } 
-//
-    return BB_ERROR_UNKNOWN;
-}
-BBError createUniformBuffers(UniformBuffers *uBuffer, 
-                             Device const device, 
+// TODO: Does this even work
+BBError createUniformBuffers(UniformBufferArray *uBuffer, 
+                             const Device device, 
                              const size_t contentsSize)
 {
-    //TODO: MALLOC, NO FREE
-    uBuffer = (UniformBuffers)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(UniformBuffer_T));
-    if (uBuffer == NULL){
+    // TODO: MALLOC without free
+    *uBuffer = (UniformBuffer*)malloc(MAX_FRAMES_IN_FLIGHT * sizeof(UniformBuffer));
+    if (*uBuffer == NULL){
         return BB_ERROR_MEM;
     }
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
-        createUniformBuffer(&uBuffer[i], device, contentsSize);
+        createUniformBuffer(&((*uBuffer)[i]), device, contentsSize);
     } 
 
     return BB_ERROR_OK;
@@ -156,13 +132,13 @@ void destroyBuffer(VulkanBuffer v)
 }
 
 // Use drawIndexBuffer() instead
-void drawVertexBuffer(VertexBuffers vertexBuffer, VkCommandBuffer commandBuffer)
+void drawVertexBuffer(VertexBuffer vertexBuffer, VkCommandBuffer commandBuffer)
 {
     vkCmdDraw(commandBuffer, vertexBuffer->size, 1, 0, 0);
 }
 // In this function I should consider binding multiple vertex buffers
 // in one vulkan call
-void bindVertexBuffer(VertexBuffers vertexBuffer, VkCommandBuffer commandBuffer)
+void bindVertexBuffer(VertexBuffer vertexBuffer, VkCommandBuffer commandBuffer)
 {
     //TODO:
     //Not 100% sure this should be an array
@@ -171,18 +147,18 @@ void bindVertexBuffer(VertexBuffers vertexBuffer, VkCommandBuffer commandBuffer)
     vkCmdBindVertexBuffers(commandBuffer, 0 ,1, buffers, offsets); 
 }
 
-void drawIndexBuffer(IndexBuffers indexBuffer, VkCommandBuffer commandBuffer)
+void drawIndexBuffer(IndexBuffer indexBuffer, VkCommandBuffer commandBuffer)
 {
     vkCmdDrawIndexed(commandBuffer, static_cast<uint32_t>(indexBuffer->size), 1, 0, 0, 0);
 }
-void bindIndexBuffer(IndexBuffers indexBuffer, VkCommandBuffer commandBuffer)
+void bindIndexBuffer(IndexBuffer indexBuffer, VkCommandBuffer commandBuffer)
 {
     VkBuffer     buffer = {indexBuffer->buffer};
     VkDeviceSize offset = {0};
     vkCmdBindIndexBuffer(commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT32); 
 }
 
-void copyVertsToDeviceMem(StagingBuffers sb, Vertex *vertices, uint32_t vertexCount)
+void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCount)
 {
     uint32_t  size = vertexCount * sizeof(Vertex);
     void     *data;
@@ -201,7 +177,7 @@ void copyVertsToDeviceMem(StagingBuffers sb, Vertex *vertices, uint32_t vertexCo
                    sb->deviceMemory);
 }
 
-void copyIndecesToDeviceMem(StagingBuffers sb, std::vector<uint32_t> &indeces)
+void copyIndecesToDeviceMem(StagingBuffer sb, std::vector<uint32_t> &indeces)
 {
     uint32_t  size = indeces.size() * sizeof(indeces[0]);
     void     *data;

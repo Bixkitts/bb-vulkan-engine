@@ -12,8 +12,8 @@ void recordCommandBuffer(VkCommandBuffer commandBuffer,
                         GraphicsPipeline *pipeline, 
                         uint32_t imageIndex, 
                         SwapChain* swapchain, 
-                        std::vector<VertexBuffers*> &vertexBuffers, 
-                        std::vector<IndexBuffers*> &indexBuffers,
+                        std::vector<VertexBuffer*> &vertexBuffers, 
+                        std::vector<IndexBuffer*> &indexBuffers,
                         std::vector<Model*> &models);
 
 VkResult submitCommandBuffers(

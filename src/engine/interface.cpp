@@ -37,17 +37,17 @@ BBAPI BBError createEntity(BBEntity entity,
     // ---------------------------------------------------------------------------
     // This already loads a texture from a file!
     // yipee!
-    createTextureImage     (entity->texture, 
+    createTextureImage     (&entity->texture, 
                             textureDir, 
                             device);
-    createTextureImageView (entity->texture);
-    createTextureSampler   (entity->texture);
+    createTextureImageView (&entity->texture);
+    createTextureSampler   (&entity->texture);
     // All the uniform buffers associated with an entity.
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers   (entity->uBuffers, device, sizeof(PerObjectMatrices));
+    createUniformBuffers   (&entity->uBuffers, device, sizeof(PerObjectMatrices));
     createVertexBuffer     (&entity->vBuffer, device, entity->model);
-    createIndexBuffer      (entity->iBuffer, device, entity->model);
+    createIndexBuffer      (&entity->iBuffer, device, entity->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
     if (descriptorSetLayoutPool[dsLayout] == NULL){
