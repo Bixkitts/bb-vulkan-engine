@@ -34,16 +34,16 @@ typedef struct VulkanImage_S
     uint64_t       samplerCount;
 }VulkanImage_T, *VulkanImage;
 
-BBError createTextureImage     (VulkanImage image, 
-                                char *dir, 
-                                Device device);
-void    createTextureImageView (VulkanImage image);
-void    createTextureSampler   (VulkanImage image);
-void    transitionImageLayout  (VkImage image, 
-                                VkFormat format,  
+BBError createTextureImage     (VulkanImage *image, 
+                                const char *dir, 
+                                const Device device);
+BBError createTextureImageView (VulkanImage image);
+BBError createTextureSampler   (VulkanImage image);
+BBError transitionImageLayout  (VkImage image, 
+                                const VkFormat format,  
                                 VkImageLayout oldLayout, 
                                 VkImageLayout newLayout, 
-                                Device device);
-void    destroyImage           (VulkanImage v);
+                                const Device device);
+void    destroyImage           (VulkanImage *v);
 
 #endif

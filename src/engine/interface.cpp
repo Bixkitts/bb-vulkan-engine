@@ -20,62 +20,65 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBError createEntity(BBEntity entity, 
-                           char *model, 
-                           char *textureDir, 
-                           char *vertShader, 
-                           char *fragShader)
+BBAPI BBError createEntity(BBEntity *entity, 
+                           const char *model, 
+                           const char *textureDir, 
+                           const char *vertShader, 
+                           const char *fragShader)
 {
-    BBDescriptorSetLayout dsLayout = DS_LAYOUT_BITCH_BASIC;
+    BBDescriptorSetLayout dsLayout       = DS_LAYOUT_BITCH_BASIC;
+    VkDescriptorSet      *descriptorSets = NULL;
+    VkPipelineLayout      pipelineLayout = NULL;
+    PipelineConfig        pipelineConfig = NULL;
+    GraphicsPipeline      pipeline       = NULL;
+    const char           *modelDir       = "literally whatever";
+
     // TODO: MALLOC without free
-    entity = (BBEntity)calloc(1, sizeof(BBEntity));
+    *entity = (BBEntity)calloc(1, sizeof(BBEntity));
     // This will need to actually load a model from a file
-    const char *modelDir = "literally whatever";
-    loadModel(entity->model, modelDir);
-    // TODO:
-    // I ought to be allocating resources from the memory pools up above!!
-    // ---------------------------------------------------------------------------
-    // This already loads a texture from a file!
-    // yipee!
-    createTextureImage     (&entity->texture, 
+    loadModel              ((*entity)->model, 
+                            modelDir);
+    createTextureImage     (&(*entity)->texture, 
                             textureDir, 
                             device);
-    createTextureImageView (&entity->texture);
-    createTextureSampler   (&entity->texture);
-    // All the uniform buffers associated with an entity.
+    createTextureImageView ((*entity)->texture);
+    createTextureSampler   ((*entity)->texture);
+    // All the uniform buffers associated with an (*entity).
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers   (&entity->uBuffers, device, sizeof(PerObjectMatrices));
-    createVertexBuffer     (&entity->vBuffer, device, entity->model);
-    createIndexBuffer      (&entity->iBuffer, device, entity->model);
+    createUniformBuffers   (&(*entity)->uBuffers, 
+                            device, 
+                            sizeof(PerObjectMatrices_T));
+    createVertexBuffer     (&(*entity)->vBuffer, 
+                            device, 
+                            (*entity)->model);
+    createIndexBuffer      (&(*entity)->iBuffer, 
+                            device, 
+                            (*entity)->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
     if (descriptorSetLayoutPool[dsLayout] == NULL){
         createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
     }
-    VkDescriptorSet *descriptorSets = NULL;
     // TODO: Descriptor set stuff
     createDescriptorSets   (descriptorSets,
                             device, 
                             descriptorSetLayoutPool[dsLayout],
                             descriptorPool, 
-                            entity->uBuffers, 
-                            entity->texture);
-    VkPipelineLayout pipelineLayout = NULL;
-    createPipelineLayout(&pipelineLayout,
-                         device,
-                         &descriptorSetLayoutPool[dsLayout]);
+                            (*entity)->uBuffers, 
+                            (*entity)->texture);
+    createPipelineLayout   (&pipelineLayout,
+                            device,
+                            &descriptorSetLayoutPool[dsLayout]);
     //create pipeline configuration with hard coded default shit
-    PipelineConfig pipelineConfig = NULL;
     createPipelineConfig   (pipelineConfig, 
                             swapchain, 
                             // TODO: uniform buffers here?
-                            &entity->uBuffers, 
+                            &(*entity)->uBuffers, 
                             descriptorSetLayoutPool[dsLayout], 
                             descriptorSets,
                             pipelineLayout);
     //creating the pipe line itself using the coded default
-    GraphicsPipeline pipeline = NULL;
     createGraphicsPipeline (pipeline,
                             device, 
                             swapchain, 

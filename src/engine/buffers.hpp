@@ -15,12 +15,12 @@
 
 //TODO: GLM shit
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area
-typedef struct PerObjectMatrices
+typedef struct PerObjectMatrices_S
 {
     glm::mat4 model;
     glm::mat4 view;
     glm::mat4 proj;
-}PerObjectMatrices;
+}PerObjectMatrices_T, *PerObjectMatrices;
 //-------------------------------------------------------------------------------
 typedef struct
 {

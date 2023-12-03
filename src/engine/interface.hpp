@@ -30,10 +30,10 @@ enum BBAPI BBAxis
 };
 
 BBAPI BBError createEntity     (BBEntity entity, 
-                                char *model, 
-                                char *textureDir, 
-                                char *vertShader, 
-                                char *fragShader);
+                                const char *model, 
+                                const char *textureDir, 
+                                const char *vertShader, 
+                                const char *fragShader);
 BBAPI void    spawnEntity      (BBEntity entity, 
                                 double *worldCoords, 
                                 int rotation);
