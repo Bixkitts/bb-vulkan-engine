@@ -5,13 +5,18 @@
 
 #include "device.hpp"
 #include "images.hpp"
+#include "buffers.hpp"
+#include "defines.hpp"
+#include "swap_chain.hpp"
 
 // TODO: do I really need to have these in a struct?
-typedef struct VulkanDescriptorPool
+typedef struct VulkanDescriptorPool_S
 {
     VkDescriptorPool pool;
     Device           device;
-}VulkanDescriptorPool;
+}VulkanDescriptorPool_T, *VulkanDescriptorPool;
+
+typedef VkDescriptorSet *VkDescriptorSetArray;
 
 enum BBDescriptorSetLayout
 {
@@ -25,15 +30,15 @@ BBError createDescriptorSetLayout  (VkDescriptorSetLayout *layout,
                                     const Device device, 
                                     const BBDescriptorSetLayout layoutSizeAndType);
 
-BBError createDescriptorPool       (VulkanDescriptorPool *pool, 
+BBError createDescriptorPool       (VulkanDescriptorPool pool, 
                                     const Device device);
 
 //TODO: Allow the linking of multiple textures instead of just one
-BBError createDescriptorSets       (VkDescriptorSet *descriptorSets, 
-                                    Device device, 
-                                    VkDescriptorSetLayout descriptorSetLayout, 
-                                    VulkanDescriptorPool *descriptorPool, 
-                                    UniformBuffer uniformBuffers, 
-                                    VulkanImage texture);
+BBError createDescriptorSets       (VkDescriptorSetArray *descriptorSets, 
+                                    const Device device, 
+                                    const VkDescriptorSetLayout descriptorSetLayout, 
+                                    const VulkanDescriptorPool *descriptorPool, 
+                                    const UniformBufferArray uniformBuffers, 
+                                    const VulkanImage texture);
 
 #endif

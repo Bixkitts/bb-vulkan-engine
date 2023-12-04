@@ -1,9 +1,4 @@
 #include "descriptor_sets.hpp"
-#include "buffers.hpp"
-#include "defines.hpp"
-#include "device.hpp"
-#include "images.hpp"
-#include "swap_chain.hpp"
 
 // Currently this function creates one predefined boring layout.
 // Need to make this dynamic at some point, allowing
@@ -53,7 +48,7 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout *layout,
     if (vkCreateDescriptorSetLayout(device->logical, 
                                     &layoutInfo, 
                                     NULL, 
-                                    &(*layout))
+                                    layout)
     != VK_SUCCESS){
         return BB_ERROR_DESCRIPTOR_LAYOUT;
     }
@@ -61,17 +56,12 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout *layout,
 }
 
 
-BBError createDescriptorPool(VulkanDescriptorPool *pool, 
+BBError createDescriptorPool(VulkanDescriptorPool pool, 
                              const Device device)
 {
     // TODO: magic number 2
     VkDescriptorPoolSize       poolSizes[2] = {};
     VkDescriptorPoolCreateInfo poolInfo     = {};
-    // TODO: MALLOC without free
-    pool = (VulkanDescriptorPool*)calloc(1, sizeof(VulkanDescriptorPool));
-    if (pool == NULL){
-        return BB_ERROR_MEM;
-    }
     poolSizes[0].type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
     poolSizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -93,12 +83,12 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool,
     return BB_ERROR_OK;
 }
 
-BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
-                             Device device, 
-                             VkDescriptorSetLayout descriptorSetLayout, 
-                             VulkanDescriptorPool *descriptorPool, 
-                             UniformBuffer uniformBuffers, 
-                             VulkanImage texture)
+BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
+                             const Device device, 
+                             const VkDescriptorSetLayout descriptorSetLayout, 
+                             const VulkanDescriptorPool descriptorPool, 
+                             const UniformBufferArray uniformBuffers, 
+                             const VulkanImage texture)
 {
     const int                   AMOUNT_OF_DESCRIPTORS                  = 3;
     const int                   descriptorWriteCount                   = 
@@ -108,8 +98,8 @@ BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
     VkWriteDescriptorSet        descriptorWrites[descriptorWriteCount] = {};
     VkDescriptorImageInfo       imageInfo                              = {};
     // TODO: MALLOC without free
-    descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
-    if (descriptorSets == NULL) {
+    *descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
+    if ((*descriptorSets) == NULL) {
         return BB_ERROR_MEM;
     }
 
@@ -124,7 +114,7 @@ BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
     allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts        = layouts;
     
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, descriptorSets) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device->logical, &allocInfo, *descriptorSets) != VK_SUCCESS) {
         return BB_ERROR_DESCRIPTOR_SET;
     }
     // TODO: magic number 3
@@ -138,12 +128,12 @@ BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
 
         // TODO: moar uniform buffers is possible....
         VkDescriptorBufferInfo transBufferInfo{};
-        transBufferInfo.buffer = uniformBuffers[0].buffer;
+        transBufferInfo.buffer = uniformBuffers[0]->buffer;
         transBufferInfo.offset = 0;
         transBufferInfo.range  = sizeof(PerObjectMatrices);
 
         descriptorWrites[i].sType               = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[i].dstSet              = descriptorSets[i];
+        descriptorWrites[i].dstSet              = (*descriptorSets)[i];
         descriptorWrites[i].dstBinding          = 0;
         descriptorWrites[i].dstArrayElement     = 0;
         descriptorWrites[i].descriptorType      = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -151,14 +141,14 @@ BBError createDescriptorSets(VkDescriptorSet *descriptorSets,
         descriptorWrites[i].pBufferInfo         = &transBufferInfo;
 
         descriptorWrites[i+1].sType             = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[i+1].dstSet            = descriptorSets[i];
+        descriptorWrites[i+1].dstSet            = (*descriptorSets)[i];
         descriptorWrites[i+1].dstBinding        = 1;
         descriptorWrites[i+1].dstArrayElement   = 0;
         descriptorWrites[i+1].descriptorType    = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
         descriptorWrites[i+1].descriptorCount   = 1;
         descriptorWrites[i+1].pImageInfo        = &imageInfo; // Optional
     }
-    vkUpdateDescriptorSets(device->logical, descriptorWriteCount, descriptorWrites, 0, nullptr);
+    vkUpdateDescriptorSets(device->logical, descriptorWriteCount, descriptorWrites, 0, NULL);
     return BB_ERROR_OK;
 }
 

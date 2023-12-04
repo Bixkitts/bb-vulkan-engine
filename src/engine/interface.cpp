@@ -27,7 +27,7 @@ BBAPI BBError createEntity(BBEntity *entity,
                            const char *fragShader)
 {
     BBDescriptorSetLayout dsLayout       = DS_LAYOUT_BITCH_BASIC;
-    VkDescriptorSet      *descriptorSets = NULL;
+    VkDescriptorSetArray  descriptorSets = NULL;
     VkPipelineLayout      pipelineLayout = NULL;
     PipelineConfig        pipelineConfig = NULL;
     GraphicsPipeline      pipeline       = NULL;
@@ -58,10 +58,9 @@ BBAPI BBError createEntity(BBEntity *entity,
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
     if (descriptorSetLayoutPool[dsLayout] == NULL){
-        createDescriptorSetLayout(descriptorSetLayoutPool[dsLayout], device, dsLayout);
+        createDescriptorSetLayout(&descriptorSetLayoutPool[dsLayout], device, dsLayout);
     }
-    // TODO: Descriptor set stuff
-    createDescriptorSets   (descriptorSets,
+    createDescriptorSets   (&descriptorSets,
                             device, 
                             descriptorSetLayoutPool[dsLayout],
                             descriptorPool, 
