@@ -3,24 +3,9 @@
 
 #include <vulkan/vulkan_core.h>
 
-#include <vector>
-#include <array>
-
 #include "entity.h"
 #include "window.hpp"
 #include "defines.hpp"
-#include "main_loader.h"
-#include "GLFW/glfw3.h"
-#include "buffers.hpp"
-#include "command_buffers.hpp"
-#include "device.hpp"
-#include "draw_frame.hpp"
-#include "model.hpp"
-#include "descriptor_sets.hpp"
-#include "pipeline.hpp" 
-#include "swap_chain.hpp"
-#include "cleanup.hpp"
-#include "images.hpp"
 
 enum BBAPI BBAxis
 {

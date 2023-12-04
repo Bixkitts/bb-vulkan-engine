@@ -4,8 +4,6 @@
 #include <vulkan/vulkan_core.h>
 
 #include "device.hpp"
-#include "defines.hpp"
-#include "pipeline.hpp"
 #include "images.hpp"
 
 // TODO: do I really need to have these in a struct?
@@ -23,12 +21,12 @@ enum BBDescriptorSetLayout
     DS_LAYOUT_AMOUNT_OF_LAYOUTS /* Keep this at the end of the enum */
 };
 
-BBError createDescriptorSetLayout  (VkDescriptorSetLayout layout, 
-                                    Device device, 
-                                    BBDescriptorSetLayout layoutSizeAndType);
+BBError createDescriptorSetLayout  (VkDescriptorSetLayout *layout, 
+                                    const Device device, 
+                                    const BBDescriptorSetLayout layoutSizeAndType);
 
 BBError createDescriptorPool       (VulkanDescriptorPool *pool, 
-                                    Device device);
+                                    const Device device);
 
 //TODO: Allow the linking of multiple textures instead of just one
 BBError createDescriptorSets       (VkDescriptorSet *descriptorSets, 
