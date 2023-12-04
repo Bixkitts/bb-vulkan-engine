@@ -1,5 +1,5 @@
-#ifndef IMAGES
-#define IMAGES
+#ifndef BB_IMAGES
+#define BB_IMAGES
 
 #include <stdexcept>
 #include <vulkan/vulkan.h>

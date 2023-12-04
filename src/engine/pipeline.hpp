@@ -1,11 +1,11 @@
-#ifndef BVE_PIPELINE
-#define BVE_PIPELINE
+#ifndef BB_PIPELINE
+#define BB_PIPELINE
 
-#include <vector>
 #include <string>
 
 #include <vulkan/vulkan_core.h>
 
+#include "descriptor_sets.hpp"
 #include "buffers.hpp"
 #include "device.hpp"
 #include "swap_chain.hpp"
@@ -62,11 +62,11 @@ void              destroyPipeline        (GraphicsPipeline pipeline);
 BBError           createPipelineLayout   (VkPipelineLayout *layout, 
                                           const Device device, 
                                           const VkDescriptorSetLayout *descriptorSetLayout);
-BBError           createPipelineConfig   (PipelineConfig config,
+BBError           createPipelineConfig   (PipelineConfig *config,
                                           const SwapChain swapchain, 
-                                          UniformBuffer *uniformBuffers, 
+                                          const UniformBufferArray uniformBuffers, 
                                           const VkDescriptorSetLayout descriptorSetLayout, 
-                                          VkDescriptorSet *descriptorSets,
+                                          const VkDescriptorSetArray descriptorSets,
                                           const VkPipelineLayout pipelineLayout);
 
 #endif

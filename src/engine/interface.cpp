@@ -70,7 +70,7 @@ BBAPI BBError createEntity(BBEntity *entity,
                             device,
                             &descriptorSetLayoutPool[dsLayout]);
     //create pipeline configuration with hard coded default shit
-    createPipelineConfig   (pipelineConfig, 
+    createPipelineConfig   (&pipelineConfig, 
                             swapchain, 
                             // TODO: uniform buffers here?
                             &(*entity)->uBuffers, 
