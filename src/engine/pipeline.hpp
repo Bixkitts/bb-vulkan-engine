@@ -9,9 +9,7 @@
 #include "buffers.hpp"
 #include "device.hpp"
 #include "swap_chain.hpp"
-#include "model.hpp"
 #include "error_handling.h"
-#include "fileIO.hpp"
 
 typedef struct PipelineConfig_S
 {
@@ -27,17 +25,17 @@ typedef struct PipelineConfig_S
 
     //TODO: Vk objects that need to be properly destroyed!
     VkDescriptorSetLayout                  descriptorSetLayout;
-    VkDescriptorSet                       *descriptorSets;
+    VkDescriptorSetArray                   descriptorSets;
     uint64_t                               descriptorSetCount;
 
     VkPipelineLayout                       pipelineLayout;
     VkRenderPass                           renderPass;
 
-    UniformBuffer                         *uniformBuffers;     
+    UniformBufferArray                     uniformBuffers;     
     uint64_t                               uniformBufferCount;
     // There are subpasses created and
     // configured in the RenderPass     
-    uint32_t                               subpass = 0; 
+    uint32_t                               subpass; 
 } PipelineConfig_T, *PipelineConfig;
 
 typedef struct GraphicsPipeline_S

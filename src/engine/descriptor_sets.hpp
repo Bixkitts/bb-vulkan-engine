@@ -6,8 +6,6 @@
 #include "device.hpp"
 #include "buffers.hpp"
 #include "images.hpp"
-#include "defines.hpp"
-#include "swap_chain.hpp"
 
 // TODO: do I really need to have these in a struct?
 typedef struct VulkanDescriptorPool_S

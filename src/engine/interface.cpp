@@ -73,7 +73,7 @@ BBAPI BBError createEntity(BBEntity *entity,
     createPipelineConfig   (&pipelineConfig, 
                             swapchain, 
                             // TODO: uniform buffers here?
-                            &(*entity)->uBuffers, 
+                            (*entity)->uBuffers, 
                             descriptorSetLayoutPool[dsLayout], 
                             descriptorSets,
                             pipelineLayout);
@@ -102,8 +102,9 @@ BBAPI void initializeGFX(BBWindow *mainWindow)
 {
     // TODO: return values
     device                 = deviceInit(mainWindow);
-    swapchain              = createSwapChain(device, getExtent(mainWindow));
-    createDescriptorPool   (descriptorPool, device);
+
+    createSwapChain      (&swapchain, device, getExtent(mainWindow));
+    createDescriptorPool (&descriptorPool, device);
 }
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)

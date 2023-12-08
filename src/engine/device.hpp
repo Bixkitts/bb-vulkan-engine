@@ -1,9 +1,9 @@
 #ifndef DEVICE
 #define DEVICE
 
-#include <string>
 #include <vector>
 
+#include "error_handling.h"
 #include "window.hpp"
 
 struct SwapChainSupportDetails {
@@ -22,17 +22,17 @@ struct QueueFamilyIndices {
 // TODO: CPP shit
 typedef struct Device_S
 {
-    VkInstance instance;
-    VkDebugUtilsMessengerEXT debugMessenger;
-    VkPhysicalDevice physical = VK_NULL_HANDLE;
-    BBWindow *window;
-    VkCommandPool commandPool;
-    VkPhysicalDeviceProperties physicalProperties;
+    VkInstance                  instance;
+    VkDebugUtilsMessengerEXT    debugMessenger;
+    VkPhysicalDevice            physical = VK_NULL_HANDLE;
+    BBWindow                   *window;
+    VkCommandPool               commandPool;
+    VkPhysicalDeviceProperties  physicalProperties;
 
-    VkDevice logical;
-    VkSurfaceKHR surface_;
-    VkQueue graphicsQueue_;
-    VkQueue presentQueue_;
+    VkDevice                    logical;
+    VkSurfaceKHR                surface_;
+    VkQueue                     graphicsQueue_;
+    VkQueue                     presentQueue_;
 }Device_T, *Device;
 
 #ifdef NDEBUG
@@ -41,8 +41,8 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 // Interface:
-Device deviceInit    (BBWindow *deviceWindow);
-void   destroyDevice (Device device); 
+BBError deviceInit    (Device *device, BBWindow *deviceWindow);
+void    destroyDevice (Device device); 
 
 // Sub-routines:
 static void createInstance      (Device theGPU);
@@ -54,21 +54,27 @@ static void createCommandPool   (Device theGPU);
 
 
 // helper functions
-bool                      isDeviceSuitable                  (VkPhysicalDevice device, Device theGPU);
+bool                      isDeviceSuitable                  (VkPhysicalDevice device, 
+                                                             Device theGPU);
 bool                      checkDeviceExtensionSupport       (VkPhysicalDevice device);
 bool                      checkValidationLayerSupport       ();
-uint32_t                  findMemoryType                    (uint32_t typeFilter, VkMemoryPropertyFlags properties, Device theGPU);
+uint32_t                  findMemoryType                    (uint32_t typeFilter, 
+                                                             VkMemoryPropertyFlags properties, 
+                                                             Device theGPU);
 void                      populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 void                      hasGflwRequiredInstanceExtensions ();
 std::vector<const char *> getRequiredExtensions             ();
-QueueFamilyIndices        findQueueFamilies                 (VkPhysicalDevice device, Device theGPU);
-SwapChainSupportDetails   querySwapChainSupport             (VkPhysicalDevice physicalDevice, Device theGPU);
-QueueFamilyIndices        findQueueFamilies                 (VkPhysicalDevice physicalDevice, Device theGPU);
+QueueFamilyIndices        findQueueFamilies                 (VkPhysicalDevice device, 
+                                                             Device theGPU);
+SwapChainSupportDetails   querySwapChainSupport             (VkPhysicalDevice physicalDevice, 
+                                                             Device theGPU);
+QueueFamilyIndices        findQueueFamilies                 (VkPhysicalDevice physicalDevice, 
+                                                             Device theGPU);
 VkFormat                  findSupportedFormat               (const std::vector<VkFormat> &candidates, 
                                                              VkImageTiling tiling, 
                                                              VkFormatFeatureFlags features,
                                                              Device theGPU);
-// TODO: some global variables??? fix this maybe.
+// TODO: some global variables??? std::vectors??? fix this maybe.
 const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 const std::vector<const char *> deviceExtensions = {VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 

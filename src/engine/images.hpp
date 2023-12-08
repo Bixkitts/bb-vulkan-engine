@@ -1,7 +1,6 @@
 #ifndef BB_IMAGES
 #define BB_IMAGES
 
-#include <stdexcept>
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
 #include <stb_image.h>
@@ -9,8 +8,6 @@
 #include "defines.hpp"
 #include "device.hpp"
 #include "error_handling.h"
-#include "buffers.hpp"
-#include "command_buffers.hpp"
 #include "defines.hpp"
 
 typedef struct VulkanImage_S

@@ -27,11 +27,9 @@ void closeWindow(BBWindow* bveWindow)
 
 void createWindowSurface(BBWindow* window, VkInstance instance, VkSurfaceKHR* surface)
 {
-    if (glfwCreateWindowSurface(instance, window->window, nullptr, surface))
-        {
-            throw std::runtime_error("failed to create window surface");
-        }
-
+    if (glfwCreateWindowSurface(instance, window->window, nullptr, surface)){
+        throw std::runtime_error("failed to create window surface");
+    }
 }
 
 VkExtent2D getExtent(BBWindow* window)

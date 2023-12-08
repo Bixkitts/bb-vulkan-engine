@@ -6,7 +6,6 @@
 #include "buffers.hpp"
 #include "images.hpp"
 #include "pipeline.hpp"
-#include "swap_chain.hpp"
 #include <vulkan/vulkan_core.h>
 
 typedef struct BBEntity_S

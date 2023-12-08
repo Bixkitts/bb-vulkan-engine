@@ -1,7 +1,5 @@
 #include "device.hpp"
-#include "buffers.hpp"
 #include "config_device.hpp"
-#include "model.hpp"
 
 // std headers
 #include <cstring>
@@ -11,39 +9,37 @@
 #include <vulkan/vulkan_core.h>
 
 // local callback functions
-static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
-    VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
-    VkDebugUtilsMessageTypeFlagsEXT messageType,
-    const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
-    void* pUserData) 
+static VKAPI_ATTR VkBool32 VKAPI_CALL 
+debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
+              VkDebugUtilsMessageTypeFlagsEXT messageType,
+              const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
+              void* pUserData) 
 {
+    //TODO: stdlib shit
     std::cerr << "validation layer: " << pCallbackData->pMessage << std::endl;
     return VK_FALSE;
 }
 
-VkResult CreateDebugUtilsMessengerEXT(
-    VkInstance instance,
-    const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-    const VkAllocationCallbacks* pAllocator,
-    VkDebugUtilsMessengerEXT* pDebugMessenger) 
+VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                      const VkAllocationCallbacks* pAllocator,
+                                      VkDebugUtilsMessengerEXT* pDebugMessenger) 
 {
+    // TODO: C++ gibberish
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
         "vkCreateDebugUtilsMessengerEXT");
-    if (func != nullptr) 
-    {
+    if (func != nullptr) {
         return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
     } 
-    else 
-    {
+    else {
         return VK_ERROR_EXTENSION_NOT_PRESENT;
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(
-    VkInstance instance,
-    VkDebugUtilsMessengerEXT debugMessenger,
-    const VkAllocationCallbacks* pAllocator) 
+void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+                                   VkDebugUtilsMessengerEXT debugMessenger,
+                                   const VkAllocationCallbacks* pAllocator) 
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
@@ -54,66 +50,70 @@ void DestroyDebugUtilsMessengerEXT(
 }
 // end of local callback functions
 
-Device deviceInit(BBWindow* deviceWindow) 
+BBError deviceInit(Device *device, BBWindow* deviceWindow) 
 {
-    Device theGPU = new Device;
-    theGPU->window = deviceWindow;
-    createInstance(theGPU);
-    setupDebugMessenger(theGPU); 
-    createWindowSurface(theGPU->window, theGPU->instance, &theGPU->surface_);
-    pickPhysicalDevice(theGPU);
-
-    createLogicalDevice(theGPU);
-    createCommandPool(theGPU);
-    return theGPU;
+    // TODO: MALLOC without free()
+    *device = (Device)calloc(1, sizeof(Device_S));
+    if(*device == NULL){
+        return BB_ERROR_MEM;
+    }
+    (*device)->window = deviceWindow;
+    createInstance      (*device);
+    setupDebugMessenger (*device); 
+    createWindowSurface ((*device)->window, 
+                         (*device)->instance, 
+                         &(*device)->surface_);
+    pickPhysicalDevice  (*device);
+    createLogicalDevice (*device);
+    createCommandPool   (*device);
+    return BB_ERROR_OK;
 }
 
 void destroyDevice(Device device) 
 {
-    vkDestroyCommandPool(device->logical, device->commandPool, nullptr);
-  
-    if (enableValidationLayers) 
-    {
-        DestroyDebugUtilsMessengerEXT(device->instance, device->debugMessenger, nullptr);
+    vkDestroyCommandPool (device->logical, 
+                          device->commandPool, 
+                          NULL);
+    if (enableValidationLayers){
+        DestroyDebugUtilsMessengerEXT(device->instance, 
+                                      device->debugMessenger, 
+                                      NULL);
     }
-  
-    vkDestroySurfaceKHR(device->instance, device->surface_, nullptr);
-    vkDestroyInstance(device->instance, nullptr);
-    vkDeviceWaitIdle(device->logical);
-    vkDestroyDevice(device->logical, nullptr);
-    delete device->window;
-    delete device;
+    vkDestroySurfaceKHR  (device->instance, 
+                          device->surface_, 
+                          NULL);
+    vkDestroyInstance    (device->instance, 
+                          NULL);
+    vkDeviceWaitIdle     (device->logical);
+    vkDestroyDevice      (device->logical, 
+                          NULL);
+    free                 (device);
 }
 
 static void createInstance(Device theGPU) 
 {
-    if (enableValidationLayers && !checkValidationLayerSupport()) 
-    {
+    if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo appInfo = appInfo();
-
-    auto extensions = getRequiredExtensions();
+    VkApplicationInfo    appInfo    = appInfo();
+    auto                 extensions = getRequiredExtensions();
     VkInstanceCreateInfo createInfo = instanceCreateInfo(appInfo, extensions);
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
-    if (enableValidationLayers) 
-    {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+    if (enableValidationLayers){
+        createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
 
         populateDebugMessengerCreateInfo(debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT* )&debugCreateInfo;
     } 
-    else 
-    {
+    else{
         createInfo.enabledLayerCount = 0;
-        createInfo.pNext = nullptr;
+        createInfo.pNext             = NULL;
     }
 
-    if (vkCreateInstance(&createInfo, nullptr, &theGPU->instance) != VK_SUCCESS)
-    {
+    if (vkCreateInstance(&createInfo, NULL, &theGPU->instance) != VK_SUCCESS){
         throw std::runtime_error("failed to create instance!");
     }
 
@@ -199,7 +199,6 @@ static void createCommandPool(Device theGPU)
         throw std::runtime_error("failed to create command pool!");
     }
 }
-
 
 bool isDeviceSuitable(VkPhysicalDevice device, Device theGPU) 
 {

@@ -35,14 +35,16 @@ typedef struct SwapChain_S
     
 }SwapChain_T, *SwapChain;
 
-SwapChain         *createSwapChain         (Device device, VkExtent2D windowExtent);
+SwapChain          createSwapChain         (SwapChain *swapchain, 
+                                            Device device, 
+                                            VkExtent2D windowExtent);
 void               destroySwapchain        (SwapChain swapchain);
-float              extentAspectRatio       (SwapChain swapchain); 
+float              getExtentAspectRatio    (SwapChain swapchain); 
 
 VkFormat           findDepthFormat         (SwapChain swapchain);
 
-VkResult           acquireNextImage        (SwapChain swapchain, uint32_t *imageIndex);
-
+VkResult           acquireNextImage        (SwapChain swapchain, 
+                                            uint32_t *imageIndex);
 // TODO: stdlib shit, and returns
 VkSurfaceFormatKHR chooseSwapSurfaceFormat (const std::vector<VkSurfaceFormatKHR> &availableFormats);
 VkPresentModeKHR   chooseSwapPresentMode   (const std::vector<VkPresentModeKHR> &availablePresentModes);
