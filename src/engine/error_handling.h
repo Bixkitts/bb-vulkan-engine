@@ -1,7 +1,7 @@
 #ifndef BB_ERROR_HANDLING
 #define BB_ERROR_HANDLING
 
-typedef enum BBError
+typedef enum
 {
     BB_ERROR_OK,
     BB_ERROR_UNKNOWN,
@@ -18,8 +18,13 @@ typedef enum BBError
     BB_ERROR_IMAGE_SAMPLER_CREATE,
     BB_ERROR_IMAGE_LAYOUT_TRANSISTION,
     BB_ERROR_GPU_BUFFER_CREATE,
+    BB_ERROR_COMMAND_BUFFER_RECORD,
+    BB_ERROR_COMMAND_BUFFER_CREATE,
+    BB_ERROR_COMMAND_BUFFER_RUN,
+    BB_ERROR_ACQUIRE_SWAP_CHAIN_IMAGE,
     BB_ERROR_TYPE_COUNT // The amount of different errors
 }BBError;
 
+void pBBError(BBError error);
 
 #endif

@@ -1,25 +1,22 @@
 #ifndef BVE_COMMAND_BUFFERS
 #define BVE_COMMAND_BUFFERS
 
-#include "buffers.hpp"
-#include "pipeline.hpp"
 #include "swap_chain.hpp"
-#include "model.hpp"
+#include "entity.h"
 
-std::vector<VkCommandBuffer> createCommandBuffers(GraphicsPipeline* pipeline);
+typedef VkCommandBuffer *VkCommandBufferArray;
 
-void recordCommandBuffer(VkCommandBuffer commandBuffer, 
-                        GraphicsPipeline *pipeline, 
-                        uint32_t imageIndex, 
-                        SwapChain* swapchain, 
-                        std::vector<VertexBuffer*> &vertexBuffers, 
-                        std::vector<IndexBuffer*> &indexBuffers,
-                        std::vector<Model*> &models);
-
-VkResult submitCommandBuffers(
-            SwapChain* swapchain,
-            const VkCommandBuffer* buffers, uint32_t* imageIndex) ;
-//single time commands
-VkCommandBuffer beginSingleTimeCommands(Device theGPU); 
-void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device theGPU); 
+BBError         createPrimaryCommandBuffers (VkCommandBufferArray *commandBuffers, 
+                                             const Device device);
+BBError         recordPrimaryCommandBuffer  (VkCommandBuffer commandBuffer, 
+                                             const BBEntityArray entities, 
+                                             const uint64_t entityCount, 
+                                             const SwapChain swapchain,
+                                             const VkFramebuffer frameBuffer);
+VkResult        submitCommandBuffers        (SwapChain* swapchain,
+                                             const VkCommandBuffer* buffers, 
+                                             uint32_t* imageIndex);
+VkCommandBuffer beginSingleTimeCommands     (Device theGPU); 
+void            endSingleTimeCommands       (VkCommandBuffer commandBuffer, 
+                                             Device theGPU); 
 #endif

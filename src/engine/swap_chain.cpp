@@ -1,12 +1,10 @@
 #include <array>
 #include <cstdlib>
 #include <cstring>
-#include <iostream>
 #include <limits>
 #include <stdexcept>
 
 #include "swap_chain.hpp"
-#include "device.hpp"
 #include "buffers.hpp"
 
 static void initSwapChain             (SwapChain swapchain);
@@ -16,10 +14,16 @@ static void createRenderPass          (SwapChain swapchain);
 static void createFramebuffers        (SwapChain swapchain);
 static void createSyncObjects         (SwapChain swapchain);
 
-BBError createSwapChain(SwapChain *swapchain, Device device, VkExtent2D extent)
+BBError createSwapChain(SwapChain *swapchain, 
+                        const Device device, 
+                        const VkExtent2D extent)
 {
     //TODO: MALLOC without free()
     *swapchain           = (SwapChain)calloc(1,sizeof(SwapChain_S));
+    if (*swapchain == NULL){
+        return BB_ERROR_MEM;
+    }
+
     (*swapchain)->device = device;
 
     initSwapChain             (*swapchain);
@@ -53,6 +57,7 @@ void destroySwapchain(SwapChain swapchain)
         swapchain->swapChain = NULL;
     }
     for (int i = 0; i < swapchain->depthImages.size(); i++) {
+        // TODO: set pointers to NULL if it's not done by vulkan
         vkDestroyImageView    (swapchain->device->logical, 
                                swapchain->depthImageViews[i], 
                                NULL);
@@ -371,41 +376,31 @@ static void createSyncObjects(SwapChain swapchain)
     }
 }
 
-VkSurfaceFormatKHR chooseSwapSurfaceFormat(
-        const std::vector<VkSurfaceFormatKHR> &availableFormats) 
-{
-    for (const auto &availableFormat : availableFormats) 
-    {
+VkSurfaceFormatKHR chooseSwapSurfaceFormat(const std::vector<VkSurfaceFormatKHR> &availableFormats){
+    for (const auto &availableFormat : availableFormats){
         if (availableFormat.format == VK_FORMAT_B8G8R8A8_UNORM &&
-                availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR) 
-        {
+            availableFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR){
             return availableFormat;
         }
     }
-
     return availableFormats[0];
 }
 
-VkPresentModeKHR chooseSwapPresentMode(
-        const std::vector<VkPresentModeKHR> &availablePresentModes) 
+VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &availablePresentModes) 
 {
-    for (const auto &availablePresentMode : availablePresentModes) 
-    {
-        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR) 
-        {
-            std::cout << "Present mode: Mailbox" << std::endl;
+    for (const auto &availablePresentMode : availablePresentModes) {
+        if (availablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR){
+            printf("Present Mode: Mailbox\n");
             return availablePresentMode;
         }
     }
-
     // for (const auto &availablePresentMode : availablePresentModes) {
     //     if (availablePresentMode == VK_PRESENT_MODE_IMMEDIATE_KHR) {
     //         std::cout << "Present mode: Immediate" << std::endl;
     //         return availablePresentMode;
     //     }
     // }
-
-    std::cout << "Present mode: V-Sync" << std::endl;
+    printf("Present Mode: V-Sync\n");
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 

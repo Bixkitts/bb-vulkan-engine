@@ -13,6 +13,8 @@ typedef struct BBEntity_S
     Device                 device;       
     Model                 *model;
 
+    // The amount of uniform buffers in the array is
+    // currently always MAX_FRAMES_IN_FLIGHT
     UniformBufferArray     uBuffers;
 
     VertexBuffer           vBuffer;
@@ -22,5 +24,7 @@ typedef struct BBEntity_S
     VkDescriptorSet        descriptorSet;
     GraphicsPipeline       pipeline;
 } BBEntity_T, *BBEntity;
+
+typedef BBEntity *BBEntityArray;
 
 #endif

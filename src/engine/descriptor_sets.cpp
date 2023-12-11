@@ -55,13 +55,13 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout *layout,
     return BB_ERROR_OK;
 }
 
-
 BBError createDescriptorPool(VulkanDescriptorPool pool, 
                              const Device device)
 {
     // TODO: magic number 2
     VkDescriptorPoolSize       poolSizes[2] = {};
     VkDescriptorPoolCreateInfo poolInfo     = {};
+
     poolSizes[0].type            = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
     poolSizes[0].descriptorCount = (uint32_t)MAX_FRAMES_IN_FLIGHT;
     poolSizes[1].type            = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -102,7 +102,6 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
     if ((*descriptorSets) == NULL) {
         return BB_ERROR_MEM;
     }
-
     // The layout of these sets need to all be the same,
     // as they will all be rendering the same resources.
     for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
@@ -114,41 +113,45 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
     allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts        = layouts;
     
-    if (vkAllocateDescriptorSets(device->logical, &allocInfo, *descriptorSets) != VK_SUCCESS) {
+    if (vkAllocateDescriptorSets(device->logical, 
+                                 &allocInfo, 
+                                 *descriptorSets) 
+        != VK_SUCCESS){
         return BB_ERROR_DESCRIPTOR_SET;
     }
     // TODO: magic number 3
-    for(int i = 0; i < descriptorWriteCount; i+=AMOUNT_OF_DESCRIPTORS)
-    {
+    for(int i = 0; i < descriptorWriteCount; i += AMOUNT_OF_DESCRIPTORS){
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         //TODO: AHHHHH. Sort out the views and samplers thing.
         //They need to be encoded depending on what image or sampler type it is
         imageInfo.imageView   = texture->views[0];
         imageInfo.sampler     = texture->samplers[0];
 
-        // TODO: moar uniform buffers is possible....
         VkDescriptorBufferInfo transBufferInfo{};
         transBufferInfo.buffer = uniformBuffers[0]->buffer;
         transBufferInfo.offset = 0;
         transBufferInfo.range  = sizeof(PerObjectMatrices);
 
-        descriptorWrites[i].sType               = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[i].dstSet              = (*descriptorSets)[i];
-        descriptorWrites[i].dstBinding          = 0;
-        descriptorWrites[i].dstArrayElement     = 0;
-        descriptorWrites[i].descriptorType      = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        descriptorWrites[i].descriptorCount     = 1;
-        descriptorWrites[i].pBufferInfo         = &transBufferInfo;
+        descriptorWrites[i].sType             = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[i].dstSet            = (*descriptorSets)[i];
+        descriptorWrites[i].dstBinding        = 0;
+        descriptorWrites[i].dstArrayElement   = 0;
+        descriptorWrites[i].descriptorType    = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrites[i].descriptorCount   = 1;
+        descriptorWrites[i].pBufferInfo       = &transBufferInfo;
 
-        descriptorWrites[i+1].sType             = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-        descriptorWrites[i+1].dstSet            = (*descriptorSets)[i];
-        descriptorWrites[i+1].dstBinding        = 1;
-        descriptorWrites[i+1].dstArrayElement   = 0;
-        descriptorWrites[i+1].descriptorType    = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-        descriptorWrites[i+1].descriptorCount   = 1;
-        descriptorWrites[i+1].pImageInfo        = &imageInfo; // Optional
+        descriptorWrites[i+1].sType           = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrites[i+1].dstSet          = (*descriptorSets)[i];
+        descriptorWrites[i+1].dstBinding      = 1;
+        descriptorWrites[i+1].dstArrayElement = 0;
+        descriptorWrites[i+1].descriptorType  = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        descriptorWrites[i+1].descriptorCount = 1;
+        descriptorWrites[i+1].pImageInfo      = &imageInfo; // Optional
     }
-    vkUpdateDescriptorSets(device->logical, descriptorWriteCount, descriptorWrites, 0, NULL);
+    vkUpdateDescriptorSets(device->logical, 
+                           descriptorWriteCount, 
+                           descriptorWrites, 
+                           0, 
+                           NULL);
     return BB_ERROR_OK;
 }
-

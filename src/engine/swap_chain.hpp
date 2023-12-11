@@ -1,33 +1,25 @@
 #ifndef SWAP_CHAIN
 #define SWAP_CHAIN
 
-#include <string>
 #include <vector>
-
 #include <vulkan/vulkan.h>
-
 #include "device.hpp"
-
-#define MAX_FRAMES_IN_FLIGHT 2
 
 typedef struct SwapChain_S
 {
-    VkFormat swapChainImageFormat;
-    VkExtent2D swapChainExtent;
-
+    //TODO: stdlib shit
+    Device                      device;
     std::vector<VkFramebuffer>  swapChainFramebuffers;
     VkRenderPass                renderPass;
-    //TODO: stdlib shit
     std::vector<VkImage>        depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
     std::vector<VkImageView>    depthImageViews;
     std::vector<VkImage>        swapChainImages;
     std::vector<VkImageView>    swapChainImageViews;
-
-    Device                      device;
     VkExtent2D                  windowExtent;
+    VkFormat                    swapChainImageFormat;
+    VkExtent2D                  swapChainExtent;
     VkSwapchainKHR              swapChain;
-
     std::vector<VkSemaphore>    imageAvailableSemaphores;
     std::vector<VkSemaphore>    renderFinishedSemaphores;
     std::vector<VkFence>        inFlightFences;
@@ -35,9 +27,9 @@ typedef struct SwapChain_S
     
 }SwapChain_T, *SwapChain;
 
-SwapChain          createSwapChain         (SwapChain *swapchain, 
-                                            Device device, 
-                                            VkExtent2D windowExtent);
+BBError            createSwapChain         (SwapChain *swapchain, 
+                                            const Device device, 
+                                            const VkExtent2D windowExtent);
 void               destroySwapchain        (SwapChain swapchain);
 float              getExtentAspectRatio    (SwapChain swapchain); 
 
@@ -48,6 +40,7 @@ VkResult           acquireNextImage        (SwapChain swapchain,
 // TODO: stdlib shit, and returns
 VkSurfaceFormatKHR chooseSwapSurfaceFormat (const std::vector<VkSurfaceFormatKHR> &availableFormats);
 VkPresentModeKHR   chooseSwapPresentMode   (const std::vector<VkPresentModeKHR> &availablePresentModes);
-VkExtent2D         chooseSwapExtent        (SwapChain swapchain, const VkSurfaceCapabilitiesKHR capabilities);
+VkExtent2D         chooseSwapExtent        (SwapChain swapchain, 
+                                            const VkSurfaceCapabilitiesKHR capabilities);
 
 #endif

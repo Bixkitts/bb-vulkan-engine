@@ -1,93 +1,95 @@
-#include <stdexcept>
-#include <array>
-
 #include <vulkan/vulkan_core.h>
 
 #include "command_buffers.hpp"
 #include "buffers.hpp"
-#include "model.hpp"
+#include "error_handling.h"
 #include "swap_chain.hpp"
 #include "entity.h"
 
-std::vector<VkCommandBuffer> createPrimaryCommandBuffers(Device device)
+BBError createPrimaryCommandBuffers(VkCommandBufferArray *commandBuffers, Device device)
 {
-    std::vector<VkCommandBuffer> commandBuffers;
-    commandBuffers.resize(MAX_FRAMES_IN_FLIGHT);
-
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = device->commandPool;
-    allocInfo.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
-
-    if(vkAllocateCommandBuffers(device->logical, &allocInfo, commandBuffers.data()) !=
-            VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to allocate command buffers!");
+    *commandBuffers = (VkCommandBufferArray)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkCommandBuffer));
+    if (commandBuffers == NULL){
+        return BB_ERROR_MEM;
     }
 
-    return commandBuffers;
+    VkCommandBufferAllocateInfo allocInfo = {};
+    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool        = device->commandPool;
+    allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
+
+    if (vkAllocateCommandBuffers(device->logical, &allocInfo, *commandBuffers) !=
+        VK_SUCCESS){
+        return BB_ERROR_COMMAND_BUFFER_CREATE;
+    }
+
+    return BB_ERROR_OK;
 }
 
-void recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, BBEntity entities, uint64_t entityCount, SwapChain* swapchain)
+BBError recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, 
+                                   const BBEntityArray entities, 
+                                   const uint64_t entityCount, 
+                                   const SwapChain swapchain,
+                                   const VkFramebuffer frameBuffer)
 {
-    VkCommandBufferBeginInfo beginInfo{};
+    VkRenderPassBeginInfo    renderPassInfo = {};
+    VkCommandBufferBeginInfo beginInfo      = {};
+    GraphicsPipeline         pipelineToBind = {0};
+
     beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     
-    if (vkBeginCommandBuffer(commandBuffer, &beginInfo) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to begin recording command buffer!");
+    if (vkBeginCommandBuffer(commandBuffer, 
+                             &beginInfo) 
+        != VK_SUCCESS){
+        return BB_ERROR_COMMAND_BUFFER_RECORD;
     }                
 
-    VkRenderPassBeginInfo renderPassInfo = {};
-    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-    renderPassInfo.renderPass = swapchain->renderPass;
-    renderPassInfo.framebuffer = swapchain->swapChainFramebuffers[imageIndex];
+    renderPassInfo.sType             = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+    renderPassInfo.renderPass        = swapchain->renderPass;
+    renderPassInfo.framebuffer       = frameBuffer;
     renderPassInfo.renderArea.offset = {0,0};
     renderPassInfo.renderArea.extent = swapchain->swapChainExtent;
 
-    auto clearValues = new VkClearValue[2];
-    clearValues[0].color = {0.1f, 0.1f, 0.1f, 1.0f};
-    clearValues[1].depthStencil = {1.0f, 0};
-
-    renderPassInfo.clearValueCount = 2;
-    renderPassInfo.pClearValues = clearValues;
+    // TODO: This is fucked fix this as soon as this program is running
+    auto clearValues                 = new VkClearValue[2];
+    clearValues[0].color             = {0.1f, 0.1f, 0.1f, 1.0f};
+    clearValues[1].depthStencil      = {1.0f, 0};
+    renderPassInfo.clearValueCount   = 2;
+    renderPassInfo.pClearValues      = clearValues;
 
     // -------------------------- Start of Render Pass ---------------------------
 
     vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-
     // I should be building secondary command buffers on a per object basis
     // And bind all their own pipelines.
     // ACTUALLY maybe secondary buffers on a per-pipeline basis!
-    for(uint64_t i = 0; i < entityCount; i++)
-    {
-        GraphicsPipeline *pipeline = entities[i].pipeline;
-        bindPipeline(pipeline, commandBuffer);
-
-        vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline->pipelineConfig->pipelineLayout, 0, 1, &pipeline->pipelineConfig->descriptorSets[swapchain->currentFrame], 0, nullptr);
-
-        for(int j = 0; j < indexBuffers.size(); j++)
-        {
-            // consider binding all vertex buffers at once (look in function)
-            bindVertexBuffer(vertexBuffers[j], commandBuffer);
-            bindIndexBuffer(indexBuffers[j], commandBuffer);
-            drawIndexBuffer(indexBuffers[j], commandBuffer);
-        }
-
+    for(uint64_t i = 0; i < entityCount; i++){
+        pipelineToBind = entities[i]->pipeline;
+        bindPipeline            (pipelineToBind, commandBuffer);
+        vkCmdBindDescriptorSets (commandBuffer, 
+                                 VK_PIPELINE_BIND_POINT_GRAPHICS, 
+                                 pipelineToBind->pipelineConfig->pipelineLayout, 
+                                 0, 
+                                 1, 
+                                 &pipelineToBind->pipelineConfig->descriptorSets[swapchain->currentFrame], 
+                                 0, 
+                                 NULL);
+        bindVertexBuffer        (entities[i]->vBuffer, commandBuffer);
+        bindIndexBuffer         (entities[i]->iBuffer, commandBuffer);
+        drawIndexBuffer         (entities[i]->iBuffer, commandBuffer);
     }
-
     // -------------------------- End of Render Pass ---------------------------
-    
     vkCmdEndRenderPass(commandBuffer);
-    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS)
-    {
-        throw std::runtime_error("failed to record command buffer!");
-   }
+    if(vkEndCommandBuffer(commandBuffer) != VK_SUCCESS){
+        return BB_ERROR_COMMAND_BUFFER_RECORD;
+    }
+    return BB_ERROR_OK;
 }
 
-VkResult submitCommandBuffers(SwapChain *swapchain,
-        const VkCommandBuffer* buffers, uint32_t* imageIndex) 
+VkResult submitCommandBuffers(const SwapChain swapchain,
+                              const VkCommandBuffer* buffers, 
+                              uint32_t* imageIndex) 
 {
 
     VkSubmitInfo submitInfo = {};

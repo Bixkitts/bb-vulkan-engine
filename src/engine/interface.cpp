@@ -1,11 +1,12 @@
 #include "interface.hpp"
+#include "command_buffers.hpp"
 
 // Logical and physical device that everything needs access to.
-static Device device = NULL;
+static Device                device = NULL;
 // Swap chain that everybody needs to be aware of
-static SwapChain swapchain;
+static SwapChain             swapchain;
 // The big main descriptor pool
-static VulkanDescriptorPool *descriptorPool;
+static VulkanDescriptorPool  descriptorPool;
 // A pool of descriptor set layouts
 static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_AMOUNT_OF_LAYOUTS] = { NULL };
 
@@ -58,7 +59,9 @@ BBAPI BBError createEntity(BBEntity *entity,
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
     if (descriptorSetLayoutPool[dsLayout] == NULL){
-        createDescriptorSetLayout(&descriptorSetLayoutPool[dsLayout], device, dsLayout);
+        createDescriptorSetLayout(&descriptorSetLayoutPool[dsLayout], 
+                                  device, 
+                                  dsLayout);
     }
     createDescriptorSets   (&descriptorSets,
                             device, 
@@ -101,31 +104,26 @@ BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 BBAPI void initializeGFX(BBWindow *mainWindow)
 {
     // TODO: return values
-    device                 = deviceInit(mainWindow);
-
+    deviceInit           (&device, mainWindow);
     createSwapChain      (&swapchain, device, getExtent(mainWindow));
-    createDescriptorPool (&descriptorPool, device);
+    createDescriptorPool (descriptorPool, device);
 }
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
 {
-    initializeGFX(mainWindow);
+    VkCommandBufferArray primaryCommandBuffers = NULL;
+    BBEntity             entity0               = NULL;
+    char                 model[]               = "whatever";
+    char                 texture[]             = "../textures/CADE.png";
+    char                 vertShader[]          = "../shaders/simple_shader.vert.spv";
+    char                 fragShader[]          = "../shaders/simple_shader.frag.spv";
 
-    char model[]      = "whatever";
-    char texture[]    = "../textures/CADE.png";
-    char vertShader[] = "../shaders/simple_shader.vert.spv";
-    char fragShader[] = "../shaders/simple_shader.frag.spv";
-    BBEntity entity0;
-    createEntity(entity0, model, texture, vertShader, fragShader);
-
-
-    //Create command buffers. Should be a return value instead of a parameter!
-    auto commandBuffers    = createCommandBuffers(entity0->pipeline);
+    initializeGFX               (mainWindow);
+    createEntity                (entity0, model, texture, vertShader, fragShader);
+    createPrimaryCommandBuffers (&primaryCommandBuffers, device);
     #ifdef DEBUG
     std::cout<<"\n -------This is a Debug build!-------\n";
     #endif
-    //--------------------------------------------
-    //Drawing frames. This was copy pasted idk how it works rly yet.
     while (!glfwWindowShouldClose(mainWindow->window))
     {
         glfwPollEvents();
@@ -134,10 +132,9 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
         // for uniform buffer transformations on specific buffers.
         updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
     }
-
     vkDeviceWaitIdle(device->logical);
 
-    // Cleanup stuffs
+    // TODO: Cleanup stuffs
     /*
     auto cleanupList = new CleanupList{device, 
                                        pipeline,
