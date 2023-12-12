@@ -7,6 +7,8 @@
 typedef void *BBWindow;
 typedef void *BBEntity;
 
+typedef int BBError;
+
 BBWindow  openWindow       (int w, 
                             int h, 
                             std::string name);
@@ -19,8 +21,6 @@ BBError   createEntity     (char *model,
 void      spawnEntity      (BBEntity entity, 
                             double worldCoords[3], 
                             double rotation);
-
-
-
+void      printBBError     (BBError error);
 
 #endif

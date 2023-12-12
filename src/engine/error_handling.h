@@ -25,6 +25,6 @@ typedef enum
     BB_ERROR_TYPE_COUNT // The amount of different errors
 }BBError;
 
-void pBBError(BBError error);
+void printBBError(BBError error);
 
 #endif

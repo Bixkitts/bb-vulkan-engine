@@ -1,4 +1,5 @@
 #include "error_handling.h"
+#include "defines.hpp"
 #include <stdio.h>
 
 static const char *errorMessages[BB_ERROR_TYPE_COUNT] = 
@@ -24,7 +25,7 @@ static const char *errorMessages[BB_ERROR_TYPE_COUNT] =
     "Swap chain image acquisition error\n"
 };
 
-void pBBError(BBError error)
+BBAPI void printBBError(BBError error)
 {
     const char *errorString = errorMessages[error];
     fprintf(stderr, "\nEncountered error: ");
