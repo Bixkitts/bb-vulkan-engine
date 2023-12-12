@@ -88,7 +88,7 @@ BBError recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer,
 }
 
 VkResult submitCommandBuffers(const SwapChain swapchain,
-                              const VkCommandBuffer* buffers, 
+                              const VkCommandBufferArray buffers, 
                               uint32_t* imageIndex) 
 {
     VkSubmitInfo         submitInfo         = {};

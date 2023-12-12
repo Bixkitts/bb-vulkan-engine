@@ -13,8 +13,8 @@ BBError         recordPrimaryCommandBuffer  (VkCommandBuffer commandBuffer,
                                              const uint64_t entityCount, 
                                              const SwapChain swapchain,
                                              const VkFramebuffer frameBuffer);
-VkResult        submitCommandBuffers        (SwapChain* swapchain,
-                                             const VkCommandBuffer* buffers, 
+VkResult        submitCommandBuffers        (SwapChain swapchain,
+                                             const VkCommandBufferArray buffers, 
                                              uint32_t* imageIndex);
 VkCommandBuffer beginSingleTimeCommands     (Device theGPU); 
 void            endSingleTimeCommands       (VkCommandBuffer commandBuffer, 

@@ -13,18 +13,19 @@ BBError drawFrame(const SwapChain swapchain,
                   const uint64_t entityCount)
 {
     uint32_t imageIndex = 0;
-    VkResult result     = acquireNextImage(swapchain, &imageIndex);
+    VkResult result;
 
+    result =
+    acquireNextImage           (swapchain, &imageIndex);
     if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR){
         return BB_ERROR_ACQUIRE_SWAP_CHAIN_IMAGE;
     }
-
     vkResetCommandBuffer       (commandBuffers[swapchain->currentFrame], 0);
     recordPrimaryCommandBuffer (commandBuffers[swapchain->currentFrame], 
                                 entities,
                                 entityCount,
                                 swapchain,
-                                swapchain->
+                                swapchain->framebuffers[swapchain->currentFrame]);
     result = 
     submitCommandBuffers       (swapchain, 
                                 &commandBuffers[swapchain->currentFrame], 

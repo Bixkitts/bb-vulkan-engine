@@ -96,11 +96,12 @@ static void createInstance(Device theGPU)
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo    appInfo    = appInfo();
+    VkApplicationInfo    appInfo    = createAppInfo();
     auto                 extensions = getRequiredExtensions();
     VkInstanceCreateInfo createInfo = instanceCreateInfo(appInfo, extensions);
 
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+
     if (enableValidationLayers){
         createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -152,35 +153,38 @@ static void pickPhysicalDevice(Device theGPU)
 
 static void createLogicalDevice(Device theGPU) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(theGPU->physical, theGPU);
+    QueueFamilyIndices        indices             = findQueueFamilies(theGPU->physical, 
+                                                                      theGPU);
+    VkDeviceCreateInfo        createInfo;
+    std::vector
+    <VkDeviceQueueCreateInfo> queueCreateInfos;
+    std::set<uint32_t>        uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+    float                     queuePriority       = 1.0f;
+    VkPhysicalDeviceFeatures  deviceFeatures      = {};
+    VkDeviceQueueCreateInfo   queueCreateInfo;
   
-    std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t> uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
-  
-    float queuePriority = 1.0f;
-    for (uint32_t queueFamily : uniqueQueueFamilies) 
-    {
-        VkDeviceQueueCreateInfo queueCreateInfo = queueCreateInfo(queueCreateInfos, queueFamily, queuePriority);
+    for (uint32_t queueFamily : uniqueQueueFamilies){
+        queueCreateInfo = createQueueCreateInfo(queueCreateInfos, 
+                                                queueFamily, 
+                                                queuePriority);
     }
-  
-    VkPhysicalDeviceFeatures deviceFeatures = {};
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-  
-    VkDeviceCreateInfo createInfo = logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
-  
+    createInfo                       = logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
-    if (enableValidationLayers) 
-    {
+    if (enableValidationLayers) {
         createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
     } 
-    else 
-    {
+    else{
         createInfo.enabledLayerCount = 0;
     }
  
-    if (vkCreateDevice(theGPU->physical, &createInfo, nullptr, &theGPU->logical) != VK_SUCCESS) {
+    if (vkCreateDevice(theGPU->physical, 
+                       &createInfo, 
+                       NULL, 
+                       &theGPU->logical) 
+        != VK_SUCCESS){
         throw std::runtime_error("failed to create logical device!");
     }
   

@@ -38,7 +38,7 @@ BBAPI BBError createEntity(BBEntity *entity,
 
     // TODO: MALLOC without free
     *entity = (BBEntity)calloc(1, sizeof(BBEntity));
-    // This will need to actually load a model from a file
+    // This will need to actually load a model froma file
     loadModel              ((*entity)->model, 
                             modelDir);
     createTextureImage     (&(*entity)->texture, 
@@ -129,7 +129,7 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     while (!glfwWindowShouldClose(mainWindow->window))
     {
         glfwPollEvents      ();
-        drawFrame           (swapchain, &entity0, 1); 
+        drawFrame           (swapchain, primaryCommandBuffers, &entity0, 1); 
         updateUniformBuffer (swapchain, entity0->uBuffers);
     }
 

@@ -43,8 +43,8 @@ void createVertexInputStateCreateInfo(VkPipelineVertexInputStateCreateInfo *crea
     createInfo->pVertexAttributeDescriptions    = attributeDescriptions->data;
     createInfo->pVertexBindingDescriptions      = bindingDescriptions->data;
 }
-void viewportCreateInfo(VkPipelineViewportStateCreateInfo *createInfo, 
-                        PipelineConfig configInfo)
+void createViewportCreateInfo(VkPipelineViewportStateCreateInfo *createInfo, 
+                              PipelineConfig configInfo)
 {
     createInfo->sType         = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
     createInfo->viewportCount = 1;
@@ -53,9 +53,9 @@ void viewportCreateInfo(VkPipelineViewportStateCreateInfo *createInfo,
     createInfo->pScissors     = &configInfo->scissor;
 }
 void createShaderStagesCreateInfo(VkPipelineShaderStageCreateInfo *createInfo, 
-                                  uint32_t shaderStageCount, 
                                   GraphicsPipeline mainPipeline)
 {
+    // TODO: magic numbers, shader stage count
     createInfo[0].sType   = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
     createInfo[0].stage   = VK_SHADER_STAGE_VERTEX_BIT;
     createInfo[0].module  = mainPipeline->vertShaderModule;

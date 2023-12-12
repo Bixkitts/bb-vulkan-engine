@@ -7,10 +7,10 @@
 #include "device.hpp"
 
 // TODO: return types
-VkApplicationInfo           appInfo                ();
+VkApplicationInfo           createAppInfo                ();
 VkCommandPoolCreateInfo     poolCreateInfo         (QueueFamilyIndices queueFamilyIndices);
 VkCommandBufferAllocateInfo commandBufferAllocInfo (Device theGPU);
-VkDeviceQueueCreateInfo     queueCreateInfo        (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+VkDeviceQueueCreateInfo     createQueueCreateInfo  (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
                                                     uint32_t queueFamily, 
                                                     float queuePriority );
 VkInstanceCreateInfo        instanceCreateInfo     (VkApplicationInfo appInfo, 

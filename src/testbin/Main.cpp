@@ -3,9 +3,6 @@
 //std
 #include <cstdlib>
 #include <iostream>
-#include <stdexcept>
-
-using namespace bve;
 
 int main()
 {
