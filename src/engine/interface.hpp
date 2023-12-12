@@ -20,10 +20,10 @@ BBAPI BBError createEntity     (BBEntity entity,
                                 const char *vertShader, 
                                 const char *fragShader);
 BBAPI void    spawnEntity      (BBEntity entity, 
-                                double *worldCoords, 
-                                int rotation);
-BBAPI void    initializeGFX    (BBWindow *mainWindow);
-BBAPI void    runAppWithWindow (BBWindow *mainWindow);
+                                double worldCoords[3], 
+                                double rotation);
+BBAPI void    initializeGFX    (BBWindow mainWindow);
+BBAPI void    runAppWithWindow (BBWindow mainWindow);
 BBAPI void    rotateEntity     (BBEntity entity, 
                                 BBAxis axis);
 

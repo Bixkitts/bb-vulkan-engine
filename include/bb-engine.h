@@ -4,19 +4,19 @@
 #define GLFW_INCLUDE_VULKAN
 #include <string>
 
-typedef struct BBWindow_S BBWindow;
-typedef struct BBEntity_S BBEntity;
+typedef void *BBWindow;
+typedef void *BBEntity;
 
-BBWindow *openWindow       (int w, 
+BBWindow  openWindow       (int w, 
                             int h, 
                             std::string name);
-void      runAppWithWindow (BBWindow* mainWindow);
+void      runAppWithWindow (BBWindow mainWindow);
 
-BBEntity  createEntity     (char *model, 
+BBError   createEntity     (char *model, 
                             char *texture, 
                             char *vertShader, 
                             char *fragShader);
-void     *spawnEntity      (BBEntity entity, 
+void      spawnEntity      (BBEntity entity, 
                             double worldCoords[3], 
                             double rotation);
 
