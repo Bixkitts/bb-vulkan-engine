@@ -1,5 +1,7 @@
 #include "interface.hpp"
 #include "command_buffers.hpp"
+#include "draw_frame.hpp"
+#include "transform.hpp"
 
 // Logical and physical device that everything needs access to.
 static Device                device = NULL;
@@ -8,7 +10,7 @@ static SwapChain             swapchain;
 // The big main descriptor pool
 static VulkanDescriptorPool  descriptorPool;
 // A pool of descriptor set layouts
-static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_AMOUNT_OF_LAYOUTS] = { NULL };
+static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_COUNT] = { NULL };
 
 // TODO: these do nothing yet!!
 // Have allocated memory pools to create buffers in
@@ -103,7 +105,6 @@ BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 
 BBAPI void initializeGFX(BBWindow *mainWindow)
 {
-    // TODO: return values
     deviceInit           (&device, mainWindow);
     createSwapChain      (&swapchain, device, getExtent(mainWindow));
     createDescriptorPool (descriptorPool, device);
@@ -111,6 +112,7 @@ BBAPI void initializeGFX(BBWindow *mainWindow)
 
 BBAPI void runAppWithWindow(BBWindow* mainWindow)
 {
+    // TODO: do I make this global or smthn
     VkCommandBufferArray primaryCommandBuffers = NULL;
     BBEntity             entity0               = NULL;
     char                 model[]               = "whatever";
@@ -126,12 +128,11 @@ BBAPI void runAppWithWindow(BBWindow* mainWindow)
     #endif
     while (!glfwWindowShouldClose(mainWindow->window))
     {
-        glfwPollEvents();
-        drawFrame(swapchain, pipeline, commandBuffers, uniformBuffers, vertexBuffers, indexBuffers, models); 
-        // I need to turn "updateUniformBuffer()" into functions
-        // for uniform buffer transformations on specific buffers.
-        updateUniformBuffer(swapchain->currentFrame, swapchain, uniformBuffers);
+        glfwPollEvents      ();
+        drawFrame           (swapchain, &entity0, 1); 
+        updateUniformBuffer (swapchain, entity0->uBuffers);
     }
+
     vkDeviceWaitIdle(device->logical);
 
     // TODO: Cleanup stuffs

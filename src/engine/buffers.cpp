@@ -224,11 +224,12 @@ VkDeviceMemory allocateDeviceMemory(Device theGPU,
                                     VkMemoryPropertyFlags properties, 
                                     VkDeviceSize size)
 {
-    VkDeviceMemory deviceMemory = {};
-    VkMemoryRequirements memRequirements;
-    vkGetBufferMemoryRequirements(theGPU->logical, buffer, &memRequirements);
-
-    VkMemoryAllocateInfo allocInfo = memoryAllocateInfo(memRequirements, properties, theGPU);
+    VkDeviceMemory       deviceMemory    = {};
+    VkMemoryRequirements memRequirements = {};
+    VkMemoryAllocateInfo allocInfo;
+    vkGetBufferMemoryRequirements (theGPU->logical, buffer, &memRequirements);
+    allocInfo = 
+    memoryAllocateInfo            (memRequirements, properties, theGPU);
     // TODO: stdlib shit
     if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &deviceMemory) 
         != VK_SUCCESS){
@@ -254,7 +255,7 @@ void copyBuffer(const Device theGPU,
                            dstBuffer, 
                            1, 
                            &copyRegion);
-    endSingleTimeCommands (commandBuffer, 
+    endSingleTimeCommands (&commandBuffer, 
                            theGPU);
 }
 
@@ -286,7 +287,8 @@ void copyBufferToImage(Device theGPU,
                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                             1,
                             &region);
-    endSingleTimeCommands  (commandBuffer, theGPU);
+    endSingleTimeCommands  (&commandBuffer, 
+                            theGPU);
 }
 
 void createImageWithInfo(const VkImageCreateInfo imageInfo,

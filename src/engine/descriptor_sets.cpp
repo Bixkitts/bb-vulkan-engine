@@ -77,7 +77,6 @@ BBError createDescriptorPool(VulkanDescriptorPool pool,
                                NULL, 
                                &pool->pool) 
     != VK_SUCCESS){
-        fprintf(stderr, "\nfailed to create descriptor pool");
         return BB_ERROR_DESCRIPTOR_POOL;
     }
     return BB_ERROR_OK;

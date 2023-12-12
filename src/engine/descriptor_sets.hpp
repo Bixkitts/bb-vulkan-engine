@@ -21,7 +21,7 @@ enum BBDescriptorSetLayout
     DS_LAYOUT_BITCH_BASIC,
     DS_LAYOUT_BASIC,
     DS_LAYOUT_WHATEVER,
-    DS_LAYOUT_AMOUNT_OF_LAYOUTS /* Keep this at the end of the enum */
+    DS_LAYOUT_COUNT
 };
 
 BBError createDescriptorSetLayout  (VkDescriptorSetLayout *layout, 

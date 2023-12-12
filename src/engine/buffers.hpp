@@ -75,7 +75,7 @@ BBError         createBuffer            (const VkDeviceSize size,
                                          const Device theGPU);
 
 VkCommandBuffer beginSingleTimeCommands (Device theGPU);
-void            endSingleTimeCommands   (VkCommandBuffer commandBuffer, 
+void            endSingleTimeCommands   (VkCommandBuffer *commandBuffer, 
                                          Device theGPU);
 
 void            copyBuffer              (const Device theGPU, 

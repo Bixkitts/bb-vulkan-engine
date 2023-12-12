@@ -91,42 +91,45 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
                               const VkCommandBuffer* buffers, 
                               uint32_t* imageIndex) 
 {
+    VkSubmitInfo         submitInfo         = {};
+    VkSemaphore          waitSemaphores[]   = 
+                         {swapchain->imageAvailableSemaphores[swapchain->currentFrame]};
+    VkPipelineStageFlags waitStages[]       = 
+                         {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
+    VkSwapchainKHR       swapChains[]       = 
+                         {swapchain->swapChain};
+    VkSemaphore          signalSemaphores[] = 
+                         {swapchain->renderFinishedSemaphores[swapchain->currentFrame]};
+    VkPresentInfoKHR     presentInfo        = {};
+    VkResult             result;
 
-    VkSubmitInfo submitInfo = {};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-    VkSemaphore waitSemaphores[] = {swapchain->imageAvailableSemaphores[swapchain->currentFrame]};
-    VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-    submitInfo.waitSemaphoreCount = 1;
-    submitInfo.pWaitSemaphores = waitSemaphores;
-    submitInfo.pWaitDstStageMask = waitStages;
-
-    submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = buffers;
-
-    VkSemaphore signalSemaphores[] = {swapchain->renderFinishedSemaphores[swapchain->currentFrame]};
+    submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.waitSemaphoreCount   = 1;
+    submitInfo.pWaitSemaphores      = waitSemaphores;
+    submitInfo.pWaitDstStageMask    = waitStages;
+    submitInfo.commandBufferCount   = 1;
+    submitInfo.pCommandBuffers      = buffers;
     submitInfo.signalSemaphoreCount = 1;
-    submitInfo.pSignalSemaphores = signalSemaphores;
+    submitInfo.pSignalSemaphores    = signalSemaphores;
 
-    if (vkQueueSubmit(swapchain->device->graphicsQueue_, 1, &submitInfo, swapchain->inFlightFences[swapchain->currentFrame]) !=
-            VK_SUCCESS) 
-    {
+    if (vkQueueSubmit(swapchain->device->graphicsQueue_, 
+                      1, 
+                      &submitInfo, 
+                      swapchain->inFlightFences[swapchain->currentFrame]) 
+        !=VK_SUCCESS){
         throw std::runtime_error("failed to submit draw command buffer!");
     }
 
-    VkPresentInfoKHR presentInfo = {};
-    presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.sType               = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+    presentInfo.waitSemaphoreCount  = 1;
+    presentInfo.pWaitSemaphores     = signalSemaphores;
+    presentInfo.swapchainCount      = 1;
+    presentInfo.pSwapchains         = swapChains;
+    presentInfo.pImageIndices       = imageIndex;
 
-    presentInfo.waitSemaphoreCount = 1;
-    presentInfo.pWaitSemaphores = signalSemaphores;
-
-    VkSwapchainKHR swapChains[] = {swapchain->swapChain};
-    presentInfo.swapchainCount = 1;
-    presentInfo.pSwapchains = swapChains;
-
-    presentInfo.pImageIndices = imageIndex;
-
-    auto result = vkQueuePresentKHR(swapchain->device->presentQueue_, &presentInfo);
+    result = 
+    vkQueuePresentKHR(swapchain->device->presentQueue_, 
+                      &presentInfo);
 
     swapchain->currentFrame = (swapchain->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
 
@@ -135,34 +138,35 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
 
 VkCommandBuffer beginSingleTimeCommands(Device theGPU) 
 {
-    VkCommandBufferAllocateInfo allocInfo = {};
-    allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-    allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool = theGPU->commandPool;
+    VkCommandBufferAllocateInfo allocInfo     = {};
+    VkCommandBuffer             commandBuffer = {};
+    VkCommandBufferBeginInfo    beginInfo     = {};
+
+    allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocInfo.commandPool        = theGPU->commandPool;
     allocInfo.commandBufferCount = 1;
 
-    VkCommandBuffer commandBuffer;
-    vkAllocateCommandBuffers(theGPU->logical, &allocInfo, &commandBuffer);
-  
-    VkCommandBufferBeginInfo beginInfo{};
-    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-  
-    vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    beginInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags              = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+    vkAllocateCommandBuffers (theGPU->logical, &allocInfo, &commandBuffer);
+    vkBeginCommandBuffer     (commandBuffer, &beginInfo);
+
     return commandBuffer;
 }
 
-void endSingleTimeCommands(VkCommandBuffer commandBuffer, Device theGPU) 
+// TODO: This might be broken
+void endSingleTimeCommands(VkCommandBuffer *commandBuffer, Device theGPU) 
 {
-    vkEndCommandBuffer(commandBuffer);
-  
-    VkSubmitInfo submitInfo{};
-    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    VkSubmitInfo submitInfo = {};
+
+    submitInfo.sType              = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.commandBufferCount = 1;
-    submitInfo.pCommandBuffers = &commandBuffer;
-  
-    vkQueueSubmit(theGPU->graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle(theGPU->graphicsQueue_);
-  
-    vkFreeCommandBuffers(theGPU->logical, theGPU->commandPool, 1, &commandBuffer);
+    submitInfo.pCommandBuffers    = commandBuffer;
+
+    vkEndCommandBuffer   (*commandBuffer);
+    vkQueueSubmit        (theGPU->graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle      (theGPU->graphicsQueue_);
+    vkFreeCommandBuffers (theGPU->logical, theGPU->commandPool, 1, commandBuffer);
 }

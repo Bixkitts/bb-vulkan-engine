@@ -1,5 +1,6 @@
 #include "images.hpp"
 #include "error_handling.h"
+#include "command_buffers.hpp"
 
 #define STB_IMAGE_IMPLEMENTATION
 
@@ -228,7 +229,7 @@ BBError transitionImageLayout(VkImage image,
                          0, NULL,
                          1, &barrier);
 
-    endSingleTimeCommands(commandBuffer, device);
+    endSingleTimeCommands(&commandBuffer, device);
     return BB_ERROR_OK;
 }
 

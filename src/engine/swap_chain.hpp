@@ -9,7 +9,7 @@ typedef struct SwapChain_S
 {
     //TODO: stdlib shit
     Device                      device;
-    std::vector<VkFramebuffer>  swapChainFramebuffers;
+    std::vector<VkFramebuffer>  framebuffers;
     VkRenderPass                renderPass;
     std::vector<VkImage>        depthImages;
     std::vector<VkDeviceMemory> depthImageMemorys;
