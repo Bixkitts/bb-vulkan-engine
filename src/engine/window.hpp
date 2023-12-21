@@ -3,7 +3,13 @@
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include "bb-renderer-core.h"
+
+typedef struct BBWindow_T {
+    int width;
+    int height;
+    const char *name;
+    GLFWwindow *window;
+}BBWindow_T, *BBWindow;
 
 void           closeWindow         (BBWindow window);
 void           createWindowSurface (BBWindow window, 

@@ -10,8 +10,6 @@
 
 #include "vertex.hpp"
 #include "model.hpp"
-#include "error_handling.h"
-#include "swap_chain.hpp"
 
 //TODO: GLM shit
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area

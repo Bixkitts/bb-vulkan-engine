@@ -25,7 +25,7 @@ typedef struct Device_S
     VkInstance                  instance;
     VkDebugUtilsMessengerEXT    debugMessenger;
     VkPhysicalDevice            physical = VK_NULL_HANDLE;
-    BBWindow                   *window;
+    BBWindow                    window;
     VkCommandPool               commandPool;
     VkPhysicalDeviceProperties  physicalProperties;
 
@@ -41,7 +41,7 @@ const bool enableValidationLayers = false;
 const bool enableValidationLayers = true;
 #endif
 // Interface:
-BBError deviceInit    (Device *device, BBWindow *deviceWindow);
+BBError deviceInit    (Device *device, BBWindow deviceWindow);
 void    destroyDevice (Device device); 
 
 // Sub-routines:

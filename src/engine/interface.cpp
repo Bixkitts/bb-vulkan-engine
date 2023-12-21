@@ -1,7 +1,8 @@
-#include "bb-renderer-core.h"
 #include "command_buffers.hpp"
+#include "interface.hpp"
 #include "draw_frame.hpp"
 #include "transform.hpp"
+#include "window.hpp"
 
 // Logical and physical device that everything needs access to.
 static Device                device = NULL;
@@ -23,11 +24,11 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI BBError createEntity(BBEntity *entity, 
-                           const char *model, 
-                           const char *textureDir, 
-                           const char *vertShader, 
-                           const char *fragShader)
+BBAPI int createEntity(BBEntity *entity, 
+                       const char *model, 
+                       const char *textureDir, 
+                       const char *vertShader, 
+                       const char *fragShader)
 {
     BBDescriptorSetLayout dsLayout       = DS_LAYOUT_BITCH_BASIC;
     VkDescriptorSetArray  descriptorSets = NULL;
@@ -89,7 +90,7 @@ BBAPI BBError createEntity(BBEntity *entity,
                             vertShader, 
                             fragShader, 
                             pipelineConfig);
-    return BB_ERROR_OK;
+    return 0;
 }
 
 BBAPI void rotateEntity(BBEntity *entity, BBAxis axis)
@@ -103,25 +104,26 @@ BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
 
 }
 
-BBAPI void initializeGFX(BBWindow *mainWindow)
+BBAPI int initializeGFX(const BBWindow mainWindow)
 {
     deviceInit           (&device, mainWindow);
     createSwapChain      (&swapchain, device, getExtent(mainWindow));
     createDescriptorPool (descriptorPool, device);
+    return 0;
 }
 
-BBAPI void runAppWithWindow(BBWindow* mainWindow)
+BBAPI void runAppWithWindow(BBWindow mainWindow)
 {
     // TODO: do I make this global or smthn
     VkCommandBufferArray primaryCommandBuffers = NULL;
     BBEntity             entity0               = NULL;
-    char                 model[]               = "whatever";
-    char                 texture[]             = "../textures/CADE.png";
-    char                 vertShader[]          = "../shaders/simple_shader.vert.spv";
-    char                 fragShader[]          = "../shaders/simple_shader.frag.spv";
+    const char           model[]               = "whatever";
+    const char           texture[]             = "../textures/CADE.png";
+    const char           vertShader[]          = "../shaders/simple_shader.vert.spv";
+    const char           fragShader[]          = "../shaders/simple_shader.frag.spv";
 
     initializeGFX               (mainWindow);
-    createEntity                (entity0, model, texture, vertShader, fragShader);
+    createEntity                (&entity0, model, texture, vertShader, fragShader);
     createPrimaryCommandBuffers (&primaryCommandBuffers, device);
     #ifdef DEBUG
     std::cout<<"\n -------This is a Debug build!-------\n";

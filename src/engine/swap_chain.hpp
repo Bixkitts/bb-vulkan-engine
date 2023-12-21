@@ -5,7 +5,7 @@
 #include <vulkan/vulkan.h>
 #include "device.hpp"
 
-typedef struct SwapChain_S
+typedef struct SwapChain_T
 {
     //TODO: stdlib shit
     Device                      device;

@@ -8,7 +8,7 @@
 #include "pipeline.hpp"
 #include <vulkan/vulkan_core.h>
 
-typedef struct BBEntity_S
+typedef struct BBEntity_T
 {
     Device                 device;       
     Model                 *model;

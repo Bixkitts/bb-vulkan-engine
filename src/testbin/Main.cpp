@@ -5,7 +5,9 @@
 int main()
 {
     try{
-        runAppWithWindow(openWindow(1024, 768, "BveWindow"));
+        BBWindow window = NULL;
+        openWindow       (&window, 1024, 768, "BveWindow");
+        runAppWithWindow (window);
     }
     catch (const std::exception &e){
         std::cerr << e.what() << '\n';

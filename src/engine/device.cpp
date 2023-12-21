@@ -50,7 +50,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 }
 // end of local callback functions
 
-BBError deviceInit(Device *device, BBWindow* deviceWindow) 
+BBError deviceInit(Device *device, BBWindow deviceWindow) 
 {
     // TODO: MALLOC without free()
     *device = (Device)calloc(1, sizeof(Device_S));

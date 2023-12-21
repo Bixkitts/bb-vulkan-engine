@@ -1,5 +1,6 @@
 #include "config_buffers.hpp"
 #include "buffers.hpp"
+#include "defines.hpp"
 
 BBError createVertexBuffer(VertexBuffer *vBuffer, 
                            const Device device, 
@@ -7,7 +8,7 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
 {
     VkDeviceSize    bufferSize  = sizeof(Vertex) * model->vertexCount;
     StagingBuffer_T sBuffer     = {};
-    VertexBuffer   vBuffer_ref = *vBuffer;
+    VertexBuffer    vBuffer_ref = *vBuffer;
     sBuffer.device = device;
     // TODO:
     // assert(model->vertexCount >= 3 && "Vertex count must be at least 3");

@@ -1,29 +1,27 @@
 #include "window.hpp"
+#include "defines.hpp"
 #include "GLFW/glfw3.h"
 
 #include <stdexcept>
-typedef struct BBWindow_T {
-    int width;
-    int height;
-    const char *name;
-    GLFWwindow *window;
-}BBWindow_T;
 
-BBWindow openWindow(int width, int height, const char *windowName)
+
+BBAPI int openWindow(BBWindow *window, const int width, const int height, const char *windowName)
 {
-    GLFWwindow* window     = glfwCreateWindow(width, height, windowName, NULL, NULL);
-    BBWindow    mainWindow = (BBWindow)malloc(sizeof(BBWindow_T));
+    // TODO: check failure
+    GLFWwindow *GLwindow = glfwCreateWindow(width, height, windowName, NULL, NULL);
 
-    glfwInit();
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+    *window = (BBWindow)malloc(sizeof(BBWindow_T));
 
-    mainWindow->width   = width;
-    mainWindow->height  = height;
-    mainWindow->name    = windowName;
-    mainWindow->window  = window;
+    glfwInit       ();
+    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
 
-    return mainWindow;
+    (*window)->width   = width;
+    (*window)->height  = height;
+    (*window)->name    = windowName;
+    (*window)->window  = GLwindow;
+
+    return 0;
 }
 
 void closeWindow(BBWindow window)

@@ -6,6 +6,7 @@
 
 #include "swap_chain.hpp"
 #include "buffers.hpp"
+#include "defines.hpp"
 
 static void initSwapChain             (SwapChain swapchain);
 static void createSwapchainImageViews (SwapChain swapchain);
@@ -19,7 +20,7 @@ BBError createSwapChain(SwapChain *swapchain,
                         const VkExtent2D extent)
 {
     //TODO: MALLOC without free()
-    *swapchain           = (SwapChain)calloc(1,sizeof(SwapChain_S));
+    *swapchain           = (SwapChain)calloc(1,sizeof(SwapChain_T));
     if (*swapchain == NULL){
         return BB_ERROR_MEM;
     }
@@ -115,13 +116,16 @@ VkResult acquireNextImage(SwapChain swapchain, uint32_t* imageIndex)
 static void initSwapChain(SwapChain swapchain) 
 {
     SwapChainSupportDetails swapChainSupport = 
-    querySwapChainSupport(swapchain->device->physical, swapchain->device);
-    VkSurfaceFormatKHR surfaceFormat         = 
-    chooseSwapSurfaceFormat(swapChainSupport.formats);
-    VkPresentModeKHR presentMode             = 
-    chooseSwapPresentMode(swapChainSupport.presentModes);
-    VkExtent2D extent                        = 
-    chooseSwapExtent(swapchain, swapChainSupport.capabilities);
+    querySwapChainSupport   (swapchain->device->physical, swapchain->device);
+
+    VkSurfaceFormatKHR      surfaceFormat    = 
+    chooseSwapSurfaceFormat (swapChainSupport.formats);
+
+    VkPresentModeKHR        presentMode      = 
+    chooseSwapPresentMode   (swapChainSupport.presentModes);
+
+    VkExtent2D              extent           = 
+    chooseSwapExtent        (swapchain, swapChainSupport.capabilities);
 
     uint32_t imageCount = swapChainSupport.capabilities.minImageCount + 1;
     if (swapChainSupport.capabilities.maxImageCount > 0 &&
@@ -133,7 +137,6 @@ static void initSwapChain(SwapChain swapchain)
 
     createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface          = swapchain->device->surface_;
-
     createInfo.minImageCount    = imageCount;
     createInfo.imageFormat      = surfaceFormat.format;
     createInfo.imageColorSpace  = surfaceFormat.colorSpace;
@@ -170,8 +173,6 @@ static void initSwapChain(SwapChain swapchain)
     if (vkCreateSwapchainKHR(swapchain->device->logical, &createInfo, nullptr, &swapchain->swapChain) != VK_SUCCESS){
         throw std::runtime_error("failed to create swap chain!");
     }
-    delete[] createInfo.pQueueFamilyIndices;
-
     // we only specified a minimum number of images in the swap chain, so the implementation is
     // allowed to create a swap chain with more. That's why we'll first query the final number of
     // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
@@ -431,7 +432,7 @@ VkPresentModeKHR chooseSwapPresentMode(const std::vector<VkPresentModeKHR> &avai
     return VK_PRESENT_MODE_FIFO_KHR;
 }
 
-VkExtent2D chooseSwapExtent(SwapChain swapchain, const VkSurfaceCapabilitiesKHR &capabilities) 
+VkExtent2D chooseSwapExtent(SwapChain swapchain, const VkSurfaceCapabilitiesKHR capabilities) 
 {
     if (capabilities.currentExtent.width != std::numeric_limits<uint32_t>::max()) 
     {
