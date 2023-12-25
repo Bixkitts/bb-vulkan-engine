@@ -3,26 +3,25 @@
 #include "device.hpp"
 #include "config_device.hpp"
 
-VkApplicationInfo createAppInfo()
+void createAppInfo(VkApplicationInfo *appInfo)
 {
-    VkApplicationInfo appInfo = {};
-    appInfo.sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName   = "VulkanEngine App";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName        = "No Engine";
-    appInfo.engineVersion      = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion         = VK_API_VERSION_1_0;
-    return appInfo;
+    *appInfo                    = {};
+    appInfo->sType              = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+    appInfo->pApplicationName   = "VulkanEngine App";
+    appInfo->applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+    appInfo->pEngineName        = "No Engine";
+    appInfo->engineVersion      = VK_MAKE_VERSION(1, 0, 0);
+    appInfo->apiVersion         = VK_API_VERSION_1_0;
 }
-VkInstanceCreateInfo instanceCreateInfo(VkApplicationInfo appInfo, 
-                                        std::vector<const char*> extensions)
+void createInstanceCreateInfo(VkInstanceCreateInfo *createInfo,
+                              const VkApplicationInfo *appInfo, 
+                              const GLExtensions *extensions)
 {
-    VkInstanceCreateInfo createInfo = {};
-    createInfo.sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo        = &appInfo;
-    createInfo.enabledExtensionCount   = static_cast<uint32_t>(extensions.size());
-    createInfo.ppEnabledExtensionNames = extensions.data();
-    return createInfo;
+    *createInfo                         = {};
+    createInfo->sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+    createInfo->pApplicationInfo        = appInfo;
+    createInfo->enabledExtensionCount   = extensions->count;
+    createInfo->ppEnabledExtensionNames = extensions->extensions;
 }
 VkDeviceQueueCreateInfo createQueueCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
                                               uint32_t queueFamily, 
@@ -46,16 +45,16 @@ VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices queueFamilyIndices)
     | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     return poolInfo;
 }
-VkDeviceCreateInfo logicalCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
-                                     VkPhysicalDeviceFeatures deviceFeatures, 
-                                     const std::vector<const char *> deviceExtensions)
+VkDeviceCreateInfo createDeviceCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+                                                 VkPhysicalDeviceFeatures &deviceFeatures, 
+                                                 GLExtensions *deviceExtensions)
 {
     VkDeviceCreateInfo createInfo = {};
     createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
     createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
     createInfo.pQueueCreateInfos       = queueCreateInfos.data();
     createInfo.pEnabledFeatures        = &deviceFeatures;
-    createInfo.enabledExtensionCount   = static_cast<uint32_t>(deviceExtensions.size());
-    createInfo.ppEnabledExtensionNames = deviceExtensions.data();
+    createInfo.enabledExtensionCount   = deviceExtensions->count;
+    createInfo.ppEnabledExtensionNames = deviceExtensions->extensions;
     return createInfo;
 }

@@ -53,7 +53,7 @@ void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 BBError deviceInit(Device *device, BBWindow deviceWindow) 
 {
     // TODO: MALLOC without free()
-    *device = (Device)calloc(1, sizeof(Device_S));
+    *device = (Device)calloc(1, sizeof(Device_T));
     if(*device == NULL){
         return BB_ERROR_MEM;
     }
@@ -96,11 +96,14 @@ static void createInstance(Device theGPU)
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo    appInfo    = createAppInfo();
-    auto                 extensions = getRequiredExtensions();
-    VkInstanceCreateInfo createInfo = instanceCreateInfo(appInfo, extensions);
-
+    VkApplicationInfo                  appInfo;
+    VkInstanceCreateInfo               createInfo;
+    GLExtensions                       requiredExtensions;
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+
+    createAppInfo            (&appInfo);
+    getRequiredExtensions    (&requiredExtensions);
+    createInstanceCreateInfo (&createInfo, &appInfo, &requiredExtensions);
 
     if (enableValidationLayers){
         createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
@@ -169,7 +172,7 @@ static void createLogicalDevice(Device theGPU)
                                                 queuePriority);
     }
     deviceFeatures.samplerAnisotropy = VK_TRUE;
-    createInfo                       = logicalCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
+    createInfo                       = createDeviceCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers) {
@@ -278,42 +281,54 @@ bool checkValidationLayerSupport()
   return true;
 }
 
-std::vector<const char* > getRequiredExtensions()  
+BBError getRequiredExtensions(GLExtensions *extensions)  
 {
-    uint32_t glfwExtensionCount = 0;
-    const char* *glfwExtensions;
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-  
-    std::vector<const char* > extensions(glfwExtensions, glfwExtensions + glfwExtensionCount);
-  
-    if (enableValidationLayers) {
-        extensions.push_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
+    // TODO: Fuck all of this, get rid of GLFW.
+    //---------------------------------------------
+    const int    headroom = 20; // How much extra memory we want to allocate off the end of the buffer
+                                // in case we want to manually insert extensions :/
+    const char **temp     = glfwGetRequiredInstanceExtensions(&extensions->count);
+    // TODO: MALLOC without free
+    const char **temp2    = (const char**)calloc(extensions->count+headroom, sizeof(VkExtensionProperties));
+    if (temp2 == NULL) {
+        return BB_ERROR_MEM;
     }
-  
-    return extensions;
-}
+    for (int i = 0; i < extensions->count; i++){
+        temp2[i] = temp[i];
+    }
+    free(temp);
+    extensions->extensions = temp2;
+    if (enableValidationLayers) {
+        extensions->extensions[extensions->count+1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+        extensions->count++;
+    }
+    return(BB_ERROR_OK);
+}  
 
-void hasGflwRequiredInstanceExtensions() 
+void hasGflwRequiredInstanceExtensions(void) 
 {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> extensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
+    // TODO: watch out for stack overflow
+    VkExtensionProperties availableExtensions[extensionCount];
+    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, availableExtensions);
   
+    // TODO: stdlib shit
     std::cout << "available extensions:" << std::endl;
     std::unordered_set<std::string> available;
-    for (const auto &extension : extensions) 
+    for (int i = 0; i < extensionCount; i++) 
     {
-        std::cout << "\t" << extension.extensionName << std::endl;
-        available.insert(extension.extensionName);
+        std::cout << "\t" << availableExtensions[i].extensionName << std::endl;
+        available.insert(availableExtensions[i].extensionName);
     }
   
     std::cout << "required extensions:" << std::endl;
-    auto requiredExtensions = getRequiredExtensions();
-    for (const auto &required : requiredExtensions)  
+    GLExtensions requiredExtensions;
+    getRequiredExtensions(&requiredExtensions);
+    for (int i = 0; i < requiredExtensions.count; i++)  
     {
-        std::cout << "\t" << required << std::endl;
-        if (available.find(required) == available.end()) {
+        std::cout << "\t" << requiredExtensions.extensions[i] << std::endl;
+        if (available.find(requiredExtensions.extensions[i]) == available.end()) {
             throw std::runtime_error("Missing required glfw extension");
         }
     }
@@ -323,13 +338,11 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device)
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
-  
     std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-    vkEnumerateDeviceExtensionProperties(
-        device,
-        nullptr,
-        &extensionCount,
-        availableExtensions.data());
+    vkEnumerateDeviceExtensionProperties(device,
+                                         nullptr,
+                                         &extensionCount,
+                                         availableExtensions.data());
   
     std::set<std::string> requiredExtensions(deviceExtensions.begin(), deviceExtensions.end());
   
@@ -355,13 +368,13 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device theGPU)
     for (const auto &queueFamily : queueFamilies)
     {
         if (queueFamily.queueCount > 0 && queueFamily.queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-            indices.graphicsFamily = i;
+            indices.graphicsFamily         = i;
             indices.graphicsFamilyHasValue = true;
         }
         VkBool32 presentSupport = false;
         vkGetPhysicalDeviceSurfaceSupportKHR(device, i, theGPU->surface_, &presentSupport);
         if (queueFamily.queueCount > 0 && presentSupport) {
-            indices.presentFamily = i;
+            indices.presentFamily         = i;
             indices.presentFamilyHasValue = true;
         }
         if (indices.isComplete()) {
@@ -403,11 +416,10 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device th
     return details;
 }
 
-VkFormat findSupportedFormat(
-    const std::vector<VkFormat> &candidates, 
-    VkImageTiling tiling, 
-    VkFormatFeatureFlags features,
-    Device theGPU) 
+VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, 
+                             VkImageTiling tiling, 
+                             VkFormatFeatureFlags features,
+                             Device theGPU) 
 {
     for (VkFormat format : candidates) 
     {

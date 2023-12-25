@@ -1,8 +1,8 @@
 #include "images.hpp"
 #include "error_handling.h"
 #include "command_buffers.hpp"
-
 #define STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
 
 // TODO: too many params
 static BBError createImage (const uint32_t width, 
@@ -20,8 +20,8 @@ static BBError createImage (const uint32_t width,
 // Currently allocates on load and delete, I need
 // to get my memory management together!
 BBError createTextureImage (VulkanImage *image, 
-                            char *dir, 
-                            Device device)
+                            const char *dir, 
+                            const Device device)
 {
     void           *data                  = NULL;
     BBError         er                    = BB_ERROR_UNKNOWN;

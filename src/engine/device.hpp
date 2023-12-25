@@ -6,21 +6,24 @@
 #include "error_handling.h"
 #include "window.hpp"
 
-struct SwapChainSupportDetails {
+typedef struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR        capabilities;
     std::vector<VkSurfaceFormatKHR> formats;
     std::vector<VkPresentModeKHR>   presentModes;
-};
+}SwapChainSupportDetails;
 // TODO: CPP shit
-struct QueueFamilyIndices {
+typedef struct QueueFamilyIndices {
     uint32_t graphicsFamily;
     uint32_t presentFamily;
     bool     graphicsFamilyHasValue = false;
     bool     presentFamilyHasValue = false;
     bool     isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
-};
-// TODO: CPP shit
-typedef struct Device_S
+}QueueFamilyIndices;
+typedef struct GLExtensions {
+    const char **extensions;
+    uint32_t count;
+} GLExtensions;
+typedef struct Device_T
 {
     VkInstance                  instance;
     VkDebugUtilsMessengerEXT    debugMessenger;
@@ -63,7 +66,7 @@ uint32_t                  findMemoryType                    (uint32_t typeFilter
                                                              Device theGPU);
 void                      populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 void                      hasGflwRequiredInstanceExtensions ();
-std::vector<const char *> getRequiredExtensions             ();
+BBError                   getRequiredExtensions             (GLExtensions *extensions);
 QueueFamilyIndices        findQueueFamilies                 (VkPhysicalDevice device, 
                                                              Device theGPU);
 SwapChainSupportDetails   querySwapChainSupport             (VkPhysicalDevice physicalDevice, 

@@ -55,7 +55,8 @@ BBError createIndexBuffer(IndexBuffer *iBuffer,
                             sbuffer.buffer,
                             sbuffer.deviceMemory,
                             sbuffer.device);
-    copyIndecesToDeviceMem (&sbuffer, model->indeces, 
+    copyIndecesToDeviceMem (&sbuffer, 
+                            model->indeces, 
                             model->indexCount);
     
     // TODO: MALLOC without free
@@ -178,10 +179,10 @@ void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCou
                    sb->deviceMemory);
 }
 
-void copyIndecesToDeviceMem(StagingBuffer sb, std::vector<uint32_t> &indeces)
+void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexCount)
 {
-    uint32_t  size = indeces.size() * sizeof(indeces[0]);
-    void     *data;
+    size_t    size = indexCount * sizeof(indeces[0]);
+    void     *data = NULL;
     vkMapMemory   (sb->device->logical, 
                    sb->deviceMemory, 
                    0, 
@@ -189,8 +190,8 @@ void copyIndecesToDeviceMem(StagingBuffer sb, std::vector<uint32_t> &indeces)
                    0, 
                    &data);
     memcpy        (data, 
-                   indeces.data(), 
-                   static_cast<size_t>(size));
+                   indeces, 
+                   size);
     vkUnmapMemory (sb->device->logical, 
                    sb->deviceMemory);
 }

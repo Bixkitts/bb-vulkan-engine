@@ -3,14 +3,13 @@
 
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_core.h>
-#include <stb_image.h>
 
 #include "defines.hpp"
 #include "device.hpp"
 #include "error_handling.h"
 #include "defines.hpp"
 
-typedef struct VulkanImage_S
+typedef struct VulkanImage_T
 {
     Device         device;
     VkFormat       format;

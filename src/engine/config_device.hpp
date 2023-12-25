@@ -7,15 +7,16 @@
 #include "device.hpp"
 
 // TODO: return types
-VkApplicationInfo           createAppInfo                ();
-VkCommandPoolCreateInfo     poolCreateInfo         (QueueFamilyIndices queueFamilyIndices);
-VkCommandBufferAllocateInfo commandBufferAllocInfo (Device theGPU);
-VkDeviceQueueCreateInfo     createQueueCreateInfo  (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
-                                                    uint32_t queueFamily, 
-                                                    float queuePriority );
-VkInstanceCreateInfo        instanceCreateInfo     (VkApplicationInfo appInfo, 
-                                                    std::vector<const char*> extensions);
-VkDeviceCreateInfo          logicalCreateInfo      (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
-                                                    VkPhysicalDeviceFeatures deviceFeatures, 
-                                                    const std::vector<const char *> deviceExtensions );
+void                        createAppInfo            (VkApplicationInfo *appInfo);
+VkCommandPoolCreateInfo     poolCreateInfo           (QueueFamilyIndices queueFamilyIndices);
+VkCommandBufferAllocateInfo commandBufferAllocInfo   (Device theGPU);
+VkDeviceQueueCreateInfo     createQueueCreateInfo    (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+                                                      uint32_t queueFamily, 
+                                                      float queuePriority );
+void                        createInstanceCreateInfo (VkInstanceCreateInfo *createInfo,
+                                                      const VkApplicationInfo *appInfo, 
+                                                      const GLExtensions *extensions);
+VkDeviceCreateInfo          createDeviceCreateInfo   (std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
+                                                      VkPhysicalDeviceFeatures deviceFeatures, 
+                                                      const std::vector<const char *> deviceExtensions );
 #endif
