@@ -1,12 +1,12 @@
 #ifndef DEVICE
 #define DEVICE
 
-#include <vector>
 #include <vulkan/vulkan_core.h>
 
 #include "error_handling.h"
 #include "defines.hpp"
 #include "window.hpp"
+#include <vector>
 
 typedef struct SwapChainSupportDetails {
     VkSurfaceCapabilitiesKHR        capabilities;
@@ -25,12 +25,12 @@ typedef struct QueueFamilyIndices {
 
 typedef struct VkDeviceQueueCreateInfoArray{
     VkDeviceQueueCreateInfo createInfos[QUEUES_MAX];
-    uint32_t queueCount;
+    uint32_t                queueCount;
 }VkDeviceQueueCreateInfoArray;
 
 typedef struct VulkanExtensions {
     const char **extensions;
-    uint32_t count;
+    uint32_t     count;
 } VulkanExtensions;
 
 typedef struct Device_T {
@@ -47,45 +47,23 @@ typedef struct Device_T {
     VkQueue                     presentQueue_;
 }Device_T, *Device;
 
+BBError                 deviceInit            (Device *device, BBWindow deviceWindow);
+void                    destroyDevice         (Device *device); 
+uint32_t                findMemoryType        (const uint32_t typeFilter, 
+                                               const VkMemoryPropertyFlags properties, 
+                                               const Device theGPU);
+SwapChainSupportDetails querySwapChainSupport (const VkPhysicalDevice physicalDevice, 
+                                               const Device theGPU);
+QueueFamilyIndices      findQueueFamilies     (const VkPhysicalDevice device, 
+                                               const Device theGPU);
+VkFormat                findSupportedFormat   (const std::vector<VkFormat> &candidates, 
+                                               const VkImageTiling tiling, 
+                                               const VkFormatFeatureFlags features,
+                                               const Device theGPU);
 #ifdef NDEBUG
 const bool enableValidationLayers = false;
 #else
 const bool enableValidationLayers = true;
 #endif
-// Interface:
-BBError deviceInit    (Device *device, BBWindow deviceWindow);
-void    destroyDevice (Device device); 
-
-// Sub-routines:
-static void                    createInstance                    (Device theGPU);
-static void                    setupDebugMessenger               (Device theGPU);
-static void                    createSurface                     (Device theGPU);
-static void                    pickPhysicalDevice                (Device theGPU);
-static void                    createLogicalDevice               (Device theGPU);
-static void                    createCommandPool                 (Device theGPU);
-
-static SwapChainSupportDetails querySwapChainSupport             (const VkPhysicalDevice physicalDevice, 
-                                                                  const Device theGPU);
-static QueueFamilyIndices      findQueueFamilies                 (const VkPhysicalDevice physicalDevice, 
-                                                                  const Device theGPU);
-static bool                    isDeviceSuitable                  (const VkPhysicalDevice device, 
-                                                                  const Device theGPU);
-static bool                    checkDeviceExtensionSupport       (VkPhysicalDevice device);
-static bool                    checkValidationLayerSupport       ();
-static uint32_t                findMemoryType                    (uint32_t typeFilter, 
-                                                                  VkMemoryPropertyFlags properties, 
-                                                                  Device theGPU);
-static void                    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-static void                    hasGflwRequiredInstanceExtensions ();
-static BBError                 getRequiredInstanceExtensions     (VulkanExtensions *extensions);
-static QueueFamilyIndices      findQueueFamilies                 (const VkPhysicalDevice device, 
-                                                                  const Device theGPU);
-static VkFormat                findSupportedFormat               (const std::vector<VkFormat> &candidates, 
-                                                                  const VkImageTiling tiling, 
-                                                                  const VkFormatFeatureFlags features,
-                                                                  const Device theGPU);
-// TODO: some global variables??? std::vectors??? fix this maybe.
-const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-extern VulkanExtensions deviceExtensions;
 
 #endif

@@ -10,7 +10,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/interface.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/device.cpp           
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/swap_chain.cpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/draw_frame.cpp       
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_device.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/cleanup.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/fileIO.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
