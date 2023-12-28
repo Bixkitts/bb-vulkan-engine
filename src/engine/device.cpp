@@ -20,10 +20,10 @@ debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity,
     return VK_FALSE;
 }
 
-VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
-                                      const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
-                                      const VkAllocationCallbacks* pAllocator,
-                                      VkDebugUtilsMessengerEXT* pDebugMessenger) 
+static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
+                                             const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo,
+                                             const VkAllocationCallbacks* pAllocator,
+                                             VkDebugUtilsMessengerEXT* pDebugMessenger) 
 {
     // TODO: C++ gibberish
     auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
@@ -37,9 +37,9 @@ VkResult CreateDebugUtilsMessengerEXT(VkInstance instance,
     }
 }
 
-void DestroyDebugUtilsMessengerEXT(VkInstance instance,
-                                   VkDebugUtilsMessengerEXT debugMessenger,
-                                   const VkAllocationCallbacks* pAllocator) 
+static void DestroyDebugUtilsMessengerEXT(VkInstance instance,
+                                          VkDebugUtilsMessengerEXT debugMessenger,
+                                          const VkAllocationCallbacks* pAllocator) 
 {
     auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(
         instance,
@@ -98,12 +98,14 @@ static void createInstance(Device theGPU)
 
     VkApplicationInfo                  appInfo;
     VkInstanceCreateInfo               createInfo;
-    GLExtensions                       requiredExtensions;
+    VulkanExtensions                   requiredExtensions;
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
 
-    createAppInfo            (&appInfo);
-    getRequiredExtensions    (&requiredExtensions);
-    createInstanceCreateInfo (&createInfo, &appInfo, &requiredExtensions);
+    createAppInfo                 (&appInfo);
+    getRequiredInstanceExtensions (&requiredExtensions);
+    createInstanceCreateInfo      (&createInfo, 
+                                   &appInfo, 
+                                   &requiredExtensions);
 
     if (enableValidationLayers){
         createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
@@ -156,31 +158,32 @@ static void pickPhysicalDevice(Device theGPU)
 
 static void createLogicalDevice(Device theGPU) 
 {
-    QueueFamilyIndices        indices             = findQueueFamilies(theGPU->physical, 
-                                                                      theGPU);
-    VkDeviceCreateInfo        createInfo;
-    std::vector
-    <VkDeviceQueueCreateInfo> queueCreateInfos;
-    std::set<uint32_t>        uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
-    float                     queuePriority       = 1.0f;
-    VkPhysicalDeviceFeatures  deviceFeatures      = {};
-    VkDeviceQueueCreateInfo   queueCreateInfo;
+    QueueFamilyIndices           indices             = findQueueFamilies(theGPU->physical, 
+                                                                         theGPU);
+    VkDeviceCreateInfo           createInfo;
+    VkDeviceQueueCreateInfoArray queueCreateInfos;
+    std::set<uint32_t>           uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
+    float                        queuePriority       = 1.0f;
+    VkDeviceQueueCreateInfo      queueCreateInfo;
+    VkPhysicalDeviceFeatures     deviceFeatures      = {};
+
+    deviceFeatures.samplerAnisotropy = VK_TRUE;
   
     for (uint32_t queueFamily : uniqueQueueFamilies){
-        queueCreateInfo = createQueueCreateInfo(queueCreateInfos, 
-                                                queueFamily, 
-                                                queuePriority);
+        createQueueCreateInfo(&queueCreateInfos, 
+                              queueFamily, 
+                              &queuePriority);
     }
-    deviceFeatures.samplerAnisotropy = VK_TRUE;
-    createInfo                       = createDeviceCreateInfo(queueCreateInfos, deviceFeatures, deviceExtensions);
+    createDeviceCreateInfo(&createInfo, &queueCreateInfos, &deviceFeatures, &deviceExtensions);
+
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers) {
-        createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+        createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
     } 
     else{
-        createInfo.enabledLayerCount = 0;
+        createInfo.enabledLayerCount   = 0;
     }
  
     if (vkCreateDevice(theGPU->physical, 
@@ -197,62 +200,70 @@ static void createLogicalDevice(Device theGPU)
 
 static void createCommandPool(Device theGPU) 
 {
-    QueueFamilyIndices queueFamilyIndices = findQueueFamilies(theGPU->physical, theGPU);
-  
-    VkCommandPoolCreateInfo poolInfo = poolCreateInfo(queueFamilyIndices);
+    QueueFamilyIndices      queueFamilyIndices = findQueueFamilies           (theGPU->physical, theGPU);
+    VkCommandPoolCreateInfo poolInfo           = createCommandPoolCreateInfo (queueFamilyIndices);
 
-    if (vkCreateCommandPool(theGPU->logical, &poolInfo, nullptr, &theGPU->commandPool) != VK_SUCCESS) 
-    {
+    if (vkCreateCommandPool(theGPU->logical, 
+                            &poolInfo, 
+                            NULL, 
+                            &theGPU->commandPool) 
+        != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
 }
 
-bool isDeviceSuitable(VkPhysicalDevice device, Device theGPU) 
+static bool isDeviceSuitable(const VkPhysicalDevice device, const Device theGPU) 
 {
-    QueueFamilyIndices indices = findQueueFamilies(device, theGPU);
-  
+    QueueFamilyIndices       indices            = findQueueFamilies(device, theGPU);
+    VkPhysicalDeviceFeatures supportedFeatures  = {};
+    SwapChainSupportDetails  swapChainSupport   = {};
+
     bool extensionsSupported = checkDeviceExtensionSupport(device);
-  
-    bool swapChainAdequate = false;
-    if (extensionsSupported) 
-    {
-        SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device, theGPU);
-        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    bool swapChainAdequate   = false;
+
+    if (extensionsSupported) {
+        swapChainSupport  = querySwapChainSupport(device, theGPU);
+        swapChainAdequate = !swapChainSupport.formats.empty() 
+                            && !swapChainSupport.presentModes.empty();
     }
-  
-    VkPhysicalDeviceFeatures supportedFeatures;
     vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-  
-    return indices.isComplete() && extensionsSupported && swapChainAdequate &&
-        supportedFeatures.samplerAnisotropy;
+    return indices.isComplete() 
+           && extensionsSupported 
+           && swapChainAdequate 
+           && supportedFeatures.samplerAnisotropy;
 }
 
-void populateDebugMessengerCreateInfo(
-    VkDebugUtilsMessengerCreateInfoEXT &createInfo) 
+static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) 
 {
     createInfo = {};
-    createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+
+    createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
     createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
                                  VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                             VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
     createInfo.pfnUserCallback = debugCallback;
-    createInfo.pUserData = nullptr;  // Optional
+    createInfo.pUserData       = NULL;  // Optional
 }
 
 static void setupDebugMessenger(Device theGPU)
 {
-    if (!enableValidationLayers) return;
+    if (!enableValidationLayers){
+        return;
+    }
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
-    if (CreateDebugUtilsMessengerEXT(theGPU->instance, &createInfo, nullptr, &theGPU->debugMessenger) != VK_SUCCESS) 
-    {
+    if (CreateDebugUtilsMessengerEXT(theGPU->instance, 
+                                     &createInfo, 
+                                     nullptr, 
+                                     &theGPU->debugMessenger) 
+        != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
 }
 
-bool checkValidationLayerSupport() 
+static bool checkValidationLayerSupport() 
 {
     uint32_t layerCount;
     vkEnumerateInstanceLayerProperties(&layerCount, nullptr);
@@ -260,20 +271,16 @@ bool checkValidationLayerSupport()
     std::vector<VkLayerProperties> availableLayers(layerCount);
     vkEnumerateInstanceLayerProperties(&layerCount, availableLayers.data());
 
-    for (const char* layerName : validationLayers) 
-    {
+    for (const char* layerName : validationLayers) {
         bool layerFound = false;
 
         for (const auto &layerProperties : availableLayers) {
-            if (strcmp(layerName, layerProperties.layerName) == 0) 
-            {
+            if (strcmp(layerName, layerProperties.layerName) == 0) {
                 layerFound = true;
                 break;
             }
     }
-
-    if (!layerFound) 
-    {
+    if (!layerFound) {
         return false;
     }
   }
@@ -281,7 +288,7 @@ bool checkValidationLayerSupport()
   return true;
 }
 
-BBError getRequiredExtensions(GLExtensions *extensions)  
+static BBError getRequiredInstanceExtensions(VulkanExtensions *extensions)  
 {
     // TODO: Fuck all of this, get rid of GLFW.
     //---------------------------------------------
@@ -302,10 +309,10 @@ BBError getRequiredExtensions(GLExtensions *extensions)
         extensions->extensions[extensions->count+1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
         extensions->count++;
     }
-    return(BB_ERROR_OK);
+    return BB_ERROR_OK;
 }  
 
-void hasGflwRequiredInstanceExtensions(void) 
+static void hasGflwRequiredInstanceExtensions(void) 
 {
     uint32_t extensionCount = 0;
     vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
@@ -316,15 +323,14 @@ void hasGflwRequiredInstanceExtensions(void)
     // TODO: stdlib shit
     std::cout << "available extensions:" << std::endl;
     std::unordered_set<std::string> available;
-    for (int i = 0; i < extensionCount; i++) 
-    {
+    for (int i = 0; i < extensionCount; i++) {
         std::cout << "\t" << availableExtensions[i].extensionName << std::endl;
         available.insert(availableExtensions[i].extensionName);
     }
   
     std::cout << "required extensions:" << std::endl;
-    GLExtensions requiredExtensions;
-    getRequiredExtensions(&requiredExtensions);
+    VulkanExtensions requiredExtensions;
+    getRequiredInstanceExtensions(&requiredExtensions);
     for (int i = 0; i < requiredExtensions.count; i++)  
     {
         std::cout << "\t" << requiredExtensions.extensions[i] << std::endl;
@@ -334,7 +340,7 @@ void hasGflwRequiredInstanceExtensions(void)
     }
 }
 
-bool checkDeviceExtensionSupport(VkPhysicalDevice device) 
+static bool checkDeviceExtensionSupport(VkPhysicalDevice device) 
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -354,7 +360,7 @@ bool checkDeviceExtensionSupport(VkPhysicalDevice device)
     return requiredExtensions.empty();
 }
 
-QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device theGPU) 
+static QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device, const Device theGPU) 
 {
     QueueFamilyIndices indices;
   
@@ -387,7 +393,7 @@ QueueFamilyIndices findQueueFamilies(VkPhysicalDevice device, Device theGPU)
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device theGPU) 
+static SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device, const Device theGPU) 
 {
     SwapChainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, theGPU->surface_, &details.capabilities);
@@ -416,10 +422,10 @@ SwapChainSupportDetails querySwapChainSupport(VkPhysicalDevice device, Device th
     return details;
 }
 
-VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, 
-                             VkImageTiling tiling, 
-                             VkFormatFeatureFlags features,
-                             Device theGPU) 
+static VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, 
+                                    const VkImageTiling tiling, 
+                                    const VkFormatFeatureFlags features,
+                                    const Device theGPU) 
 {
     for (VkFormat format : candidates) 
     {
@@ -439,15 +445,13 @@ VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
 }
 
 //Query the physical device for the types of memory available to allocate
-uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device theGPU) 
+static uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties, Device theGPU) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
     vkGetPhysicalDeviceMemoryProperties(theGPU->physical, &memProperties);
-    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) 
-    {
-        if ((typeFilter & (1 << i)) &&
-            (memProperties.memoryTypes[i].propertyFlags & properties) == properties) 
-        {
+    for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+        if ((typeFilter & (1 << i)) 
+            && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
             return i;
         }
     }

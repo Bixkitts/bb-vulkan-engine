@@ -15,7 +15,7 @@ void createAppInfo(VkApplicationInfo *appInfo)
 }
 void createInstanceCreateInfo(VkInstanceCreateInfo *createInfo,
                               const VkApplicationInfo *appInfo, 
-                              const GLExtensions *extensions)
+                              const VulkanExtensions *extensions)
 {
     *createInfo                         = {};
     createInfo->sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
@@ -23,19 +23,18 @@ void createInstanceCreateInfo(VkInstanceCreateInfo *createInfo,
     createInfo->enabledExtensionCount   = extensions->count;
     createInfo->ppEnabledExtensionNames = extensions->extensions;
 }
-VkDeviceQueueCreateInfo createQueueCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
-                                              uint32_t queueFamily, 
-                                              float queuePriority)
+void createQueueCreateInfo(VkDeviceQueueCreateInfoArray *queueCreateInfos, 
+                           const uint32_t queueFamily, 
+                           const float *queuePriority)
 {
-    VkDeviceQueueCreateInfo queueCreateInfo = {};
-    queueCreateInfo.sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-    queueCreateInfo.queueFamilyIndex = queueFamily;
-    queueCreateInfo.queueCount       = 1;
-    queueCreateInfo.pQueuePriorities = &queuePriority;
-    queueCreateInfos.push_back(queueCreateInfo);
-    return queueCreateInfo;
+    queueCreateInfos->createInfos[0].sType            = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+    queueCreateInfos->createInfos[0].queueFamilyIndex = queueFamily;
+    queueCreateInfos->createInfos[0].queueCount       = 1;
+    queueCreateInfos->createInfos[0].pQueuePriorities = queuePriority;
+
+    queueCreateInfos->queueCount                      = 1;
 }
-VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices queueFamilyIndices)
+VkCommandPoolCreateInfo createCommandPoolCreateInfo(const QueueFamilyIndices queueFamilyIndices)
 {
     VkCommandPoolCreateInfo poolInfo = {};
     poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -45,16 +44,16 @@ VkCommandPoolCreateInfo poolCreateInfo(QueueFamilyIndices queueFamilyIndices)
     | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
     return poolInfo;
 }
-VkDeviceCreateInfo createDeviceCreateInfo(std::vector<VkDeviceQueueCreateInfo> queueCreateInfos, 
-                                                 VkPhysicalDeviceFeatures &deviceFeatures, 
-                                                 GLExtensions *deviceExtensions)
+void createDeviceCreateInfo(VkDeviceCreateInfo *createInfo,
+                            const VkDeviceQueueCreateInfoArray *queueCreateInfos, 
+                            const VkPhysicalDeviceFeatures *deviceFeatures, 
+                            const VulkanExtensions *deviceExtensions)
 {
-    VkDeviceCreateInfo createInfo = {};
-    createInfo.sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-    createInfo.queueCreateInfoCount    = static_cast<uint32_t>(queueCreateInfos.size());
-    createInfo.pQueueCreateInfos       = queueCreateInfos.data();
-    createInfo.pEnabledFeatures        = &deviceFeatures;
-    createInfo.enabledExtensionCount   = deviceExtensions->count;
-    createInfo.ppEnabledExtensionNames = deviceExtensions->extensions;
-    return createInfo;
+    *createInfo = {};
+    createInfo->sType                   = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+    createInfo->queueCreateInfoCount    = queueCreateInfos->queueCount;
+    createInfo->pQueueCreateInfos       = queueCreateInfos->createInfos;
+    createInfo->pEnabledFeatures        = deviceFeatures;
+    createInfo->enabledExtensionCount   = deviceExtensions->count;
+    createInfo->ppEnabledExtensionNames = deviceExtensions->extensions;
 }
