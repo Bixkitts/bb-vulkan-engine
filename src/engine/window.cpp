@@ -7,14 +7,14 @@
 
 BBAPI int openWindow(BBWindow *window, const int width, const int height, const char *windowName)
 {
+    glfwInit       ();
+    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
+    glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
+
     // TODO: check failure
     GLFWwindow *GLwindow = glfwCreateWindow(width, height, windowName, NULL, NULL);
 
     *window = (BBWindow)malloc(sizeof(BBWindow_T));
-
-    glfwInit       ();
-    glfwWindowHint (GLFW_CLIENT_API, GLFW_NO_API);
-    glfwWindowHint (GLFW_RESIZABLE, GLFW_FALSE);
 
     (*window)->width   = width;
     (*window)->height  = height;

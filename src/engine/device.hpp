@@ -29,8 +29,8 @@ typedef struct VkDeviceQueueCreateInfoArray{
 }VkDeviceQueueCreateInfoArray;
 
 typedef struct VulkanExtensions {
-    const char **extensions;
-    uint32_t     count;
+    char     **extensions;
+    uint32_t   count;
 } VulkanExtensions;
 
 typedef struct Device_T {
@@ -51,19 +51,12 @@ BBError                 deviceInit            (Device *device, BBWindow deviceWi
 void                    destroyDevice         (Device *device); 
 uint32_t                findMemoryType        (const uint32_t typeFilter, 
                                                const VkMemoryPropertyFlags properties, 
-                                               const Device theGPU);
-SwapChainSupportDetails querySwapChainSupport (const VkPhysicalDevice physicalDevice, 
-                                               const Device theGPU);
-QueueFamilyIndices      findQueueFamilies     (const VkPhysicalDevice device, 
-                                               const Device theGPU);
+                                               const Device device);
+SwapChainSupportDetails querySwapChainSupport (const Device device);
+QueueFamilyIndices      findQueueFamilies     (const Device device);
 VkFormat                findSupportedFormat   (const std::vector<VkFormat> &candidates, 
                                                const VkImageTiling tiling, 
                                                const VkFormatFeatureFlags features,
-                                               const Device theGPU);
-#ifdef NDEBUG
-const bool enableValidationLayers = false;
-#else
-const bool enableValidationLayers = true;
-#endif
+                                               const Device device);
 
 #endif

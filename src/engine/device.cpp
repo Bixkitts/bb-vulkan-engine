@@ -9,22 +9,28 @@
 
 // TODO: some global variables??? std::vectors??? fix this maybe.
 const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
-VulkanExtensions deviceExtensions;
 
-static void                    createVulkanInstance              (Device theGPU);
-static void                    setupDebugMessenger               (Device theGPU);
-static void                    createSurface                     (Device theGPU);
-static void                    pickPhysicalDevice                (Device theGPU);
-static void                    createLogicalDevice               (Device theGPU);
-static void                    createCommandPool                 (Device theGPU);
+#ifdef NDEBUG
+static const bool enableValidationLayers = false;
+#else
+static const bool enableValidationLayers = true;
+#endif
 
-static bool                    isDeviceSuitable                  (const VkPhysicalDevice device, 
-                                                                  const Device theGPU);
-static bool                    checkDeviceExtensionSupport       (VkPhysicalDevice device);
-static bool                    checkValidationLayerSupport       ();
-static void                    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
-static void                    hasGflwRequiredInstanceExtensions ();
-static BBError                 getRequiredInstanceExtensions     (VulkanExtensions *extensions);
+static void    createVulkanInstance              (Device theGPU);
+static void    setupDebugMessenger               (Device theGPU);
+static void    createSurface                     (Device theGPU);
+static void    pickPhysicalDevice                (Device theGPU);
+static void    createLogicalDevice               (Device theGPU, const VulkanExtensions *requiredDeviceExtensions);
+static void    createCommandPool                 (Device theGPU);
+
+static bool    isDeviceSuitable                  (const VkPhysicalDevice device, 
+                                                  const Device theGPU);
+static bool    checkDeviceExtensionSupport       (const VkPhysicalDevice device, 
+                                                  const VulkanExtensions *requiredExtensions);
+static bool    checkValidationLayerSupport       ();
+static void    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+static void    hasGflwRequiredInstanceExtensions ();
+static BBError getRequiredInstanceExtensions     (VulkanExtensions *extensions);
 
 // Config info creator functions
 static inline void                        createAppInfo               (VkApplicationInfo *appInfo);
@@ -90,14 +96,14 @@ BBError deviceInit(Device *device, BBWindow deviceWindow)
         return BB_ERROR_MEM;
     }
     (*device)->window = deviceWindow;
-    createVulkanInstance      (*device);
-    setupDebugMessenger (*device); 
-    createWindowSurface ((*device)->window, 
-                         (*device)->instance, 
-                         &(*device)->surface_);
-    pickPhysicalDevice  (*device);
-    createLogicalDevice (*device);
-    createCommandPool   (*device);
+    createVulkanInstance (*device);
+    setupDebugMessenger  (*device); 
+    createWindowSurface  ((*device)->window, 
+                          (*device)->instance, 
+                          &(*device)->surface_);
+    pickPhysicalDevice   (*device);
+    createLogicalDevice  (*device);
+    createCommandPool    (*device);
     return BB_ERROR_OK;
 }
 
@@ -129,10 +135,10 @@ static void createVulkanInstance(Device theGPU)
         throw std::runtime_error("validation layers requested, but not available!");
     }
 
-    VkApplicationInfo                  appInfo;
-    VkInstanceCreateInfo               createInfo;
-    VulkanExtensions                   requiredExtensions;
-    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo;
+    VkApplicationInfo                  appInfo            = {};
+    VkInstanceCreateInfo               createInfo         = {};
+    VulkanExtensions                   requiredExtensions = {};
+    VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo    = {};
 
     createAppInfo                 (&appInfo);
     getRequiredInstanceExtensions (&requiredExtensions);
@@ -148,10 +154,10 @@ static void createVulkanInstance(Device theGPU)
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT* )&debugCreateInfo;
     } 
     else{
-        createInfo.enabledLayerCount = 0;
-        createInfo.pNext             = NULL;
+        createInfo.enabledLayerCount   = 0;
+        createInfo.pNext               = NULL;
     }
-
+    std::cout << theGPU->instance;
     if (vkCreateInstance(&createInfo, NULL, &theGPU->instance) != VK_SUCCESS){
         throw std::runtime_error("failed to create instance!");
     }
@@ -163,8 +169,7 @@ static void pickPhysicalDevice(Device theGPU)
 {
     uint32_t deviceCount = 0;
     vkEnumeratePhysicalDevices(theGPU->instance, &deviceCount, nullptr);
-    if (deviceCount == 0) 
-    {
+    if (deviceCount == 0) {
         throw std::runtime_error("failed to find GPUs with Vulkan support!");
     }
     std::cout << "Device count: " << deviceCount << std::endl;
@@ -186,10 +191,9 @@ static void pickPhysicalDevice(Device theGPU)
     std::cout << "physical device: " << theGPU->physicalProperties.deviceName << std::endl;
 }
 
-static void createLogicalDevice(Device theGPU) 
+static void createLogicalDevice(Device device, const VulkanExtensions *requiredDeviceExtensions) 
 {
-    QueueFamilyIndices           indices             = findQueueFamilies(theGPU->physical, 
-                                                                         theGPU);
+    QueueFamilyIndices           indices             = findQueueFamilies(device);
     VkDeviceCreateInfo           createInfo;
     VkDeviceQueueCreateInfoArray queueCreateInfos;
     std::set<uint32_t>           uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
@@ -204,8 +208,10 @@ static void createLogicalDevice(Device theGPU)
                               queueFamily, 
                               &queuePriority);
     }
-    createDeviceCreateInfo(&createInfo, &queueCreateInfos, &deviceFeatures, &deviceExtensions);
-
+    createDeviceCreateInfo(&createInfo, 
+                           &queueCreateInfos, 
+                           &deviceFeatures, 
+                           requiredDeviceExtensions);
     // might not really be necessary anymore because device specific validation layers
     // have been deprecated
     if (enableValidationLayers) {
@@ -216,43 +222,44 @@ static void createLogicalDevice(Device theGPU)
         createInfo.enabledLayerCount   = 0;
     }
  
-    if (vkCreateDevice(theGPU->physical, 
+    if (vkCreateDevice(device->physical, 
                        &createInfo, 
                        NULL, 
-                       &theGPU->logical) 
+                       &device->logical) 
         != VK_SUCCESS){
         throw std::runtime_error("failed to create logical device!");
     }
   
-    vkGetDeviceQueue(theGPU->logical, indices.graphicsFamily, 0, &theGPU->graphicsQueue_);
-    vkGetDeviceQueue(theGPU->logical, indices.presentFamily, 0, &theGPU->presentQueue_);
+    vkGetDeviceQueue(device->logical, indices.graphicsFamily, 0, &device->graphicsQueue_);
+    vkGetDeviceQueue(device->logical, indices.presentFamily, 0, &device->presentQueue_);
 }
 
-static void createCommandPool(Device theGPU) 
+static void createCommandPool(Device device) 
 {
-    QueueFamilyIndices      queueFamilyIndices = findQueueFamilies           (theGPU->physical, theGPU);
+    QueueFamilyIndices      queueFamilyIndices = findQueueFamilies           (device);
     VkCommandPoolCreateInfo poolInfo           = createCommandPoolCreateInfo (queueFamilyIndices);
 
-    if (vkCreateCommandPool(theGPU->logical, 
+    if (vkCreateCommandPool(device->logical, 
                             &poolInfo, 
                             NULL, 
-                            &theGPU->commandPool) 
+                            &device->commandPool) 
         != VK_SUCCESS) {
         throw std::runtime_error("failed to create command pool!");
     }
 }
 
-static bool isDeviceSuitable(const VkPhysicalDevice device, const Device theGPU) 
+static bool isDeviceSuitable(const Device device) 
 {
-    QueueFamilyIndices       indices            = findQueueFamilies(device, theGPU);
-    VkPhysicalDeviceFeatures supportedFeatures  = {};
-    SwapChainSupportDetails  swapChainSupport   = {};
+    QueueFamilyIndices       indices                  = findQueueFamilies(device);
+    VkPhysicalDeviceFeatures supportedFeatures        = {};
+    SwapChainSupportDetails  swapChainSupport         = {};
+    VulkanExtensions         requiredDeviceExtensions = {};
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device);
+    bool extensionsSupported = checkDeviceExtensionSupport(device->physical, &requiredDeviceExtensions);
     bool swapChainAdequate   = false;
 
     if (extensionsSupported) {
-        swapChainSupport  = querySwapChainSupport(device, theGPU);
+        swapChainSupport  = querySwapChainSupport(device);
         swapChainAdequate = !swapChainSupport.formats.empty() 
                             && !swapChainSupport.presentModes.empty();
     }
@@ -322,21 +329,27 @@ static BBError getRequiredInstanceExtensions(VulkanExtensions *extensions)
 {
     // TODO: Fuck all of this, get rid of GLFW.
     //---------------------------------------------
-    const int    headroom = 20; // How much extra memory we want to allocate off the end of the buffer
-                                // in case we want to manually insert extensions :/
-    const char **temp     = glfwGetRequiredInstanceExtensions(&extensions->count);
+    const char **glfwGeneratedExtensionList = glfwGetRequiredInstanceExtensions(&extensions->count);
+
     // TODO: MALLOC without free
-    const char **temp2    = (const char**)calloc(extensions->count+headroom, sizeof(VkExtensionProperties));
-    if (temp2 == NULL) {
+    extensions->extensions = (char**)calloc(MAX_EXTENSIONS, sizeof(char*));
+    if (extensions->extensions == NULL) {
         return BB_ERROR_MEM;
     }
-    for (int i = 0; i < extensions->count; i++){
-        temp2[i] = temp[i];
+    for (int i = 0; i < MAX_EXTENSIONS; i++) {
+        //TODO: MALLOC without free
+        extensions->extensions[i] = (char*)calloc(VK_MAX_EXTENSION_NAME_SIZE, sizeof(char));
+        if (extensions->extensions[i] == NULL) {
+            free(extensions->extensions);
+            return BB_ERROR_MEM;
+        }
     }
-    free(temp);
-    extensions->extensions = temp2;
-    if (enableValidationLayers) {
-        extensions->extensions[extensions->count+1] = VK_EXT_DEBUG_UTILS_EXTENSION_NAME;
+
+    for (int i = 0; i < extensions->count && i < MAX_EXTENSIONS; i++){
+        strcpy(extensions->extensions[i], glfwGeneratedExtensionList[i]);
+    }
+    if (enableValidationLayers && extensions->count < MAX_EXTENSIONS) {
+        strcpy(extensions->extensions[extensions->count], VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
         extensions->count++;
     }
     return BB_ERROR_OK;
@@ -370,7 +383,7 @@ static void hasGflwRequiredInstanceExtensions(void)
     }
 }
 
-static bool checkDeviceExtensionSupport(VkPhysicalDevice device) 
+static bool checkDeviceExtensionSupport(const VkPhysicalDevice device, const VulkanExtensions *requiredExtensions) 
 {
     uint32_t extensionCount;
     vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
@@ -387,18 +400,18 @@ static bool checkDeviceExtensionSupport(VkPhysicalDevice device)
  //   }
  // 
  //   return requiredExtensions.empty();
-    return 0;
+    return 1;
 }
 
-QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device, const Device theGPU) 
+QueueFamilyIndices findQueueFamilies(const Device device) 
 {
     QueueFamilyIndices indices;
   
     uint32_t queueFamilyCount = 0;
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
+    vkGetPhysicalDeviceQueueFamilyProperties(device->physical, &queueFamilyCount, nullptr);
   
     std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-    vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
+    vkGetPhysicalDeviceQueueFamilyProperties(device->physical, &queueFamilyCount, queueFamilies.data());
   
     int i = 0;
     for (const auto &queueFamily : queueFamilies)
@@ -408,7 +421,7 @@ QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device, const Device
             indices.graphicsFamilyHasValue = true;
         }
         VkBool32 presentSupport = false;
-        vkGetPhysicalDeviceSurfaceSupportKHR(device, i, theGPU->surface_, &presentSupport);
+        vkGetPhysicalDeviceSurfaceSupportKHR(device->physical, i, device->surface_, &presentSupport);
         if (queueFamily.queueCount > 0 && presentSupport) {
             indices.presentFamily         = i;
             indices.presentFamilyHasValue = true;
@@ -423,29 +436,29 @@ QueueFamilyIndices findQueueFamilies(const VkPhysicalDevice device, const Device
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device, const Device theGPU) 
+SwapChainSupportDetails querySwapChainSupport(const Device device) 
 {
     SwapChainSupportDetails details;
-    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device, theGPU->surface_, &details.capabilities);
+    vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->physical, device->surface_, &details.capabilities);
   
     uint32_t formatCount;
-    vkGetPhysicalDeviceSurfaceFormatsKHR(device, theGPU->surface_, &formatCount, nullptr);
+    vkGetPhysicalDeviceSurfaceFormatsKHR(device->physical, device->surface_, &formatCount, nullptr);
   
     if (formatCount != 0) 
     {
         details.formats.resize(formatCount);
-        vkGetPhysicalDeviceSurfaceFormatsKHR(device, theGPU->surface_, &formatCount, details.formats.data());
+        vkGetPhysicalDeviceSurfaceFormatsKHR(device->physical, device->surface_, &formatCount, details.formats.data());
     }
   
     uint32_t presentModeCount;
-    vkGetPhysicalDeviceSurfacePresentModesKHR(device, theGPU->surface_, &presentModeCount, nullptr);
+    vkGetPhysicalDeviceSurfacePresentModesKHR(device->physical, device->surface_, &presentModeCount, nullptr);
   
     if (presentModeCount != 0) 
     {
         details.presentModes.resize(presentModeCount);
         vkGetPhysicalDeviceSurfacePresentModesKHR(
-            device,
-            theGPU->surface_,
+            device->physical,
+            device->surface_,
             &presentModeCount,
             details.presentModes.data());
     }
@@ -455,12 +468,12 @@ SwapChainSupportDetails querySwapChainSupport(const VkPhysicalDevice device, con
 VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates, 
                              const VkImageTiling tiling, 
                              const VkFormatFeatureFlags features,
-                             const Device theGPU) 
+                             const Device device) 
 {
     for (VkFormat format : candidates) 
     {
         VkFormatProperties props;
-        vkGetPhysicalDeviceFormatProperties(theGPU->physical, format, &props);
+        vkGetPhysicalDeviceFormatProperties(device->physical, format, &props);
 
         if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) 
         {
@@ -475,10 +488,10 @@ VkFormat findSupportedFormat(const std::vector<VkFormat> &candidates,
 }
 
 //Query the physical device for the types of memory available to allocate
-uint32_t findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties, const Device theGPU) 
+uint32_t findMemoryType(const uint32_t typeFilter, const VkMemoryPropertyFlags properties, const Device device) 
 {
     VkPhysicalDeviceMemoryProperties memProperties;
-    vkGetPhysicalDeviceMemoryProperties(theGPU->physical, &memProperties);
+    vkGetPhysicalDeviceMemoryProperties(device->physical, &memProperties);
     for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
         if ((typeFilter & (1 << i)) 
             && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -504,6 +517,7 @@ static void createInstanceCreateInfo(VkInstanceCreateInfo *createInfo,
                                      const VulkanExtensions *extensions)
 {
     *createInfo                         = {};
+    createInfo->pNext                   = NULL;
     createInfo->sType                   = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
     createInfo->pApplicationInfo        = appInfo;
     createInfo->enabledExtensionCount   = extensions->count;
@@ -523,11 +537,13 @@ static void createQueueCreateInfo(VkDeviceQueueCreateInfoArray *queueCreateInfos
 static VkCommandPoolCreateInfo createCommandPoolCreateInfo(const QueueFamilyIndices queueFamilyIndices)
 {
     VkCommandPoolCreateInfo poolInfo = {};
+
     poolInfo.sType            = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
     poolInfo.queueFamilyIndex = queueFamilyIndices.graphicsFamily;
     poolInfo.flags            =
     VK_COMMAND_POOL_CREATE_TRANSIENT_BIT 
     | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
     return poolInfo;
 }
 static void createDeviceCreateInfo(VkDeviceCreateInfo *createInfo,
