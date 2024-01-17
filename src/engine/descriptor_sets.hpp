@@ -8,7 +8,7 @@
 #include "images.hpp"
 
 // TODO: do I really need to have these in a struct?
-typedef struct VulkanDescriptorPool_S
+typedef struct VulkanDescriptorPool_T
 {
     VkDescriptorPool pool;
     Device           device;

@@ -5,11 +5,11 @@
 #include "window.hpp"
 
 // Logical and physical device that everything needs access to.
-static Device                device = NULL;
+static Device                device          = NULL;
 // Swap chain that everybody needs to be aware of
-static SwapChain             swapchain;
+static SwapChain             swapchain       = NULL;
 // The big main descriptor pool
-static VulkanDescriptorPool  descriptorPool;
+static VulkanDescriptorPool  descriptorPool  = {};
 // A pool of descriptor set layouts
 static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_COUNT] = { NULL };
 
@@ -77,7 +77,7 @@ BBAPI int createEntity(BBEntity *entity,
                             &descriptorSetLayoutPool[dsLayout]);
     //create pipeline configuration with hard coded default shit
     createPipelineConfig   (&pipelineConfig, 
-                            swapchain, 
+                            swapchain,
                             // TODO: uniform buffers here?
                             (*entity)->uBuffers, 
                             descriptorSetLayoutPool[dsLayout], 

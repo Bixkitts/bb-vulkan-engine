@@ -94,10 +94,10 @@ VkDeviceMemory  allocateDeviceMemory    (Device theGPU,
                                          VkMemoryPropertyFlags properties, 
                                          VkDeviceSize size);
 //----------------------------------------------------
-void            createImageWithInfo     (const VkImageCreateInfo imageInfo,
+void            createImageWithInfo     (const VkImageCreateInfo *imageInfo,
                                          const VkMemoryPropertyFlags properties,
-                                         VkImage image,
-                                         VkDeviceMemory imageMemory,
+                                         VkImage *image,
+                                         VkDeviceMemory *imageMemory,
                                          Device theGPU);
 // ------------------------------------
 void            copyVertsToDeviceMem    (StagingBuffer sb, 

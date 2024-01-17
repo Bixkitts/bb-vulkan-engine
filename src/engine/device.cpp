@@ -16,26 +16,28 @@ static const bool enableValidationLayers = false;
 static const bool enableValidationLayers = true;
 #endif
 
-static void    createVulkanInstance              (Device theGPU);
-static void    setupDebugMessenger               (Device theGPU);
-static void    createSurface                     (Device theGPU);
-static void    pickPhysicalDevice                (Device theGPU);
-static void    createLogicalDevice               (Device theGPU, const VulkanExtensions *requiredDeviceExtensions);
-static void    createCommandPool                 (Device theGPU);
+static void    createVulkanInstance              (Device device, const VulkanExtensions *requiredExtensions);
+static void    setupDebugMessenger               (Device device);
+static void    createSurface                     (Device device);
+static void    pickPhysicalDevice                (Device device, const VulkanExtensions *requiredExtensions);
+static void    createLogicalDevice               (Device device, const VulkanExtensions *requiredExtensions);
+static void    createCommandPool                 (Device device);
 
-static bool    isDeviceSuitable                  (const VkPhysicalDevice device, 
-                                                  const Device theGPU);
+static bool    isDeviceSuitable                  (const Device device, 
+                                                  const VulkanExtensions *requiredExtensions);
 static bool    checkDeviceExtensionSupport       (const VkPhysicalDevice device, 
                                                   const VulkanExtensions *requiredExtensions);
 static bool    checkValidationLayerSupport       ();
 static void    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
 static void    hasGflwRequiredInstanceExtensions ();
+static BBError allocateVulkanExtensions          (VulkanExtensions *extensions);
+static BBError getRequiredDeviceExtensions       (VulkanExtensions *extensions);
 static BBError getRequiredInstanceExtensions     (VulkanExtensions *extensions);
 
 // Config info creator functions
 static inline void                        createAppInfo               (VkApplicationInfo *appInfo);
 static inline VkCommandPoolCreateInfo     createCommandPoolCreateInfo (const QueueFamilyIndices queueFamilyIndices);
-static inline VkCommandBufferAllocateInfo commandBufferAllocInfo      (Device theGPU);
+static inline VkCommandBufferAllocateInfo commandBufferAllocInfo      (Device device);
 static inline void                        createQueueCreateInfo       (VkDeviceQueueCreateInfoArray *queueCreateInfos, 
                                                                        uint32_t queueFamily, 
                                                                        const float *queuePriority );
@@ -88,22 +90,26 @@ static void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 }
 // end of local callback functions
 
-BBError deviceInit(Device *device, BBWindow deviceWindow) 
+BBError deviceInit(Device *device, const BBWindow deviceWindow) 
 {
+    VulkanExtensions requiredDeviceExtensions   = {0};
+    VulkanExtensions requiredInstanceExtensions = {0};
     // TODO: MALLOC without free()
     *device = (Device)calloc(1, sizeof(Device_T));
     if(*device == NULL){
         return BB_ERROR_MEM;
     }
     (*device)->window = deviceWindow;
-    createVulkanInstance (*device);
-    setupDebugMessenger  (*device); 
-    createWindowSurface  ((*device)->window, 
-                          (*device)->instance, 
-                          &(*device)->surface_);
-    pickPhysicalDevice   (*device);
-    createLogicalDevice  (*device);
-    createCommandPool    (*device);
+    getRequiredInstanceExtensions (&requiredInstanceExtensions);
+    createVulkanInstance          (*device, &requiredInstanceExtensions);
+    setupDebugMessenger           (*device); 
+    createWindowSurface           ((*device)->window, 
+                                   (*device)->instance, 
+                                   &(*device)->surface_);
+    getRequiredDeviceExtensions   (&requiredDeviceExtensions);
+    pickPhysicalDevice            (*device, &requiredDeviceExtensions);
+    createLogicalDevice           (*device, &requiredDeviceExtensions);
+    createCommandPool             (*device);
     return BB_ERROR_OK;
 }
 
@@ -129,7 +135,7 @@ void destroyDevice(Device *device)
     *device = NULL;
 }
 
-static void createVulkanInstance(Device theGPU) 
+static void createVulkanInstance(Device device, const VulkanExtensions *requiredExtensions) 
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
@@ -137,14 +143,12 @@ static void createVulkanInstance(Device theGPU)
 
     VkApplicationInfo                  appInfo            = {};
     VkInstanceCreateInfo               createInfo         = {};
-    VulkanExtensions                   requiredExtensions = {};
     VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo    = {};
 
     createAppInfo                 (&appInfo);
-    getRequiredInstanceExtensions (&requiredExtensions);
     createInstanceCreateInfo      (&createInfo, 
                                    &appInfo, 
-                                   &requiredExtensions);
+                                   requiredExtensions);
 
     if (enableValidationLayers){
         createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
@@ -157,48 +161,51 @@ static void createVulkanInstance(Device theGPU)
         createInfo.enabledLayerCount   = 0;
         createInfo.pNext               = NULL;
     }
-    std::cout << theGPU->instance;
-    if (vkCreateInstance(&createInfo, NULL, &theGPU->instance) != VK_SUCCESS){
+    std::cout << device->instance;
+    if (vkCreateInstance(&createInfo, NULL, &device->instance) != VK_SUCCESS){
         throw std::runtime_error("failed to create instance!");
     }
 
     hasGflwRequiredInstanceExtensions();
 }
 
-static void pickPhysicalDevice(Device theGPU) 
+static void pickPhysicalDevice(Device device, const VulkanExtensions *requiredExtensions) 
 {
     uint32_t deviceCount = 0;
-    vkEnumeratePhysicalDevices(theGPU->instance, &deviceCount, nullptr);
+    // This function is run twice: first to get the number of devices,
+    // and then again to actually get the device data
+    vkEnumeratePhysicalDevices(device->instance, &deviceCount, nullptr);
     if (deviceCount == 0) {
-        throw std::runtime_error("failed to find GPUs with Vulkan support!");
+        fprintf(stderr, "Failed to find GPUs with Vulkan support!\n");
+        exit(1);
     }
     std::cout << "Device count: " << deviceCount << std::endl;
-    std::vector<VkPhysicalDevice> devices(deviceCount);
-    vkEnumeratePhysicalDevices(theGPU->instance, &deviceCount, devices.data());
+    VkPhysicalDevice potentialDevices[deviceCount];
+    vkEnumeratePhysicalDevices(device->instance, &deviceCount, potentialDevices);
   
-    for (const auto &device : devices) {
-        if (isDeviceSuitable(device, theGPU)) {
-          theGPU->physical = device;
-          break;
-      }
+    for (int i = 0; i < deviceCount; i++) {
+        device->physical = potentialDevices[i];
+        if (isDeviceSuitable(device, requiredExtensions)) {
+            break;
+        }
+    }
+    if (device->physical == VK_NULL_HANDLE) {
+        fprintf(stderr, "Failed to find a suitable GPU!\n");
+        exit(1);
     }
   
-    if (theGPU->physical == VK_NULL_HANDLE) {
-        throw std::runtime_error("failed to find a suitable GPU!");
-    }
-  
-    vkGetPhysicalDeviceProperties(theGPU->physical, &theGPU->physicalProperties);
-    std::cout << "physical device: " << theGPU->physicalProperties.deviceName << std::endl;
+    vkGetPhysicalDeviceProperties(device->physical, &device->physicalProperties);
+    printf("Physical device: %s\n", device->physicalProperties.deviceName);
 }
 
 static void createLogicalDevice(Device device, const VulkanExtensions *requiredDeviceExtensions) 
 {
     QueueFamilyIndices           indices             = findQueueFamilies(device);
-    VkDeviceCreateInfo           createInfo;
-    VkDeviceQueueCreateInfoArray queueCreateInfos;
+    VkDeviceCreateInfo           createInfo          = {};
+    VkDeviceQueueCreateInfoArray queueCreateInfos    = {};
     std::set<uint32_t>           uniqueQueueFamilies = {indices.graphicsFamily, indices.presentFamily};
     float                        queuePriority       = 1.0f;
-    VkDeviceQueueCreateInfo      queueCreateInfo;
+    VkDeviceQueueCreateInfo      queueCreateInfo     = {};
     VkPhysicalDeviceFeatures     deviceFeatures      = {};
 
     deviceFeatures.samplerAnisotropy = VK_TRUE;
@@ -248,14 +255,13 @@ static void createCommandPool(Device device)
     }
 }
 
-static bool isDeviceSuitable(const Device device) 
+static bool isDeviceSuitable(const Device device, const VulkanExtensions *requiredDeviceExtensions) 
 {
     QueueFamilyIndices       indices                  = findQueueFamilies(device);
     VkPhysicalDeviceFeatures supportedFeatures        = {};
     SwapChainSupportDetails  swapChainSupport         = {};
-    VulkanExtensions         requiredDeviceExtensions = {};
 
-    bool extensionsSupported = checkDeviceExtensionSupport(device->physical, &requiredDeviceExtensions);
+    bool extensionsSupported = checkDeviceExtensionSupport(device->physical, requiredDeviceExtensions);
     bool swapChainAdequate   = false;
 
     if (extensionsSupported) {
@@ -263,7 +269,7 @@ static bool isDeviceSuitable(const Device device)
         swapChainAdequate = !swapChainSupport.formats.empty() 
                             && !swapChainSupport.presentModes.empty();
     }
-    vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+    vkGetPhysicalDeviceFeatures(device->physical, &supportedFeatures);
     return indices.isComplete() 
            && extensionsSupported 
            && swapChainAdequate 
@@ -284,17 +290,17 @@ static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT 
     createInfo.pUserData       = NULL;  // Optional
 }
 
-static void setupDebugMessenger(Device theGPU)
+static void setupDebugMessenger(Device device)
 {
     if (!enableValidationLayers){
         return;
     }
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
     populateDebugMessengerCreateInfo(createInfo);
-    if (CreateDebugUtilsMessengerEXT(theGPU->instance, 
+    if (CreateDebugUtilsMessengerEXT(device->instance, 
                                      &createInfo, 
                                      nullptr, 
-                                     &theGPU->debugMessenger) 
+                                     &device->debugMessenger) 
         != VK_SUCCESS) {
         throw std::runtime_error("failed to set up debug messenger!");
     }
@@ -325,25 +331,49 @@ static bool checkValidationLayerSupport()
   return true;
 }
 
-static BBError getRequiredInstanceExtensions(VulkanExtensions *extensions)  
+static void deleteVulkanExtensions(VulkanExtensions *extensions)
 {
-    // TODO: Fuck all of this, get rid of GLFW.
-    //---------------------------------------------
-    const char **glfwGeneratedExtensionList = glfwGetRequiredInstanceExtensions(&extensions->count);
+   free(extensions->extensions[0]); 
+   free(extensions->extensions); 
+   extensions->extensions = NULL;
+   extensions->count = 0;
+}
 
-    // TODO: MALLOC without free
+static BBError allocateVulkanExtensions(VulkanExtensions *extensions)
+{
+    // If the memory is uninitialised this will crash :3
+    if (extensions->extensions != NULL){
+        deleteVulkanExtensions(extensions);
+    }
+    extensions->count = 0;
+
     extensions->extensions = (char**)calloc(MAX_EXTENSIONS, sizeof(char*));
     if (extensions->extensions == NULL) {
         return BB_ERROR_MEM;
     }
-    for (int i = 0; i < MAX_EXTENSIONS; i++) {
-        //TODO: MALLOC without free
-        extensions->extensions[i] = (char*)calloc(VK_MAX_EXTENSION_NAME_SIZE, sizeof(char));
-        if (extensions->extensions[i] == NULL) {
-            free(extensions->extensions);
-            return BB_ERROR_MEM;
-        }
+    char* buffer = (char*)calloc(MAX_EXTENSIONS*VK_MAX_EXTENSION_NAME_SIZE, sizeof(char));
+    if (buffer == NULL) {
+        return BB_ERROR_MEM;
     }
+
+    for (int i = 0; i < MAX_EXTENSIONS; i++) {
+        extensions->extensions[i] = buffer + (i * VK_MAX_EXTENSION_NAME_SIZE);
+    }
+    return BB_ERROR_OK;
+}
+static BBError getRequiredDeviceExtensions (VulkanExtensions *extensions)
+{
+    // enable device extensions here manually!
+    // TODO: load from external file?
+    allocateVulkanExtensions (extensions);
+    strcpy                   (extensions->extensions[0], "VK_KHR_swapchain");
+    extensions->count = 1;
+    return BB_ERROR_OK;
+}
+static BBError getRequiredInstanceExtensions(VulkanExtensions *extensions)  
+{
+    allocateVulkanExtensions(extensions);
+    const char **glfwGeneratedExtensionList = glfwGetRequiredInstanceExtensions(&extensions->count);
 
     for (int i = 0; i < extensions->count && i < MAX_EXTENSIONS; i++){
         strcpy(extensions->extensions[i], glfwGeneratedExtensionList[i]);

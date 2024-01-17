@@ -116,7 +116,7 @@ VkResult acquireNextImage(SwapChain swapchain, uint32_t* imageIndex)
 static void initSwapChain(SwapChain swapchain) 
 {
     SwapChainSupportDetails swapChainSupport = 
-    querySwapChainSupport   (swapchain->device->physical, swapchain->device);
+    querySwapChainSupport   (swapchain->device);
 
     VkSurfaceFormatKHR      surfaceFormat    = 
     chooseSwapSurfaceFormat (swapChainSupport.formats);
@@ -144,7 +144,7 @@ static void initSwapChain(SwapChain swapchain)
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage       = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices indices  = findQueueFamilies(swapchain->device->physical, swapchain->device);
+    QueueFamilyIndices indices  = findQueueFamilies(swapchain->device);
 
     uint32_t queueFamilyIndices[2];
     queueFamilyIndices[0]=indices.graphicsFamily;
@@ -340,10 +340,10 @@ static void createDepthResources(SwapChain swapchain)
         imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
         imageInfo.flags         = 0;
 
-        createImageWithInfo(imageInfo,
+        createImageWithInfo(&imageInfo,
                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                            swapchain->depthImages[i],
-                            swapchain->depthImageMemorys[i],
+                            &swapchain->depthImages[i],
+                            &swapchain->depthImageMemorys[i],
                             swapchain->device);
 
         VkImageViewCreateInfo viewInfo{};

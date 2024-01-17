@@ -221,19 +221,19 @@ BBError createBuffer(const VkDeviceSize size,
 
 //TODO:
 //Perhaps an OUT parameter here instead of return.
-VkDeviceMemory allocateDeviceMemory(Device theGPU, 
+VkDeviceMemory allocateDeviceMemory(Device device, 
                                     VkBuffer buffer,
                                     VkMemoryPropertyFlags properties, 
                                     VkDeviceSize size)
 {
     VkDeviceMemory       deviceMemory    = {};
     VkMemoryRequirements memRequirements = {};
-    VkMemoryAllocateInfo allocInfo;
-    vkGetBufferMemoryRequirements (theGPU->logical, buffer, &memRequirements);
+    VkMemoryAllocateInfo allocInfo       = {};
+    vkGetBufferMemoryRequirements (device->logical, buffer, &memRequirements);
     allocInfo = 
-    memoryAllocateInfo            (memRequirements, properties, theGPU);
+    memoryAllocateInfo            (memRequirements, properties, device);
     // TODO: stdlib shit
-    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &deviceMemory) 
+    if (vkAllocateMemory(device->logical, &allocInfo, nullptr, &deviceMemory) 
         != VK_SUCCESS){
         throw std::runtime_error("failed to allocate vertex buffer memory!");
     }
@@ -293,13 +293,13 @@ void copyBufferToImage(Device theGPU,
                             theGPU);
 }
 
-void createImageWithInfo(const VkImageCreateInfo imageInfo,
+void createImageWithInfo(const VkImageCreateInfo *imageInfo,
                          const VkMemoryPropertyFlags properties,
-                         VkImage image,
-                         VkDeviceMemory imageMemory,
-                         Device theGPU) 
+                         VkImage *image,
+                         VkDeviceMemory *imageMemory,
+                         Device device) 
 {
-    if (vkCreateImage(theGPU->logical, &imageInfo, nullptr, &image) != VK_SUCCESS) 
+    if (vkCreateImage(device->logical, imageInfo, nullptr, image) != VK_SUCCESS) 
     {
         throw std::runtime_error("failed to create image!");
     }
@@ -307,19 +307,19 @@ void createImageWithInfo(const VkImageCreateInfo imageInfo,
     VkMemoryRequirements memRequirements;
     VkMemoryAllocateInfo allocInfo{};
 
-    vkGetImageMemoryRequirements(theGPU->logical, image, &memRequirements);
+    vkGetImageMemoryRequirements(device->logical, *image, &memRequirements);
   
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, theGPU);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
 
     // TODO: stdlib shit
-    if (vkAllocateMemory(theGPU->logical, &allocInfo, nullptr, &imageMemory) 
+    if (vkAllocateMemory(device->logical, &allocInfo, nullptr, imageMemory) 
             != VK_SUCCESS){
         throw std::runtime_error("failed to allocate image memory!");
     }
   
-    if (vkBindImageMemory(theGPU->logical, image, imageMemory, 0) 
+    if (vkBindImageMemory(device->logical, *image, *imageMemory, 0) 
             != VK_SUCCESS){
         throw std::runtime_error("failed to bind image memory!");
     }

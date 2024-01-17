@@ -47,7 +47,8 @@ typedef struct Device_T {
     VkQueue                     presentQueue_;
 }Device_T, *Device;
 
-BBError                 deviceInit            (Device *device, BBWindow deviceWindow);
+BBError                 deviceInit            (Device *device, 
+                                               const BBWindow deviceWindow);
 void                    destroyDevice         (Device *device); 
 uint32_t                findMemoryType        (const uint32_t typeFilter, 
                                                const VkMemoryPropertyFlags properties, 
