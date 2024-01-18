@@ -11,7 +11,7 @@
 typedef struct BBEntity_T
 {
     Device                 device;       
-    Model                 *model;
+    Model                  model;
 
     // The amount of uniform buffers in the array is
     // currently always MAX_FRAMES_IN_FLIGHT

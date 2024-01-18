@@ -9,7 +9,7 @@ static Device                device          = NULL;
 // Swap chain that everybody needs to be aware of
 static SwapChain             swapchain       = NULL;
 // The big main descriptor pool
-static VulkanDescriptorPool  descriptorPool  = {};
+static VulkanDescriptorPool  descriptorPool  = NULL;
 // A pool of descriptor set layouts
 static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_COUNT] = { NULL };
 
@@ -108,7 +108,7 @@ BBAPI int initializeGFX(const BBWindow mainWindow)
 {
     deviceInit           (&device, mainWindow);
     createSwapChain      (&swapchain, device, getExtent(mainWindow));
-    createDescriptorPool (descriptorPool, device);
+    createDescriptorPool (&descriptorPool, device);
     return 0;
 }
 

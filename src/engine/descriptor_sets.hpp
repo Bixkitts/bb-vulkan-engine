@@ -28,7 +28,7 @@ BBError createDescriptorSetLayout  (VkDescriptorSetLayout *layout,
                                     const Device device, 
                                     const BBDescriptorSetLayout layoutSizeAndType);
 
-BBError createDescriptorPool       (VulkanDescriptorPool pool, 
+BBError createDescriptorPool       (VulkanDescriptorPool *pool, 
                                     const Device device);
 
 //TODO: Allow the linking of multiple textures instead of just one

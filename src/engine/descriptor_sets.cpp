@@ -55,9 +55,14 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout *layout,
     return BB_ERROR_OK;
 }
 
-BBError createDescriptorPool(VulkanDescriptorPool pool, 
+BBError createDescriptorPool(VulkanDescriptorPool *pool, 
                              const Device device)
 {
+    // TODO: MALLOC without free
+    *pool = (VulkanDescriptorPool)calloc(1, sizeof(VulkanDescriptorPool_T));
+    if (*pool == NULL){
+        return BB_ERROR_MEM;
+    }
     // TODO: magic number 2
     VkDescriptorPoolSize       poolSizes[2] = {};
     VkDescriptorPoolCreateInfo poolInfo     = {};
@@ -75,7 +80,7 @@ BBError createDescriptorPool(VulkanDescriptorPool pool,
     if (vkCreateDescriptorPool(device->logical, 
                                &poolInfo, 
                                NULL, 
-                               &pool->pool) 
+                               &(*pool)->pool) 
     != VK_SUCCESS){
         return BB_ERROR_DESCRIPTOR_POOL;
     }

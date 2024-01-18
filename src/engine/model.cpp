@@ -3,16 +3,16 @@
 // Placeholder for actually loading a model.
 // I should also have functions for generating
 // simple primitives here.
-BBError loadModel(Model *model, const char *dir)
+BBError loadModel(Model *outModel, const char *dir)
 {
     // TODO:
     // Placeholder quad instead of model loading
     printf("\nLoading models....");
     // TODO: MALLOC, NOT FREED
-    model->vertices = (Vertex*)malloc(sizeof(Vertex) * 4);
-    if (model->vertices == NULL)
+    outModel->vertices = (Vertex*)malloc(sizeof(Vertex) * 4);
+    if (outModel->vertices == NULL)
         return BB_ERROR_MEM;
-    Vertex *verts = model->vertices;
+    Vertex *verts = outModel->vertices;
     verts[0].position = {-0.5f, -0.5f};
     verts[0].texCoord = {1.0f, 0.0f};
     verts[1].position = {0.5f, -0.5f};
