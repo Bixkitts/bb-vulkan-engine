@@ -23,41 +23,34 @@ typedef struct QueueFamilyIndices {
     bool     isComplete() { return graphicsFamilyHasValue && presentFamilyHasValue; }
 }QueueFamilyIndices;
 
-typedef struct VkDeviceQueueCreateInfoArray{
+typedef struct {
     VkDeviceQueueCreateInfo createInfos[QUEUES_MAX];
     uint32_t                queueCount;
 }VkDeviceQueueCreateInfoArray;
 
-typedef struct VulkanExtensions {
+typedef struct {
     char     **extensions;
     uint32_t   count;
 } VulkanExtensions;
 
-typedef struct Device_T {
-    VkInstance                  instance;
-    VkDebugUtilsMessengerEXT    debugMessenger;
-    VkPhysicalDevice            physical = VK_NULL_HANDLE;
-    BBWindow                    window;
-    VkCommandPool               commandPool;
-    VkPhysicalDeviceProperties  physicalProperties;
-
-    VkDevice                    logical;
-    VkSurfaceKHR                surface_;
-    VkQueue                     graphicsQueue_;
-    VkQueue                     presentQueue_;
-}Device_T, *Device;
+typedef struct Device_T Device_T;
+BB_OPAQUE_HANDLE(Device);
 
 BBError                 deviceInit            (Device *device, 
                                                const BBWindow deviceWindow);
 void                    destroyDevice         (Device *device); 
 uint32_t                findMemoryType        (const uint32_t typeFilter, 
                                                const VkMemoryPropertyFlags properties, 
-                                               const Device device);
-SwapChainSupportDetails querySwapChainSupport (const Device device);
-QueueFamilyIndices      findQueueFamilies     (const Device device);
+                                               Device device);
+VkDevice                getLogicalDevice      (Device device);
+VkCommandPool           getDevCommandPool     (Device device);  
+VkQueue                 getDevGraphicsQueue   (Device device);
+VkQueue                 getDevPresentQueue    (Device device);
+SwapChainSupportDetails querySwapChainSupport (Device device);
+QueueFamilyIndices      findQueueFamilies     (Device device);
 VkFormat                findSupportedFormat   (const std::vector<VkFormat> &candidates, 
                                                const VkImageTiling tiling, 
                                                const VkFormatFeatureFlags features,
-                                               const Device device);
+                                               Device device);
 
 #endif

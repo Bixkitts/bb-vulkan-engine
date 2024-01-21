@@ -5,11 +5,11 @@
 #include "window.hpp"
 
 // Logical and physical device that everything needs access to.
-static Device                device          = NULL;
+static Device                device         = NULL;
 // Swap chain that everybody needs to be aware of
-static SwapChain             swapchain       = NULL;
+static SwapChain             swapchain      = NULL;
 // The big main descriptor pool
-static VulkanDescriptorPool  descriptorPool  = NULL;
+static VulkanDescriptorPool  descriptorPool = NULL;
 // A pool of descriptor set layouts
 static VkDescriptorSetLayout descriptorSetLayoutPool[DS_LAYOUT_COUNT] = { NULL };
 
@@ -24,11 +24,11 @@ static VkDeviceMemory *yetAnotherMemoryPool;
 // provided and build the descriptors and pipeline required. 
 // BUT WAIT. There's a catch.
 // It needs to be made in such a way that resources are reusable.
-BBAPI int createEntity(BBEntity *entity, 
-                       const char *model, 
-                       const char *textureDir, 
-                       const char *vertShader, 
-                       const char *fragShader)
+BBAPI int createRenderObject(RenderObject* rObj, 
+                             const char *model, 
+                             const char *textureDir, 
+                             const char *vertShader, 
+                             const char *fragShader)
 {
     BBDescriptorSetLayout dsLayout       = DS_LAYOUT_BITCH_BASIC;
     VkDescriptorSetArray  descriptorSets = NULL;
@@ -37,28 +37,34 @@ BBAPI int createEntity(BBEntity *entity,
     GraphicsPipeline      pipeline       = NULL;
     const char           *modelDir       = "literally whatever";
 
-    // TODO: MALLOC without free
-    *entity = (BBEntity)calloc(1, sizeof(BBEntity));
     // This will need to actually load a model froma file
-    loadModel              ((*entity)->model, 
+    *rObj = (RenderObject)calloc(1, sizeof(RenderObject_T));
+    if (*rObj == NULL) {
+        return -1;
+    }
+
+    loadModel              ((*rObj)->model, 
                             modelDir);
-    createTextureImage     (&(*entity)->texture, 
+    createTextureImage     (&(*rObj)->texture, 
                             textureDir, 
                             device);
-    createTextureImageView ((*entity)->texture);
-    createTextureSampler   ((*entity)->texture);
+    createTextureImageView ((*rObj)->texture);
+    createTextureSampler   ((*rObj)->texture);
     // All the uniform buffers associated with an (*entity).
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffers   (&(*entity)->uBuffers, 
+    createUniformBuffer      ((*rObj)->uBuffers[0], 
                             device, 
-                            sizeof(PerObjectMatrices_T));
-    createVertexBuffer     (&(*entity)->vBuffer, 
+                            sizeof(PerObjectMatrices));
+    createUniformBuffer      ((*rObj)->uBuffers[1], 
                             device, 
-                            (*entity)->model);
-    createIndexBuffer      (&(*entity)->iBuffer, 
+                            sizeof(PerObjectMatrices));
+    createVertexBuffer       ((*rObj)->vBuffer, 
                             device, 
-                            (*entity)->model);
+                            (*rObj)->model);
+    createIndexBuffer        ((*rObj)->iBuffer, 
+                            device, 
+                            (*rObj)->model);
     // TODO: instead of checking NULL maybe call this sort 
     // of stuff on init
     if (descriptorSetLayoutPool[dsLayout] == NULL){
@@ -70,8 +76,8 @@ BBAPI int createEntity(BBEntity *entity,
                             device, 
                             descriptorSetLayoutPool[dsLayout],
                             descriptorPool, 
-                            (*entity)->uBuffers, 
-                            (*entity)->texture);
+                            (*rObj)->uBuffers, 
+                            (*rObj)->texture);
     createPipelineLayout   (&pipelineLayout,
                             device,
                             &descriptorSetLayoutPool[dsLayout]);
@@ -79,7 +85,7 @@ BBAPI int createEntity(BBEntity *entity,
     createPipelineConfig   (&pipelineConfig, 
                             swapchain,
                             // TODO: uniform buffers here?
-                            (*entity)->uBuffers, 
+                            (*rObj)->uBuffers, 
                             descriptorSetLayoutPool[dsLayout], 
                             descriptorSets,
                             pipelineLayout);
@@ -93,13 +99,13 @@ BBAPI int createEntity(BBEntity *entity,
     return 0;
 }
 
-BBAPI void rotateEntity(BBEntity *entity, BBAxis axis)
+BBAPI void rotateEntity(RenderObject *entity, BBAxis axis)
 {
 
 }
 
 // Once an entity is "created", it should be duplicated from then on.
-BBAPI void spawnEntity(BBEntity *entity, double *worldCoords, int rotation)
+BBAPI void spawnEntity(RenderObject *entity, double *worldCoords, int rotation)
 {
 
 }
@@ -116,23 +122,23 @@ BBAPI void runAppWithWindow(BBWindow mainWindow)
 {
     // TODO: do I make this global or smthn
     VkCommandBufferArray primaryCommandBuffers = NULL;
-    BBEntity             entity0               = NULL;
+    RenderObject         rObj0                 = NULL;
     const char           model[]               = "whatever";
     const char           texture[]             = "../textures/CADE.png";
     const char           vertShader[]          = "../shaders/simple_shader.vert.spv";
     const char           fragShader[]          = "../shaders/simple_shader.frag.spv";
 
     initializeGFX               (mainWindow);
-    createEntity                (&entity0, model, texture, vertShader, fragShader);
+    createRenderObject          (&rObj0, model, texture, vertShader, fragShader);
     createPrimaryCommandBuffers (&primaryCommandBuffers, device);
     #ifdef DEBUG
-    std::cout<<"\n -------This is a Debug build!-------\n";
+    printf                      ("\n -------This is a Debug build!-------\n");
     #endif
     while (!glfwWindowShouldClose(mainWindow->window))
     {
         glfwPollEvents      ();
-        drawFrame           (swapchain, primaryCommandBuffers, &entity0, 1); 
-        updateUniformBuffer (swapchain, entity0->uBuffers);
+        drawFrame           (swapchain, primaryCommandBuffers, &rObj0, 1); 
+        updateUniformBuffer (swapchain, rObj0->uBuffers);
     }
 
     vkDeviceWaitIdle(device->logical);

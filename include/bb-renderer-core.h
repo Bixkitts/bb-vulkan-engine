@@ -22,7 +22,7 @@ int openWindow       (BBWindow *window,
                       const int w, 
                       const int h, 
                       const char *windowName);
-int createEntity     (BBEntity *entity,
+int initEntity     (BBEntity *entity,
                       const char *model, 
                       const char *texture, 
                       const char *vertShader, 

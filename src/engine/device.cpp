@@ -7,6 +7,19 @@
 #include <unordered_set>
 #include <vulkan/vulkan_core.h>
 
+struct Device_T {
+    VkInstance                  instance;
+    VkDebugUtilsMessengerEXT    debugMessenger;
+    VkPhysicalDevice            physical = VK_NULL_HANDLE;
+    BBWindow                    window;
+    VkCommandPool               commandPool;
+    VkPhysicalDeviceProperties  physicalProperties;
+
+    VkDevice                    logical;
+    VkSurfaceKHR                surface_;
+    VkQueue                     graphicsQueue_;
+    VkQueue                     presentQueue_;
+};
 // TODO: some global variables??? std::vectors??? fix this maybe.
 const std::vector<const char *> validationLayers = {"VK_LAYER_KHRONOS_validation"};
 
@@ -16,19 +29,19 @@ static const bool enableValidationLayers = false;
 static const bool enableValidationLayers = true;
 #endif
 
-static void    createVulkanInstance              (Device device, const VulkanExtensions *requiredExtensions);
-static void    setupDebugMessenger               (Device device);
-static void    createSurface                     (Device device);
-static void    pickPhysicalDevice                (Device device, const VulkanExtensions *requiredExtensions);
-static void    createLogicalDevice               (Device device, const VulkanExtensions *requiredExtensions);
-static void    createCommandPool                 (Device device);
+static void    createVulkanInstance              (Device_T *device, const VulkanExtensions *requiredExtensions);
+static void    setupDebugMessenger               (Device_T *device);
+static void    createSurface                     (Device_T *device);
+static void    pickPhysicalDevice                (Device_T *device, const VulkanExtensions *requiredExtensions);
+static void    createLogicalDevice               (Device_T *device, const VulkanExtensions *requiredExtensions);
+static void    createCommandPool                 (Device_T *device);
 
-static bool    isDeviceSuitable                  (const Device device, 
+static bool    isDeviceSuitable                  (Device_T *device, 
                                                   const VulkanExtensions *requiredExtensions);
 static bool    checkDeviceExtensionSupport       (const VkPhysicalDevice device, 
                                                   const VulkanExtensions *requiredExtensions);
 static bool    checkValidationLayerSupport       ();
-static void    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT &createInfo);
+static void    populateDebugMessengerCreateInfo  (VkDebugUtilsMessengerCreateInfoEXT *createInfo);
 static void    hasGflwRequiredInstanceExtensions ();
 static BBError allocateVulkanExtensions          (VulkanExtensions *extensions);
 static BBError getRequiredDeviceExtensions       (VulkanExtensions *extensions);
@@ -37,7 +50,7 @@ static BBError getRequiredInstanceExtensions     (VulkanExtensions *extensions);
 // Config info creator functions
 static inline void                        createAppInfo               (VkApplicationInfo *appInfo);
 static inline VkCommandPoolCreateInfo     createCommandPoolCreateInfo (const QueueFamilyIndices queueFamilyIndices);
-static inline VkCommandBufferAllocateInfo commandBufferAllocInfo      (Device device);
+static inline VkCommandBufferAllocateInfo commandBufferAllocInfo      (Device_T *device);
 static inline void                        createQueueCreateInfo       (VkDeviceQueueCreateInfoArray *queueCreateInfos, 
                                                                        uint32_t queueFamily, 
                                                                        const float *queuePriority );
@@ -90,7 +103,7 @@ static void DestroyDebugUtilsMessengerEXT(VkInstance instance,
 }
 // end of local callback functions
 
-BBError deviceInit(Device *device, const BBWindow deviceWindow) 
+BBError createDevice(Device *device, const BBWindow deviceWindow) 
 {
     VulkanExtensions requiredDeviceExtensions   = {0};
     VulkanExtensions requiredInstanceExtensions = {0};
@@ -135,7 +148,7 @@ void destroyDevice(Device *device)
     *device = NULL;
 }
 
-static void createVulkanInstance(Device device, const VulkanExtensions *requiredExtensions) 
+static void createVulkanInstance(Device_T *device, const VulkanExtensions *requiredExtensions) 
 {
     if (enableValidationLayers && !checkValidationLayerSupport()) {
         throw std::runtime_error("validation layers requested, but not available!");
@@ -154,22 +167,22 @@ static void createVulkanInstance(Device device, const VulkanExtensions *required
         createInfo.enabledLayerCount   = static_cast<uint32_t>(validationLayers.size());
         createInfo.ppEnabledLayerNames = validationLayers.data();
 
-        populateDebugMessengerCreateInfo(debugCreateInfo);
+        populateDebugMessengerCreateInfo(&debugCreateInfo);
         createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT* )&debugCreateInfo;
     } 
     else{
         createInfo.enabledLayerCount   = 0;
         createInfo.pNext               = NULL;
     }
-    std::cout << device->instance;
     if (vkCreateInstance(&createInfo, NULL, &device->instance) != VK_SUCCESS){
-        throw std::runtime_error("failed to create instance!");
+        fprintf(stderr, "failed to create vulkan instance.\n");
+        exit(1);
     }
 
     hasGflwRequiredInstanceExtensions();
 }
 
-static void pickPhysicalDevice(Device device, const VulkanExtensions *requiredExtensions) 
+static void pickPhysicalDevice(Device_T *device, const VulkanExtensions *requiredExtensions) 
 {
     uint32_t deviceCount = 0;
     // This function is run twice: first to get the number of devices,
@@ -198,7 +211,7 @@ static void pickPhysicalDevice(Device device, const VulkanExtensions *requiredEx
     printf("Physical device: %s\n", device->physicalProperties.deviceName);
 }
 
-static void createLogicalDevice(Device device, const VulkanExtensions *requiredDeviceExtensions) 
+static void createLogicalDevice(Device_T *device, const VulkanExtensions *requiredDeviceExtensions) 
 {
     QueueFamilyIndices           indices             = findQueueFamilies(device);
     VkDeviceCreateInfo           createInfo          = {};
@@ -241,7 +254,7 @@ static void createLogicalDevice(Device device, const VulkanExtensions *requiredD
     vkGetDeviceQueue(device->logical, indices.presentFamily, 0, &device->presentQueue_);
 }
 
-static void createCommandPool(Device device) 
+static void createCommandPool(Device_T *device) 
 {
     QueueFamilyIndices      queueFamilyIndices = findQueueFamilies           (device);
     VkCommandPoolCreateInfo poolInfo           = createCommandPoolCreateInfo (queueFamilyIndices);
@@ -255,7 +268,7 @@ static void createCommandPool(Device device)
     }
 }
 
-static bool isDeviceSuitable(const Device device, const VulkanExtensions *requiredDeviceExtensions) 
+static bool isDeviceSuitable(Device_T *device, const VulkanExtensions *requiredDeviceExtensions) 
 {
     QueueFamilyIndices       indices                  = findQueueFamilies(device);
     VkPhysicalDeviceFeatures supportedFeatures        = {};
@@ -276,27 +289,27 @@ static bool isDeviceSuitable(const Device device, const VulkanExtensions *requir
            && supportedFeatures.samplerAnisotropy;
 }
 
-static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT &createInfo) 
+static void populateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT *createInfo) 
 {
     createInfo = {};
 
-    createInfo.sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-    createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-    createInfo.messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
-                                 VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-    createInfo.pfnUserCallback = debugCallback;
-    createInfo.pUserData       = NULL;  // Optional
+    createInfo->sType           = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+    createInfo->messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT |
+                                  VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+    createInfo->messageType     = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT |
+                                  VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT |
+                                  VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+    createInfo->pfnUserCallback = debugCallback;
+    createInfo->pUserData       = NULL;  // Optional
 }
 
-static void setupDebugMessenger(Device device)
+static void setupDebugMessenger(Device_T *device)
 {
     if (!enableValidationLayers){
         return;
     }
     VkDebugUtilsMessengerCreateInfoEXT createInfo;
-    populateDebugMessengerCreateInfo(createInfo);
+    populateDebugMessengerCreateInfo(&createInfo);
     if (CreateDebugUtilsMessengerEXT(device->instance, 
                                      &createInfo, 
                                      nullptr, 
@@ -433,7 +446,7 @@ static bool checkDeviceExtensionSupport(const VkPhysicalDevice device, const Vul
     return 1;
 }
 
-QueueFamilyIndices findQueueFamilies(const Device device) 
+QueueFamilyIndices findQueueFamilies(const Device_T *device) 
 {
     QueueFamilyIndices indices;
   
@@ -466,7 +479,25 @@ QueueFamilyIndices findQueueFamilies(const Device device)
     return indices;
 }
 
-SwapChainSupportDetails querySwapChainSupport(const Device device) 
+// All the get functions here
+VkDevice getLogicalDevice(Device device)
+{
+    return device->logical;
+}
+VkCommandPool getDevCommandPool(Device device)
+{
+    return device->commandPool;
+}
+VkQueue getDevGraphicsQueue(Device device)
+{
+    return device->graphicsQueue_;
+}
+VkQueue getDevPresentQueue (Device device)
+{
+    return device->presentQueue_;
+}
+
+SwapChainSupportDetails querySwapChainSupport(Device_T *device) 
 {
     SwapChainSupportDetails details;
     vkGetPhysicalDeviceSurfaceCapabilitiesKHR(device->physical, device->surface_, &details.capabilities);

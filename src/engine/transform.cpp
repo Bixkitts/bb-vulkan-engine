@@ -6,7 +6,7 @@
 #include <glm/glm.hpp>
 #include <chrono>
 
-void updateUniformBuffer(SwapChain swapchain, UniformBufferArray uniformBuffers)
+void updateUniformBuffer(SwapChain swapchain, UniformBuffer uniformBuffers)
 {
     PerObjectMatrices ubo         = {};
     static auto       startTime   = std::chrono::high_resolution_clock::now();
@@ -24,6 +24,6 @@ void updateUniformBuffer(SwapChain swapchain, UniformBufferArray uniformBuffers)
                                    (float) swapchain->swapChainExtent.height, 0.1f, 10.0f);
     ubo->proj[1][1] *= -1;
 
-    memcpy(uniformBuffers[swapchain->currentFrame]->mapped, ubo, sizeof(PerObjectMatrices_T));
+    memcpy(uniformBuffers[swapchain->currentFrame].mapped, ubo, sizeof(PerObjectMatrices_T));
 
 }

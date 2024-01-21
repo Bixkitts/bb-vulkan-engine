@@ -1,17 +1,39 @@
 #include "config_buffers.hpp"
 #include "buffers.hpp"
 #include "defines.hpp"
+#include "error_handling.h"
+
+struct VulkanBuffer_T
+{
+    Device         device;
+    VkBuffer       buffer;
+    VkDeviceMemory deviceMemory;
+    void          *mapped;       //pointer to mapped buffer if that is the case
+    uint32_t       size;
+};
+
+static void createStagingBuffer(StagingBuffer *sBuffer)
+{
+
+}
 
 BBError createVertexBuffer(VertexBuffer *vBuffer, 
                            const Device device, 
-                           Model *model)
+                           Model model)
 {
     VkDeviceSize    bufferSize  = sizeof(Vertex) * model->vertexCount;
     StagingBuffer_T sBuffer     = {};
-    VertexBuffer    vBuffer_ref = *vBuffer;
     sBuffer.device = device;
-    // TODO:
-    // assert(model->vertexCount >= 3 && "Vertex count must be at least 3");
+
+    if (model->vertexCount < 3) {
+        return BB_ERROR_GPU_BUFFER_CREATE;
+    }
+
+    // TODO: less shitty allocation strategy for this
+    *vBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
+    if (*vBuffer == NULL) {
+        return BB_ERROR_MEM;
+    }
     createBuffer         (bufferSize,
                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -20,35 +42,35 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
                           sBuffer.device);
     copyVertsToDeviceMem (&sBuffer, model->vertices, model->vertexCount);
     // TODO: MALLOC without free
-    *vBuffer = (VertexBuffer)calloc(1, sizeof(VertexBuffer_T));
-    if (*vBuffer == NULL){
-        return BB_ERROR_MEM;
-    }
-    vBuffer_ref->device = device;
-    vBuffer_ref->size   = model->vertexCount;
+    (*vBuffer)->device = device;
+    (*vBuffer)->size   = model->vertexCount;
     createBuffer         (bufferSize, 
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                          vBuffer_ref->buffer, 
-                          vBuffer_ref->deviceMemory, 
-                          vBuffer_ref->device);
+                          (*vBuffer)->buffer, 
+                          (*vBuffer)->deviceMemory, 
+                          (*vBuffer)->device);
     copyBuffer           (device, 
                           sBuffer.buffer, 
-                          vBuffer_ref->buffer, 
+                          (*vBuffer)->buffer, 
                           bufferSize);
-    destroyBuffer        (&sBuffer); 
+    destroyBuffer        (sBuffer); 
     return BB_ERROR_OK;
 }
 
 BBError createIndexBuffer(IndexBuffer *iBuffer,
                           const Device device, 
-                          Model *model)
+                          Model model)
 {
-    StagingBuffer_T sbuffer = {};
-    sbuffer.device          = device;
-    //TODO:
-    //assert(model->indeces.size() >= 3 && "Vertex count must be at least 3");
-    VkDeviceSize bufferSize = sizeof(model->indeces[0]) * model->indexCount;
+    StagingBuffer_T sbuffer    = {};
+    VkDeviceSize    bufferSize = sizeof(model->indeces[0]) * model->indexCount;
+    sbuffer.device             = device;
+
+    *iBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
+    if (*iBuffer == NULL) {
+        return BB_ERROR_MEM;
+    }
+
     createBuffer           (bufferSize,
                             VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                             VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
@@ -59,8 +81,6 @@ BBError createIndexBuffer(IndexBuffer *iBuffer,
                             model->indeces, 
                             model->indexCount);
     
-    // TODO: MALLOC without free
-    (*iBuffer) = (IndexBuffer)calloc(1, sizeof(IndexBuffer_T));
 
     (*iBuffer)->device = device;
     (*iBuffer)->size   = model->indexCount;
@@ -85,21 +105,22 @@ BBError createUniformBuffer(UniformBuffer *uBuffer,
                             const Device device, 
                             const size_t contentsSize)
 {
-    // TODO: MALLOC without free
-    (*uBuffer) = (UniformBuffer)calloc(1, sizeof(UniformBuffer_T));
-    if (*uBuffer == NULL){
-        return BB_ERROR_MEM;
-    }
     (*uBuffer)->device = device;
     (*uBuffer)->size   = 1;
     VkDeviceSize bufferSize = contentsSize;
+
+    *uBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
+    if (*uBuffer == NULL) {
+        return BB_ERROR_MEM;
+    }
+
     createBuffer (bufferSize, 
                   VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
                   (*uBuffer)->buffer, 
                   (*uBuffer)->deviceMemory, 
                   device); 
-    vkMapMemory  (device->logical, 
+    vkMapMemory  (getLogicalDevice(device), 
                   (*uBuffer)->deviceMemory, 
                   0, 
                   bufferSize, 
@@ -109,28 +130,15 @@ BBError createUniformBuffer(UniformBuffer *uBuffer,
     return BB_ERROR_OK;
 }
 
-// TODO: Does this even work
-BBError createUniformBuffers(UniformBufferArray *uBuffer, 
-                             const Device device, 
-                             const size_t contentsSize)
+void destroyBuffer(VulkanBuffer *v)
 {
-    // TODO: MALLOC without free
-    *uBuffer = (UniformBuffer*)malloc(MAX_FRAMES_IN_FLIGHT * sizeof(UniformBuffer));
-    if (*uBuffer == NULL){
-        return BB_ERROR_MEM;
+    if (*v == NULL) {
+        return;
     }
-    for(int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
-        createUniformBuffer(&((*uBuffer)[i]), device, contentsSize);
-    } 
-
-    return BB_ERROR_OK;
-}
-void destroyBuffer(VulkanBuffer v)
-{
-    vkDestroyBuffer (v->device->logical, v->buffer, nullptr);
-    vkFreeMemory    (v->device->logical, v->deviceMemory, nullptr);
-    free            (v);
-    v = NULL;
+    vkDestroyBuffer (getLogicalDevice((*v)->device), (*v)->buffer, nullptr);
+    vkFreeMemory    (getLogicalDevice((*v)->device), (*v)->deviceMemory, nullptr);
+    free            (*v);
+    *v = NULL;
 }
 
 // Use drawIndexBuffer() instead
@@ -164,7 +172,7 @@ void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCou
 {
     uint32_t  size = vertexCount * sizeof(Vertex);
     void     *data;
-    vkMapMemory   (sb->device->logical, 
+    vkMapMemory   (getLogicalDevice(sb->device), 
                    sb->deviceMemory, 
                    0, 
                    size, 
@@ -175,7 +183,7 @@ void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCou
     memcpy        (data, 
                    vertices, 
                    (size_t)size);
-    vkUnmapMemory (sb->device->logical, 
+    vkUnmapMemory (getLogicalDevice(sb->device), 
                    sb->deviceMemory);
 }
 
@@ -183,7 +191,7 @@ void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexC
 {
     size_t    size = indexCount * sizeof(indeces[0]);
     void     *data = NULL;
-    vkMapMemory   (sb->device->logical, 
+    vkMapMemory   (getLogicalDevice(sb->device), 
                    sb->deviceMemory, 
                    0, 
                    size, 
@@ -192,7 +200,7 @@ void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexC
     memcpy        (data, 
                    indeces, 
                    size);
-    vkUnmapMemory (sb->device->logical, 
+    vkUnmapMemory (getLogicalDevice(sb->device), 
                    sb->deviceMemory);
 }
 
@@ -202,20 +210,20 @@ BBError createBuffer(const VkDeviceSize size,
                      const VkMemoryPropertyFlags properties,
                      VkBuffer buffer,
                      VkDeviceMemory bufferMemory,
-                     const Device theGPU) 
+                     const Device device) 
 {
     VkBufferCreateInfo bufferInfo = bufferCreateInfo(size, usage);
 
-    if (vkCreateBuffer(theGPU->logical, &bufferInfo, nullptr, &buffer) 
+    if (vkCreateBuffer(getLogicalDevice(device), &bufferInfo, nullptr, &buffer) 
         != VK_SUCCESS){
         fprintf(stderr, "\nfailed to create buffer on GPU");
         return BB_ERROR_GPU_BUFFER_CREATE;
     }
 
     // TODO: device memory allocation needs to be separated
-    bufferMemory = allocateDeviceMemory(theGPU, buffer, properties, size);
+    bufferMemory = allocateDeviceMemory(device, buffer, properties, size);
 
-    vkBindBufferMemory(theGPU->logical, buffer, bufferMemory, 0);
+    vkBindBufferMemory(getLogicalDevice(device), buffer, bufferMemory, 0);
     return BB_ERROR_OK;
 }
 
@@ -229,23 +237,24 @@ VkDeviceMemory allocateDeviceMemory(Device device,
     VkDeviceMemory       deviceMemory    = {};
     VkMemoryRequirements memRequirements = {};
     VkMemoryAllocateInfo allocInfo       = {};
-    vkGetBufferMemoryRequirements (device->logical, buffer, &memRequirements);
+    vkGetBufferMemoryRequirements (getLogicalDevice(device), buffer, &memRequirements);
     allocInfo = 
     memoryAllocateInfo            (memRequirements, properties, device);
     // TODO: stdlib shit
-    if (vkAllocateMemory(device->logical, &allocInfo, nullptr, &deviceMemory) 
-        != VK_SUCCESS){
-        throw std::runtime_error("failed to allocate vertex buffer memory!");
+    if (
+    vkAllocateMemory              (getLogicalDevice(device), &allocInfo, nullptr, &deviceMemory) 
+    != VK_SUCCESS) {
+        exit(1);
     }
     return deviceMemory;
 }
 
-void copyBuffer(const Device theGPU, 
+void copyBuffer(const Device device, 
                 const VkBuffer srcBuffer, 
                 VkBuffer dstBuffer, 
                 const VkDeviceSize size) 
 {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(theGPU);
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
   
     VkBufferCopy copyRegion = {};
     copyRegion.srcOffset    = 0;  // Optional
@@ -258,17 +267,17 @@ void copyBuffer(const Device theGPU,
                            1, 
                            &copyRegion);
     endSingleTimeCommands (&commandBuffer, 
-                           theGPU);
+                           device);
 }
 
-void copyBufferToImage(Device theGPU,
+void copyBufferToImage(Device device,
                        VkBuffer buffer, 
                        VkImage image, 
                        uint32_t width, 
                        uint32_t height, 
                        uint32_t layerCount) 
 {
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(theGPU);
+    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
   
     VkBufferImageCopy region = {0};
     region.bufferOffset                    = 0;
@@ -290,7 +299,7 @@ void copyBufferToImage(Device theGPU,
                             1,
                             &region);
     endSingleTimeCommands  (&commandBuffer, 
-                            theGPU);
+                            device);
 }
 
 void createImageWithInfo(const VkImageCreateInfo *imageInfo,
@@ -299,28 +308,28 @@ void createImageWithInfo(const VkImageCreateInfo *imageInfo,
                          VkDeviceMemory *imageMemory,
                          Device device) 
 {
-    if (vkCreateImage(device->logical, imageInfo, nullptr, image) != VK_SUCCESS) 
+    if (vkCreateImage(getLogicalDevice(device), imageInfo, nullptr, image) != VK_SUCCESS) 
     {
-        throw std::runtime_error("failed to create image!");
+        exit(1);
     }
 
     VkMemoryRequirements memRequirements;
     VkMemoryAllocateInfo allocInfo{};
 
-    vkGetImageMemoryRequirements(device->logical, *image, &memRequirements);
+    vkGetImageMemoryRequirements(getLogicalDevice(device), *image, &memRequirements);
   
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
 
     // TODO: stdlib shit
-    if (vkAllocateMemory(device->logical, &allocInfo, nullptr, imageMemory) 
+    if (vkAllocateMemory(getLogicalDevice(device), &allocInfo, nullptr, imageMemory) 
             != VK_SUCCESS){
-        throw std::runtime_error("failed to allocate image memory!");
+        exit(1);
     }
   
-    if (vkBindImageMemory(device->logical, *image, *imageMemory, 0) 
+    if (vkBindImageMemory(getLogicalDevice(device), *image, *imageMemory, 0) 
             != VK_SUCCESS){
-        throw std::runtime_error("failed to bind image memory!");
+        exit(1);
     }
 }

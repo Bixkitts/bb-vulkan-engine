@@ -9,7 +9,7 @@ typedef VkCommandBuffer *VkCommandBufferArray;
 BBError         createPrimaryCommandBuffers (VkCommandBufferArray *commandBuffers, 
                                              const Device device);
 BBError         recordPrimaryCommandBuffer  (VkCommandBuffer commandBuffer, 
-                                             const BBEntityArray entities, 
+                                             const RenderObjectArray entities, 
                                              const uint64_t entityCount, 
                                              const SwapChain swapchain,
                                              const VkFramebuffer frameBuffer);

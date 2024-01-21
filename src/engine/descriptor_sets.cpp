@@ -91,7 +91,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
                              const Device device, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
                              const VulkanDescriptorPool descriptorPool, 
-                             const UniformBufferArray uniformBuffers, 
+                             const UniformBuffer uniformBuffers, 
                              const VulkanImage texture)
 {
     const int                   AMOUNT_OF_DESCRIPTORS                  = 3;
@@ -132,7 +132,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         imageInfo.sampler     = texture->samplers[0];
 
         VkDescriptorBufferInfo transBufferInfo{};
-        transBufferInfo.buffer = uniformBuffers[0]->buffer;
+        transBufferInfo.buffer = uniformBuffers[0].buffer;
         transBufferInfo.offset = 0;
         transBufferInfo.range  = sizeof(PerObjectMatrices);
 

@@ -10,6 +10,6 @@
 // TODO: stdlib shit... uuuurgh
 BBError drawFrame           (const SwapChain swapchain, 
                              const VkCommandBufferArray commandBuffers,
-                             const BBEntityArray entities,
+                             const RenderObjectArray entities,
                              const uint64_t entityCount);
 #endif

@@ -5,66 +5,38 @@
 
 #include <vulkan/vulkan_core.h>
 
+#include "defines.hpp"
 #include "descriptor_sets.hpp"
 #include "buffers.hpp"
 #include "device.hpp"
 #include "swap_chain.hpp"
 #include "error_handling.h"
 
-typedef struct PipelineConfig_S
-{
-    //TODO: data alignment
-    VkViewport                             viewport;
-    VkRect2D                               scissor;
-    VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo;
-    VkPipelineRasterizationStateCreateInfo rasterizationInfo;
-    VkPipelineMultisampleStateCreateInfo   multisampleInfo;
-    VkPipelineColorBlendAttachmentState    colorBlendAttachment;
-    VkPipelineColorBlendStateCreateInfo    colorBlendInfo;
-    VkPipelineDepthStencilStateCreateInfo  depthStencilInfo;
+typedef struct PipelineConfig_T   PipelineConfig_T;
+typedef struct GraphicsPipeline_T Graphicspipeline_T;
 
-    //TODO: Vk objects that need to be properly destroyed!
-    VkDescriptorSetLayout                  descriptorSetLayout;
-    VkDescriptorSetArray                   descriptorSets;
-    uint64_t                               descriptorSetCount;
+BB_OPAQUE_HANDLE(PipelineConfig);
+BB_OPAQUE_HANDLE(GraphicsPipeline);
 
-    VkPipelineLayout                       pipelineLayout;
-    VkRenderPass                           renderPass;
-
-    UniformBufferArray                     uniformBuffers;     
-    uint64_t                               uniformBufferCount;
-    // There are subpasses created and
-    // configured in the RenderPass     
-    uint32_t                               subpass; 
-} PipelineConfig_T, *PipelineConfig;
-
-typedef struct GraphicsPipeline_S
-{
-    Device          device;
-    SwapChain       swapchain;
-    VkPipeline      graphicsPipeline;
-    VkShaderModule  vertShaderModule;
-    VkShaderModule  fragShaderModule;
-    PipelineConfig  pipelineConfig;
-} GraphicsPipeline_T, *GraphicsPipeline;
-
-void              bindPipeline           (GraphicsPipeline pipeline, 
-                                          VkCommandBuffer commandBuffer);
-BBError           createGraphicsPipeline (GraphicsPipeline pipeline,
-                                          const Device device,
-                                          const SwapChain swapchain,
-                                          const std::string& vertFilepath, 
-                                          const std::string& fragFilepath,
-                                          const PipelineConfig configInfo);
-void              destroyPipeline        (GraphicsPipeline pipeline);
-BBError           createPipelineLayout   (VkPipelineLayout *layout, 
-                                          const Device device, 
-                                          const VkDescriptorSetLayout *descriptorSetLayout);
-BBError           createPipelineConfig   (PipelineConfig *config,
-                                          const SwapChain swapchain, 
-                                          const UniformBufferArray uniformBuffers, 
-                                          const VkDescriptorSetLayout descriptorSetLayout, 
-                                          const VkDescriptorSetArray descriptorSets,
-                                          const VkPipelineLayout pipelineLayout);
+void                 bindPipeline               (GraphicsPipeline pipeline, 
+                                                 VkCommandBuffer commandBuffer);
+BBError              createGraphicsPipeline     (GraphicsPipeline pipeline,
+                                                 const Device device,
+                                                 const SwapChain swapchain,
+                                                 const std::string& vertFilepath, 
+                                                 const std::string& fragFilepath,
+                                                 PipelineConfig configInfo);
+void                 destroyPipeline            (GraphicsPipeline pipeline);
+BBError              createPipelineLayout       (VkPipelineLayout *layout, 
+                                                 const Device device, 
+                                                 const VkDescriptorSetLayout *descriptorSetLayout);
+VkPipelineLayout     getLayout                  (GraphicsPipeline pipeline);
+VkDescriptorSetArray getPipelineDescriptorSets  (GraphicsPipeline pipeline);
+BBError              createPipelineConfig       (PipelineConfig *config,
+                                                 const SwapChain swapchain, 
+                                                 const UniformBuffer uniformBuffers, 
+                                                 const VkDescriptorSetLayout descriptorSetLayout, 
+                                                 const VkDescriptorSetArray descriptorSets,
+                                                 const VkPipelineLayout pipelineLayout);
 
 #endif

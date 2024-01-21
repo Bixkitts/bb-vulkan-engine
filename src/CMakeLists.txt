@@ -2,7 +2,6 @@ target_sources(${PROJECT_NAME} PRIVATE
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/buffers.cpp   
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/vertex.cpp              
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/model.cpp       
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_pipeline.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/command_buffers.cpp  
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/window.cpp              
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/pipeline.cpp    

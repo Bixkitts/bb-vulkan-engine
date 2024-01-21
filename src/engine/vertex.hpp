@@ -12,6 +12,8 @@
 #define BB_VERTEX_INPUT_BINDING_DESC_COUNT 1
 #define BB_VERTEX_INPUT_ATTRIBUTE_DESC_COUNT 2
 
+typedef uint32_t VertIndex;
+
 typedef struct Vertex
 {
     // TODO:

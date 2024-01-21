@@ -2,10 +2,13 @@
 #define BVE_DEFINES
 
 
-// higher numbers waste more memory
+#ifndef BB_OPAQUE_HANDLE
+    #define BB_OPAQUE_HANDLE(name) typedef name##_T *name
+#endif
 
 #define BBAPI __attribute((visibility("default")))
 
+// higher numbers waste more memory
 #define SAMPLER_PER_IMAGE       4  // Upper limit for samplers on one image
 #define QUEUES_MAX              4  // Max amount of device queues
 #define MAX_EXTENSIONS          16 // Max amount of device and instance extensions to use

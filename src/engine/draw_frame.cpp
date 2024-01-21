@@ -9,7 +9,7 @@
 
 BBError drawFrame(const SwapChain swapchain, 
                   const VkCommandBufferArray commandBuffers,
-                  const BBEntityArray entities, 
+                  const RenderObjectArray entities, 
                   const uint64_t entityCount)
 {
     uint32_t imageIndex = 0;

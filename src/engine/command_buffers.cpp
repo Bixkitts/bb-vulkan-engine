@@ -16,10 +16,10 @@ BBError createPrimaryCommandBuffers(VkCommandBufferArray *commandBuffers, Device
     VkCommandBufferAllocateInfo allocInfo = {};
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool        = device->commandPool;
+    allocInfo.commandPool        = getDevCommandPool(device);
     allocInfo.commandBufferCount = MAX_FRAMES_IN_FLIGHT;
 
-    if (vkAllocateCommandBuffers(device->logical, &allocInfo, *commandBuffers) !=
+    if (vkAllocateCommandBuffers(getLogicalDevice(device), &allocInfo, *commandBuffers) !=
         VK_SUCCESS){
         return BB_ERROR_COMMAND_BUFFER_CREATE;
     }
@@ -28,7 +28,7 @@ BBError createPrimaryCommandBuffers(VkCommandBufferArray *commandBuffers, Device
 }
 
 BBError recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, 
-                                   const BBEntityArray entities, 
+                                   const RenderObjectArray entities, 
                                    const uint64_t entityCount, 
                                    const SwapChain swapchain,
                                    const VkFramebuffer frameBuffer)
@@ -69,10 +69,10 @@ BBError recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer,
         bindPipeline            (pipelineToBind, commandBuffer);
         vkCmdBindDescriptorSets (commandBuffer, 
                                  VK_PIPELINE_BIND_POINT_GRAPHICS, 
-                                 pipelineToBind->pipelineConfig->pipelineLayout, 
+                                 getLayout(pipelineToBind), 
                                  0, 
                                  1, 
-                                 &pipelineToBind->pipelineConfig->descriptorSets[swapchain->currentFrame], 
+                                 &getPipelineDescriptorSets(pipelineToBind)[swapchain->currentFrame], 
                                  0, 
                                  NULL);
         bindVertexBuffer        (entities[i]->vBuffer, commandBuffer);
@@ -101,7 +101,7 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
     VkSemaphore          signalSemaphores[] = 
                          {swapchain->renderFinishedSemaphores[swapchain->currentFrame]};
     VkPresentInfoKHR     presentInfo        = {};
-    VkResult             result;
+    VkResult             result             = VK_ERROR_UNKNOWN;
 
     submitInfo.sType                = VK_STRUCTURE_TYPE_SUBMIT_INFO;
     submitInfo.waitSemaphoreCount   = 1;
@@ -112,12 +112,13 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
     submitInfo.signalSemaphoreCount = 1;
     submitInfo.pSignalSemaphores    = signalSemaphores;
 
-    if (vkQueueSubmit(swapchain->device->graphicsQueue_, 
-                      1, 
-                      &submitInfo, 
-                      swapchain->inFlightFences[swapchain->currentFrame]) 
-        !=VK_SUCCESS){
-        throw std::runtime_error("failed to submit draw command buffer!");
+    result = 
+    vkQueueSubmit(getDevGraphicsQueue(swapchain->device), 
+                  1, 
+                  &submitInfo, 
+                  swapchain->inFlightFences[swapchain->currentFrame]);
+    if (result != VK_SUCCESS){
+        return result;
     }
 
     presentInfo.sType               = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -128,7 +129,7 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
     presentInfo.pImageIndices       = imageIndex;
 
     result = 
-    vkQueuePresentKHR(swapchain->device->presentQueue_, 
+    vkQueuePresentKHR(getDevPresentQueue(swapchain->device), 
                       &presentInfo);
 
     swapchain->currentFrame = (swapchain->currentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
@@ -136,7 +137,7 @@ VkResult submitCommandBuffers(const SwapChain swapchain,
     return result;
 }
 
-VkCommandBuffer beginSingleTimeCommands(Device theGPU) 
+VkCommandBuffer beginSingleTimeCommands(Device device) 
 {
     VkCommandBufferAllocateInfo allocInfo     = {};
     VkCommandBuffer             commandBuffer = {};
@@ -144,20 +145,20 @@ VkCommandBuffer beginSingleTimeCommands(Device theGPU)
 
     allocInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
     allocInfo.level              = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-    allocInfo.commandPool        = theGPU->commandPool;
+    allocInfo.commandPool        = getDevCommandPool(device);
     allocInfo.commandBufferCount = 1;
 
     beginInfo.sType              = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
     beginInfo.flags              = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-    vkAllocateCommandBuffers (theGPU->logical, &allocInfo, &commandBuffer);
+    vkAllocateCommandBuffers (getLogicalDevice(device), &allocInfo, &commandBuffer);
     vkBeginCommandBuffer     (commandBuffer, &beginInfo);
 
     return commandBuffer;
 }
 
 // TODO: This might be broken
-void endSingleTimeCommands(VkCommandBuffer *commandBuffer, Device theGPU) 
+void endSingleTimeCommands(VkCommandBuffer *commandBuffer, Device device) 
 {
     VkSubmitInfo submitInfo = {};
 
@@ -166,7 +167,7 @@ void endSingleTimeCommands(VkCommandBuffer *commandBuffer, Device theGPU)
     submitInfo.pCommandBuffers    = commandBuffer;
 
     vkEndCommandBuffer   (*commandBuffer);
-    vkQueueSubmit        (theGPU->graphicsQueue_, 1, &submitInfo, VK_NULL_HANDLE);
-    vkQueueWaitIdle      (theGPU->graphicsQueue_);
-    vkFreeCommandBuffers (theGPU->logical, theGPU->commandPool, 1, commandBuffer);
+    vkQueueSubmit        (getDevGraphicsQueue(device), 1, &submitInfo, VK_NULL_HANDLE);
+    vkQueueWaitIdle      (getDevGraphicsQueue(device));
+    vkFreeCommandBuffers (getLogicalDevice(device), getDevCommandPool(device), 1, commandBuffer);
 }
