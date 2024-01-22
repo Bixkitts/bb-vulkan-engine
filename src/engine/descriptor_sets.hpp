@@ -31,12 +31,12 @@ BBError createDescriptorSetLayout  (VkDescriptorSetLayout *layout,
 BBError createDescriptorPool       (VulkanDescriptorPool *pool, 
                                     const Device device);
 
-//TODO: Allow the linking of multiple textures instead of just one
+//TODO: Allow the binding of multiple textures instead of just one
 BBError createDescriptorSets       (VkDescriptorSetArray *descriptorSets, 
                                     const Device device, 
                                     const VkDescriptorSetLayout descriptorSetLayout, 
                                     const VulkanDescriptorPool descriptorPool, 
-                                    const UniformBuffer uniformBuffers, 
+                                    const UniformBuffer uniformBuffers[], 
                                     const VulkanImage texture);
 
 #endif

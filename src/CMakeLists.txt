@@ -11,7 +11,6 @@ ${CMAKE_CURRENT_SOURCE_DIR}/engine/swap_chain.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/draw_frame.cpp       
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/cleanup.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/fileIO.cpp
-${CMAKE_CURRENT_SOURCE_DIR}/engine/config_buffers.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/images.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/descriptor_sets.cpp
 ${CMAKE_CURRENT_SOURCE_DIR}/engine/transform.cpp

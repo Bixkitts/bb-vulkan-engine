@@ -1,4 +1,3 @@
-#include "config_buffers.hpp"
 #include "buffers.hpp"
 #include "defines.hpp"
 #include "error_handling.h"
@@ -9,21 +8,51 @@ struct VulkanBuffer_T
     VkBuffer       buffer;
     VkDeviceMemory deviceMemory;
     void          *mapped;       //pointer to mapped buffer if that is the case
-    uint32_t       size;
+    VkDeviceSize   size;
 };
 
-static void createStagingBuffer(StagingBuffer *sBuffer)
-{
+static void initStagingBuffer       (StagingBuffer_T *sBuffer,
+                                     const Device device,
+                                     VkDeviceSize bufferSize);
+static void destroyStagingBuffer    (StagingBuffer_T *s);
+static void copyVertsToDeviceMem    (StagingBuffer sb, 
+                                     Vertex *vertices, 
+                                     uint32_t vertexCount);
+static void copyIndecesToDeviceMem  (StagingBuffer sb, 
+                                     uint32_t *indeces, 
+                                     uint32_t indexCount);
 
+static VkMemoryAllocateInfo memoryAllocateInfo (const VkMemoryRequirements memRequirements,
+                                                const VkMemoryPropertyFlags properties, 
+                                                const Device theGPU);
+static VkBufferCreateInfo   bufferCreateInfo   (const VkDeviceSize size, 
+                                                const VkBufferUsageFlags usage);
+
+static void initStagingBuffer(StagingBuffer_T *sBuffer,
+                              const Device device,
+                              VkDeviceSize bufferSize)
+{
+    sBuffer->device = device;
+    createBuffer (bufferSize,
+                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                  sBuffer->buffer,
+                  sBuffer->deviceMemory,
+                  sBuffer->device);
+}
+
+static void destroyStagingBuffer(StagingBuffer_T *s)
+{
+    vkDestroyBuffer (getLogicalDevice(s->device), s->buffer, nullptr);
+    vkFreeMemory    (getLogicalDevice(s->device), s->deviceMemory, nullptr);
 }
 
 BBError createVertexBuffer(VertexBuffer *vBuffer, 
                            const Device device, 
                            Model model)
 {
-    VkDeviceSize    bufferSize  = sizeof(Vertex) * model->vertexCount;
-    StagingBuffer_T sBuffer     = {};
-    sBuffer.device = device;
+    VkDeviceSize      bufferSize  = sizeof(Vertex) * model->vertexCount;
+    StagingBuffer_T   sBuffer     = {};
 
     if (model->vertexCount < 3) {
         return BB_ERROR_GPU_BUFFER_CREATE;
@@ -34,12 +63,8 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
     if (*vBuffer == NULL) {
         return BB_ERROR_MEM;
     }
-    createBuffer         (bufferSize,
-                          VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                          VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                          sBuffer.buffer,
-                          sBuffer.deviceMemory,
-                          sBuffer.device);
+
+    initStagingBuffer(&sBuffer, device, bufferSize);
     copyVertsToDeviceMem (&sBuffer, model->vertices, model->vertexCount);
     // TODO: MALLOC without free
     (*vBuffer)->device = device;
@@ -54,7 +79,7 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
                           sBuffer.buffer, 
                           (*vBuffer)->buffer, 
                           bufferSize);
-    destroyBuffer        (sBuffer); 
+    destroyStagingBuffer (&sBuffer); 
     return BB_ERROR_OK;
 }
 
@@ -62,22 +87,16 @@ BBError createIndexBuffer(IndexBuffer *iBuffer,
                           const Device device, 
                           Model model)
 {
-    StagingBuffer_T sbuffer    = {};
+    StagingBuffer_T sBuffer    = {};
     VkDeviceSize    bufferSize = sizeof(model->indeces[0]) * model->indexCount;
-    sbuffer.device             = device;
 
     *iBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
     if (*iBuffer == NULL) {
         return BB_ERROR_MEM;
     }
 
-    createBuffer           (bufferSize,
-                            VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                            sbuffer.buffer,
-                            sbuffer.deviceMemory,
-                            sbuffer.device);
-    copyIndecesToDeviceMem (&sbuffer, 
+    initStagingBuffer      (&sBuffer, device, bufferSize);
+    copyIndecesToDeviceMem (&sBuffer, 
                             model->indeces, 
                             model->indexCount);
     
@@ -90,14 +109,11 @@ BBError createIndexBuffer(IndexBuffer *iBuffer,
                             (*iBuffer)->buffer, 
                             (*iBuffer)->deviceMemory, 
                             (*iBuffer)->device);
-
     copyBuffer             (device, 
-                            sbuffer.buffer, 
+                            sBuffer.buffer, 
                             (*iBuffer)->buffer, 
                             bufferSize);
-   
-    destroyBuffer          (&sbuffer); 
-
+    destroyStagingBuffer   (&sBuffer); 
     return BB_ERROR_OK;
 }
 
@@ -109,6 +125,7 @@ BBError createUniformBuffer(UniformBuffer *uBuffer,
     (*uBuffer)->size   = 1;
     VkDeviceSize bufferSize = contentsSize;
 
+    // TODO: need a better allocation strategy
     *uBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
     if (*uBuffer == NULL) {
         return BB_ERROR_MEM;
@@ -167,8 +184,12 @@ void bindIndexBuffer(IndexBuffer indexBuffer, VkCommandBuffer commandBuffer)
     VkDeviceSize offset = {0};
     vkCmdBindIndexBuffer(commandBuffer, buffer, offset, VK_INDEX_TYPE_UINT32); 
 }
+VkBuffer getVkBuffer(VulkanBuffer buffer)
+{
+    return buffer->buffer;
+}
 
-void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCount)
+static void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCount)
 {
     uint32_t  size = vertexCount * sizeof(Vertex);
     void     *data;
@@ -187,7 +208,7 @@ void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCou
                    sb->deviceMemory);
 }
 
-void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexCount)
+static void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexCount)
 {
     size_t    size = indexCount * sizeof(indeces[0]);
     void     *data = NULL;
@@ -332,4 +353,26 @@ void createImageWithInfo(const VkImageCreateInfo *imageInfo,
             != VK_SUCCESS){
         exit(1);
     }
+}
+
+static VkMemoryAllocateInfo memoryAllocateInfo(const VkMemoryRequirements memRequirements,
+                                        const VkMemoryPropertyFlags properties, 
+                                        const Device theGPU)
+{
+    VkMemoryAllocateInfo allocInfo = {};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, theGPU);
+    return allocInfo;
+}
+
+static VkBufferCreateInfo bufferCreateInfo(const VkDeviceSize size, 
+                                    const VkBufferUsageFlags usage)
+{
+    VkBufferCreateInfo bufferInfo = {};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = size;
+    bufferInfo.usage = usage;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    return bufferInfo;
 }

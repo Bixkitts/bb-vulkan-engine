@@ -25,7 +25,6 @@ BB_OPAQUE_HANDLE(VertexBuffer);
 BB_OPAQUE_HANDLE(IndexBuffer);
 BB_OPAQUE_HANDLE(UniformBuffer);
 
-
 //TODO: GLM shit
 //3d transformation matrices for uniform buffers, should mb get moved to it's own area
 typedef struct PerObjectMatrices
@@ -37,68 +36,62 @@ typedef struct PerObjectMatrices
 //-------------------------------------------------------------------------------
 
 
-BBError         createVertexBuffer      (VertexBuffer *vBuffer, 
-                                         const Device device, 
-                                         Model model);
-BBError         createIndexBuffer       (IndexBuffer *iBuffer, 
-                                         const Device device, 
-                                         Model model);
-BBError         createUniformBuffer     (UniformBuffer *uBuffer, 
-                                         const Device device, 
-                                         const size_t contentsSize);
-
-void            destroyBuffer           (VulkanBuffer *v);
+BBError         createVertexBuffer       (VertexBuffer *vBuffer, 
+                                          const Device device, 
+                                          Model model);
+BBError         createIndexBuffer        (IndexBuffer *iBuffer, 
+                                          const Device device, 
+                                          Model model);
+BBError         createUniformBuffer      (UniformBuffer *uBuffer, 
+                                          const Device device, 
+                                          const size_t contentsSize);
+void            destroyBuffer            (VulkanBuffer *v);
 
 // These functions should maybe be bundled in with drawing
-void            drawVertexBuffer        (VertexBuffer vertexBuffer, 
-                                         VkCommandBuffer commandBuffer);
-void            bindVertexBuffer        (VertexBuffer vertexBuffer, 
-                                         VkCommandBuffer commandBuffer);
-void            drawIndexBuffer         (IndexBuffer indexBuffer, 
-                                         VkCommandBuffer commandBuffer);
-void            bindIndexBuffer         (IndexBuffer indexBuffer, 
-                                         VkCommandBuffer commandBuffer);
+void            drawVertexBuffer         (VertexBuffer vertexBuffer, 
+                                          VkCommandBuffer commandBuffer);
+void            bindVertexBuffer         (VertexBuffer vertexBuffer, 
+                                          VkCommandBuffer commandBuffer);
+void            drawIndexBuffer          (IndexBuffer indexBuffer, 
+                                          VkCommandBuffer commandBuffer);
+void            bindIndexBuffer          (IndexBuffer indexBuffer, 
+                                          VkCommandBuffer commandBuffer);
+VkBuffer        getVkBuffer              (VulkanBuffer buffer);
 
 // big main buffer creation function
-BBError         createBuffer            (const VkDeviceSize size,
-                                         const VkBufferUsageFlags usage,
-                                         const VkMemoryPropertyFlags properties,
-                                         VkBuffer buffer,
-                                         VkDeviceMemory bufferMemory,
-                                         const Device theGPU);
+BBError         createBuffer             (const VkDeviceSize size,
+                                          const VkBufferUsageFlags usage,
+                                          const VkMemoryPropertyFlags properties,
+                                          VkBuffer buffer,
+                                          VkDeviceMemory bufferMemory,
+                                          const Device theGPU);
 
-VkCommandBuffer beginSingleTimeCommands (Device theGPU);
-void            endSingleTimeCommands   (VkCommandBuffer *commandBuffer, 
-                                         Device theGPU);
+VkCommandBuffer beginSingleTimeCommands  (Device theGPU);
+void            endSingleTimeCommands    (VkCommandBuffer *commandBuffer, 
+                                          Device theGPU);
 
-void            copyBuffer              (const Device device, 
-                                         const VkBuffer srcBuffer, 
-                                         VkBuffer dstBuffer, 
-                                         const VkDeviceSize size);
-void            copyBufferToImage       (Device device,
-                                         VkBuffer buffer, 
-                                         VkImage image, 
-                                         uint32_t width, 
-                                         uint32_t height, 
-                                         uint32_t layerCount);
+void            copyBuffer               (const Device device, 
+                                          const VkBuffer srcBuffer, 
+                                          VkBuffer dstBuffer, 
+                                          const VkDeviceSize size);
+void            copyBufferToImage        (Device device,
+                                          VkBuffer buffer, 
+                                          VkImage image, 
+                                          uint32_t width, 
+                                          uint32_t height, 
+                                          uint32_t layerCount);
 //----------------------------------------------------
 //Allocation Stuff, maybe moved to it's own files
 //
-VkDeviceMemory  allocateDeviceMemory    (Device device, 
-                                         VkBuffer buffer,
-                                         VkMemoryPropertyFlags properties, 
-                                         VkDeviceSize size);
+VkDeviceMemory  allocateDeviceMemory     (Device device, 
+                                          VkBuffer buffer,
+                                          VkMemoryPropertyFlags properties, 
+                                          VkDeviceSize size);
 //----------------------------------------------------
-void            createImageWithInfo     (const VkImageCreateInfo *imageInfo,
-                                         const VkMemoryPropertyFlags properties,
-                                         VkImage *image,
-                                         VkDeviceMemory *imageMemory,
-                                         Device theGPU);
+void            createImageWithInfo      (const VkImageCreateInfo *imageInfo,
+                                          const VkMemoryPropertyFlags properties,
+                                          VkImage *image,
+                                          VkDeviceMemory *imageMemory,
+                                          Device theGPU);
 // ------------------------------------
-void            copyVertsToDeviceMem    (StagingBuffer sb, 
-                                         Vertex *vertices, 
-                                         uint32_t vertexCount);
-void            copyIndecesToDeviceMem  (StagingBuffer sb, 
-                                         uint32_t *indeces, 
-                                         uint32_t indexCount);
 #endif

@@ -77,7 +77,7 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool,
     poolInfo.pPoolSizes          = poolSizes;
     poolInfo.maxSets             = (uint32_t)MAX_FRAMES_IN_FLIGHT;
 
-    if (vkCreateDescriptorPool(device->logical, 
+    if (vkCreateDescriptorPool(getLogicalDevice(device), 
                                &poolInfo, 
                                NULL, 
                                &(*pool)->pool) 
@@ -91,7 +91,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
                              const Device device, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
                              const VulkanDescriptorPool descriptorPool, 
-                             const UniformBuffer uniformBuffers, 
+                             const UniformBuffer uniformBuffers[], 
                              const VulkanImage texture)
 {
     const int                   AMOUNT_OF_DESCRIPTORS                  = 3;
@@ -117,7 +117,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
     allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
     allocInfo.pSetLayouts        = layouts;
     
-    if (vkAllocateDescriptorSets(device->logical, 
+    if (vkAllocateDescriptorSets(getLogicalDevice(device), 
                                  &allocInfo, 
                                  *descriptorSets) 
         != VK_SUCCESS){
@@ -132,7 +132,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         imageInfo.sampler     = texture->samplers[0];
 
         VkDescriptorBufferInfo transBufferInfo{};
-        transBufferInfo.buffer = uniformBuffers[0].buffer;
+        transBufferInfo.buffer = getVkBuffer(uniformBuffers[0]);
         transBufferInfo.offset = 0;
         transBufferInfo.range  = sizeof(PerObjectMatrices);
 
@@ -152,7 +152,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         descriptorWrites[i+1].descriptorCount = 1;
         descriptorWrites[i+1].pImageInfo      = &imageInfo; // Optional
     }
-    vkUpdateDescriptorSets(device->logical, 
+    vkUpdateDescriptorSets(getLogicalDevice(device), 
                            descriptorWriteCount, 
                            descriptorWrites, 
                            0, 

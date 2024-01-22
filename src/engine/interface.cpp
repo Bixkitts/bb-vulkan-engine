@@ -53,16 +53,16 @@ BBAPI int createRenderObject(RenderObject* rObj,
     // All the uniform buffers associated with an (*entity).
     // Remember, each frame in the swap chain needs
     // a separate one!
-    createUniformBuffer      ((*rObj)->uBuffers[0], 
+    createUniformBuffer    (&(*rObj)->uBuffers[0], 
                             device, 
                             sizeof(PerObjectMatrices));
-    createUniformBuffer      ((*rObj)->uBuffers[1], 
+    createUniformBuffer    (&(*rObj)->uBuffers[1], 
                             device, 
                             sizeof(PerObjectMatrices));
-    createVertexBuffer       ((*rObj)->vBuffer, 
+    createVertexBuffer     (&(*rObj)->vBuffer, 
                             device, 
                             (*rObj)->model);
-    createIndexBuffer        ((*rObj)->iBuffer, 
+    createIndexBuffer      (&(*rObj)->iBuffer, 
                             device, 
                             (*rObj)->model);
     // TODO: instead of checking NULL maybe call this sort 
