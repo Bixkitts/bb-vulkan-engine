@@ -28,7 +28,7 @@ BBError createPrimaryCommandBuffers(VkCommandBufferArray *commandBuffers, Device
 }
 
 BBError recordPrimaryCommandBuffer(VkCommandBuffer commandBuffer, 
-                                   const RenderObjectArray entities, 
+                                   RenderObject_T *entities[], 
                                    const uint64_t entityCount, 
                                    const SwapChain swapchain,
                                    const VkFramebuffer frameBuffer)

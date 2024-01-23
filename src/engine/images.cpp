@@ -1,4 +1,5 @@
 #include "images.hpp"
+#include "device.hpp"
 #include "error_handling.h"
 #include "command_buffers.hpp"
 #define STB_IMAGE_IMPLEMENTATION
@@ -23,6 +24,7 @@ BBError createTextureImage (VulkanImage *image,
                             const char *dir, 
                             const Device device)
 {
+    VkDevice        logicalDevice         = getLogicalDevice(device);
     void           *data                  = NULL;
     BBError         er                    = BB_ERROR_UNKNOWN;
     int             texWidth              = 0;
@@ -55,7 +57,7 @@ BBError createTextureImage (VulkanImage *image,
                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
                            stagingBuffer, 
                            stagingBufferMemory, device);
-    vkMapMemory           (device->logical, 
+    vkMapMemory           (logicalDevice, 
                            stagingBufferMemory, 
                            0, 
                            imageSize, 
@@ -64,7 +66,7 @@ BBError createTextureImage (VulkanImage *image,
     memcpy                (data, 
                            pixels, 
                            (size_t)imageSize);
-    vkUnmapMemory         (device->logical, 
+    vkUnmapMemory         (logicalDevice, 
                            stagingBufferMemory);
     stbi_image_free       (pixels);
     er = 
@@ -94,9 +96,9 @@ BBError createTextureImage (VulkanImage *image,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, device);
 
     
-    vkDestroyBuffer       (device->logical, stagingBuffer, NULL);
+    vkDestroyBuffer       (logicalDevice, stagingBuffer, NULL);
     // TODO: Why is this an allocation
-    vkFreeMemory          (device->logical, stagingBufferMemory, NULL);
+    vkFreeMemory          (logicalDevice, stagingBufferMemory, NULL);
     
     return BB_ERROR_OK;
 
@@ -108,23 +110,24 @@ error_exit:
 
 void destroyImage(VulkanImage *v)
 {
+    VkDevice logicalDevice = getLogicalDevice((*v)->device);
     if (*v == NULL){
         return;
     }
     for(uint64_t i = (*v)->viewCount-1; i >= 0; i--){
-        vkDestroyImageView ((*v)->device->logical, 
+        vkDestroyImageView (logicalDevice, 
                             (*v)->views[i], 
                             NULL);
     }
     for(uint64_t i = (*v)->samplerCount-1; i >= 0; i--){
-        vkDestroySampler   ((*v)->device->logical, 
+        vkDestroySampler   (logicalDevice, 
                             (*v)->samplers[i], 
                             NULL);
     }
-    vkDestroyImage ((*v)->device->logical, 
+    vkDestroyImage (logicalDevice, 
                     (*v)->textureImage, 
                     NULL);
-    vkFreeMemory   ((*v)->device->logical, 
+    vkFreeMemory   (logicalDevice, 
                     (*v)->textureImageMemory, 
                     NULL);
     free           (*v);
@@ -144,6 +147,7 @@ static BBError createImage(const uint32_t width,
     VkMemoryAllocateInfo allocInfo       = {};
     VkMemoryRequirements memRequirements = {};
     VkImageCreateInfo    imageInfo       = {};
+    VkDevice             logicalDevice   = getLogicalDevice(device);
 
     imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
     imageInfo.imageType     = VK_IMAGE_TYPE_2D;
@@ -160,20 +164,20 @@ static BBError createImage(const uint32_t width,
     imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
     imageInfo.flags         = 0; // Optional
                                  //
-    if (vkCreateImage(device->logical, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    if (vkCreateImage(logicalDevice, &imageInfo, nullptr, &image) != VK_SUCCESS) {
         return BB_ERROR_IMAGE_CREATE;
     }
-    vkGetImageMemoryRequirements(device->logical, image, &memRequirements);
+    vkGetImageMemoryRequirements (logicalDevice, image, &memRequirements);
 
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
     allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
 
-    if (vkAllocateMemory(device->logical, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
         return BB_ERROR_MEM;
     }
 
-    vkBindImageMemory(device->logical, image, imageMemory, 0);
+    vkBindImageMemory            (logicalDevice, image, imageMemory, 0);
     return BB_ERROR_OK;
 }
 
@@ -240,7 +244,8 @@ BBError transitionImageLayout(VkImage image,
 // I should maybe generalise it more.
 BBError createTextureImageView(VulkanImage image)
 {
-    VkImageViewCreateInfo viewInfo = {};
+    VkDevice              logicalDevice = getLogicalDevice(image->device);
+    VkImageViewCreateInfo viewInfo      = {};
     viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
     viewInfo.image                           = image->textureImage;
     viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
@@ -252,8 +257,11 @@ BBError createTextureImageView(VulkanImage image)
     viewInfo.subresourceRange.layerCount     = 1;
 
     if (image->viewCount <= VIEW_PER_IMAGE){
-        if (vkCreateImageView(image->device->logical, &viewInfo, nullptr, &image->views[image->viewCount]) !=
-            VK_SUCCESS) {
+        if (vkCreateImageView(logicalDevice, 
+                              &viewInfo, 
+                              nullptr, 
+                              &image->views[image->viewCount]) 
+            != VK_SUCCESS) {
             return BB_ERROR_IMAGE_VIEW_CREATE;
         }
         image->viewCount++;
@@ -266,7 +274,8 @@ BBError createTextureImageView(VulkanImage image)
 
 BBError createTextureSampler(VulkanImage image)
 {
-    VkSamplerCreateInfo samplerInfo{};
+    VkDevice            logicalDevice = getLogicalDevice(image->device);
+    VkSamplerCreateInfo samplerInfo   = {};
     samplerInfo.sType                    = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
     samplerInfo.magFilter                = VK_FILTER_LINEAR;
     samplerInfo.minFilter                = VK_FILTER_LINEAR;
@@ -274,7 +283,7 @@ BBError createTextureSampler(VulkanImage image)
     samplerInfo.addressModeV             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable         = VK_TRUE;
-    samplerInfo.maxAnisotropy            = image->device->physicalProperties.limits.maxSamplerAnisotropy;
+    samplerInfo.maxAnisotropy            = getDevPhysicalProperties(image->device).limits.maxSamplerAnisotropy;
     samplerInfo.borderColor              = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates  = VK_FALSE;
     samplerInfo.compareEnable            = VK_FALSE;
@@ -285,7 +294,7 @@ BBError createTextureSampler(VulkanImage image)
     samplerInfo.maxLod                   = 0.0f;
     //TODO: stdlib shit
     if (image->samplerCount <= SAMPLER_PER_IMAGE){
-        if (vkCreateSampler(image->device->logical, 
+        if (vkCreateSampler(logicalDevice, 
                             &samplerInfo, 
                             NULL, 
                             &image->samplers[image->samplerCount]) 

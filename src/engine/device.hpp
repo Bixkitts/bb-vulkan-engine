@@ -34,23 +34,26 @@ typedef struct {
 } VulkanExtensions;
 
 typedef struct Device_T Device_T;
+
 BB_OPAQUE_HANDLE(Device);
 
-BBError                 deviceInit            (Device *device, 
-                                               const BBWindow deviceWindow);
-void                    destroyDevice         (Device *device); 
-uint32_t                findMemoryType        (const uint32_t typeFilter, 
-                                               const VkMemoryPropertyFlags properties, 
-                                               Device device);
-VkDevice                getLogicalDevice      (Device device);
-VkCommandPool           getDevCommandPool     (Device device);  
-VkQueue                 getDevGraphicsQueue   (Device device);
-VkQueue                 getDevPresentQueue    (Device device);
-SwapChainSupportDetails querySwapChainSupport (Device device);
-QueueFamilyIndices      findQueueFamilies     (Device device);
-VkFormat                findSupportedFormat   (const std::vector<VkFormat> &candidates, 
-                                               const VkImageTiling tiling, 
-                                               const VkFormatFeatureFlags features,
-                                               Device device);
+BBError                    createDevice             (Device *device, 
+                                                     const BBWindow deviceWindow);
+void                       destroyDevice            (Device *device); 
+uint32_t                   findMemoryType           (const uint32_t typeFilter, 
+                                                     const VkMemoryPropertyFlags properties, 
+                                                     Device device);
+VkDevice                   getLogicalDevice         (Device device);
+VkCommandPool              getDevCommandPool        (Device device);  
+VkQueue                    getDevGraphicsQueue      (Device device);
+VkQueue                    getDevPresentQueue       (Device device);
+VkSurfaceKHR               getDevVkSurface          (Device device);
+VkPhysicalDeviceProperties getDevPhysicalProperties (Device device);
+SwapChainSupportDetails    querySwapChainSupport    (Device device);
+QueueFamilyIndices         findQueueFamilies        (Device device);
+VkFormat                   findSupportedFormat      (const std::vector<VkFormat> &candidates, 
+                                                     const VkImageTiling tiling, 
+                                                     const VkFormatFeatureFlags features,
+                                                     Device device);
 
 #endif

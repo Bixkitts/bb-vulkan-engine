@@ -323,6 +323,11 @@ void copyBufferToImage(Device device,
                             device);
 }
 
+void copyIntoMappedMem(VulkanBuffer_T *buffer, void* srcData, size_t dataSize)
+{
+    memcpy(buffer->mapped, srcData, dataSize);
+}
+
 void createImageWithInfo(const VkImageCreateInfo *imageInfo,
                          const VkMemoryPropertyFlags properties,
                          VkImage *image,

@@ -33,6 +33,7 @@ BBError createDescriptorPool       (VulkanDescriptorPool *pool,
 
 //TODO: Allow the binding of multiple textures instead of just one
 BBError createDescriptorSets       (VkDescriptorSetArray *descriptorSets, 
+                                    const int dSetCount,
                                     const Device device, 
                                     const VkDescriptorSetLayout descriptorSetLayout, 
                                     const VulkanDescriptorPool descriptorPool, 

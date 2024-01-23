@@ -15,6 +15,13 @@
 typedef struct PipelineConfig_T   PipelineConfig_T;
 typedef struct GraphicsPipeline_T Graphicspipeline_T;
 
+// A simple selector for any variety of pipeline layouts
+// I may concievably need
+typedef enum{
+    PIPELINE_LAYOUT_BASIC,
+    PIPELINE_LAYOUT_COUNT,
+}PipelineLayoutEnum;
+
 BB_OPAQUE_HANDLE(PipelineConfig);
 BB_OPAQUE_HANDLE(GraphicsPipeline);
 
@@ -34,7 +41,7 @@ VkPipelineLayout     getLayout                  (GraphicsPipeline pipeline);
 VkDescriptorSetArray getPipelineDescriptorSets  (GraphicsPipeline pipeline);
 BBError              createPipelineConfig       (PipelineConfig *config,
                                                  const SwapChain swapchain, 
-                                                 const UniformBuffer uniformBuffers, 
+                                                 UniformBuffer uniformBuffers[], 
                                                  const VkDescriptorSetLayout descriptorSetLayout, 
                                                  const VkDescriptorSetArray descriptorSets,
                                                  const VkPipelineLayout pipelineLayout);

@@ -5,7 +5,7 @@
 #include "swap_chain.hpp"
 #include "buffers.hpp"
 
-void updateUniformBuffer(SwapChain swapchain, UniformBuffer uniformBuffers);
+void updateUniformBuffers(SwapChain swapchain, UniformBuffer uniformBuffers[]);
 
 
 #endif

@@ -21,7 +21,7 @@ struct PipelineConfig_T
     VkPipelineLayout                       pipelineLayout;
     VkRenderPass                           renderPass;
 
-    UniformBuffer                          uniformBuffers;     
+    UniformBuffer                         *uniformBuffers;     
     uint64_t                               uniformBufferCount;
     // There are subpasses created and
     // configured in the RenderPass     
@@ -235,7 +235,7 @@ VkDescriptorSetArray getPipelineDescriptorSets(GraphicsPipeline pipeline)
 
 BBError createPipelineConfig(PipelineConfig *config,
                              const SwapChain swapchain, 
-                             const UniformBuffer uniformBuffers, 
+                             UniformBuffer uniformBuffers[], 
                              const VkDescriptorSetLayout descriptorSetLayout, 
                              const VkDescriptorSetArray descriptorSets,
                              const VkPipelineLayout pipelineLayout)

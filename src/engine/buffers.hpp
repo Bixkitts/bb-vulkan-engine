@@ -46,6 +46,9 @@ BBError         createUniformBuffer      (UniformBuffer *uBuffer,
                                           const Device device, 
                                           const size_t contentsSize);
 void            destroyBuffer            (VulkanBuffer *v);
+void            copyIntoMappedMem        (VulkanBuffer_T *buffer, 
+                                          void* srcData, 
+                                          size_t dataSize);
 
 // These functions should maybe be bundled in with drawing
 void            drawVertexBuffer         (VertexBuffer vertexBuffer, 

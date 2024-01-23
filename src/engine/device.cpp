@@ -446,7 +446,7 @@ static bool checkDeviceExtensionSupport(const VkPhysicalDevice device, const Vul
     return 1;
 }
 
-QueueFamilyIndices findQueueFamilies(const Device_T *device) 
+QueueFamilyIndices findQueueFamilies(Device_T *device) 
 {
     QueueFamilyIndices indices;
   
@@ -496,6 +496,15 @@ VkQueue getDevPresentQueue (Device device)
 {
     return device->presentQueue_;
 }
+VkSurfaceKHR getDevVkSurface(Device device)
+{
+    return device->surface_;
+}
+VkPhysicalDeviceProperties getDevPhysicalProperties(Device device)
+{
+    return device->physicalProperties;
+}
+
 
 SwapChainSupportDetails querySwapChainSupport(Device_T *device) 
 {

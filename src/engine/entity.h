@@ -22,8 +22,6 @@ typedef struct RenderObject_T
     BBDescriptorSetLayout  descriptorSetLayout;
     VkDescriptorSet        descriptorSet;
     GraphicsPipeline       pipeline;
-} RenderObject_T, *RenderObject;
-
-typedef RenderObject *RenderObjectArray;
+} RenderObject_T;
 
 #endif

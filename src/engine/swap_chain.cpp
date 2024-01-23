@@ -45,45 +45,46 @@ float getExtentAspectRatio(SwapChain swapchain)
 
 void destroySwapchain(SwapChain swapchain) 
 {
+    VkDevice logicalDevice = getLogicalDevice(swapchain->device);
     for (auto imageView : swapchain->swapChainImageViews){
-        vkDestroyImageView    (swapchain->device->logical, 
+        vkDestroyImageView    (logicalDevice, 
                                imageView, 
                                NULL);
     }
     swapchain->swapChainImageViews.clear();
     if (swapchain->swapChain != NULL) {
-        vkDestroySwapchainKHR (swapchain->device->logical, 
+        vkDestroySwapchainKHR (logicalDevice, 
                                swapchain->swapChain, 
                                NULL);
         swapchain->swapChain = NULL;
     }
     for (int i = 0; i < swapchain->depthImages.size(); i++) {
         // TODO: set pointers to NULL if it's not done by vulkan
-        vkDestroyImageView    (swapchain->device->logical, 
+        vkDestroyImageView    (logicalDevice, 
                                swapchain->depthImageViews[i], 
                                NULL);
-        vkDestroyImage        (swapchain->device->logical, 
+        vkDestroyImage        (logicalDevice, 
                                swapchain->depthImages[i], 
                                NULL);
-        vkFreeMemory          (swapchain->device->logical, 
+        vkFreeMemory          (logicalDevice, 
                                swapchain->depthImageMemorys[i], 
                                NULL);
     }
     for (auto framebuffer : swapchain->framebuffers) {
-        vkDestroyFramebuffer  (swapchain->device->logical, framebuffer, nullptr);
+        vkDestroyFramebuffer  (logicalDevice, framebuffer, nullptr);
     }
 
-    vkDestroyRenderPass       (swapchain->device->logical, swapchain->renderPass, nullptr);
+    vkDestroyRenderPass       (logicalDevice, swapchain->renderPass, nullptr);
 
     // cleanup synchronization objects
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
-        vkDestroySemaphore    (swapchain->device->logical, 
+        vkDestroySemaphore    (logicalDevice, 
                                swapchain->renderFinishedSemaphores[i], 
                                NULL);
-        vkDestroySemaphore    (swapchain->device->logical, 
+        vkDestroySemaphore    (logicalDevice, 
                                swapchain->imageAvailableSemaphores[i], 
                                NULL);
-        vkDestroyFence        (swapchain->device->logical, 
+        vkDestroyFence        (logicalDevice, 
                                swapchain->inFlightFences[i], 
                                NULL);
     }
@@ -92,18 +93,19 @@ void destroySwapchain(SwapChain swapchain)
 
 VkResult acquireNextImage(SwapChain swapchain, uint32_t* imageIndex) 
 {
-    vkWaitForFences       (swapchain->device->logical,
+    VkDevice logicalDevice = getLogicalDevice(swapchain->device);
+    vkWaitForFences       (logicalDevice,
                            1,
                            &swapchain->inFlightFences[swapchain->currentFrame],
                            VK_TRUE,
                            std::numeric_limits<uint64_t>::max());
 
-    vkResetFences         (swapchain->device->logical, 
+    vkResetFences         (logicalDevice, 
                            1, 
                            &swapchain->inFlightFences[swapchain->currentFrame]);
 
     VkResult result = 
-    vkAcquireNextImageKHR (swapchain->device->logical,
+    vkAcquireNextImageKHR (logicalDevice,
                            swapchain->swapChain,
                            std::numeric_limits<uint64_t>::max(),
                            swapchain->imageAvailableSemaphores[swapchain->currentFrame],    // must be a not signaled semaphore
@@ -115,6 +117,9 @@ VkResult acquireNextImage(SwapChain swapchain, uint32_t* imageIndex)
 
 static void initSwapChain(SwapChain swapchain) 
 {
+    VkDevice                logicalDevice    = 
+    getLogicalDevice(swapchain->device);
+
     SwapChainSupportDetails swapChainSupport = 
     querySwapChainSupport   (swapchain->device);
 
@@ -136,7 +141,7 @@ static void initSwapChain(SwapChain swapchain)
     VkSwapchainCreateInfoKHR createInfo = {};
 
     createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
-    createInfo.surface          = swapchain->device->surface_;
+    createInfo.surface          = getDevVkSurface(swapchain->device);
     createInfo.minImageCount    = imageCount;
     createInfo.imageFormat      = surfaceFormat.format;
     createInfo.imageColorSpace  = surfaceFormat.colorSpace;
@@ -170,16 +175,16 @@ static void initSwapChain(SwapChain swapchain)
 
     createInfo.oldSwapchain   = VK_NULL_HANDLE;
 
-    if (vkCreateSwapchainKHR(swapchain->device->logical, &createInfo, nullptr, &swapchain->swapChain) != VK_SUCCESS){
+    if (vkCreateSwapchainKHR(logicalDevice, &createInfo, nullptr, &swapchain->swapChain) != VK_SUCCESS){
         throw std::runtime_error("failed to create swap chain!");
     }
     // we only specified a minimum number of images in the swap chain, so the implementation is
     // allowed to create a swap chain with more. That's why we'll first query the final number of
     // images with vkGetSwapchainImagesKHR, then resize the container and finally call it again to
     // retrieve the handles.
-    vkGetSwapchainImagesKHR(swapchain->device->logical, swapchain->swapChain, &imageCount, nullptr);
+    vkGetSwapchainImagesKHR(logicalDevice, swapchain->swapChain, &imageCount, nullptr);
     swapchain->swapChainImages.resize(imageCount);
-    vkGetSwapchainImagesKHR(swapchain->device->logical, swapchain->swapChain, &imageCount, swapchain->swapChainImages.data());
+    vkGetSwapchainImagesKHR(logicalDevice, swapchain->swapChain, &imageCount, swapchain->swapChainImages.data());
 
     swapchain->swapChainImageFormat = surfaceFormat.format;
     swapchain->swapChainExtent = extent;
@@ -187,6 +192,7 @@ static void initSwapChain(SwapChain swapchain)
 
 static void createSwapchainImageViews(SwapChain swapchain) 
 {
+    VkDevice logicalDevice = getLogicalDevice(swapchain->device);
     swapchain->swapChainImageViews.resize(swapchain->swapChainImages.size());
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
     {
@@ -201,7 +207,7 @@ static void createSwapchainImageViews(SwapChain swapchain)
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount     = 1;
 
-        if (vkCreateImageView(swapchain->device->logical, &viewInfo, nullptr, &swapchain->swapChainImageViews[i]) 
+        if (vkCreateImageView(logicalDevice, &viewInfo, nullptr, &swapchain->swapChainImageViews[i]) 
             != VK_SUCCESS){
             throw std::runtime_error("failed to create texture image view!");
         }
@@ -217,6 +223,7 @@ static void createRenderPass(SwapChain swapchain)
     VkAttachmentReference   colorAttachmentRef = {};
     VkSubpassDescription    subpass            = {};
     VkRenderPassCreateInfo  renderPassInfo     = {};
+    VkDevice                logicalDevice      = getLogicalDevice(swapchain->device);
     std::array
     <VkAttachmentDescription, 2> attachments; 
 
@@ -272,7 +279,7 @@ static void createRenderPass(SwapChain swapchain)
     renderPassInfo.dependencyCount = 1;
     renderPassInfo.pDependencies   = &dependency;
 
-    if (vkCreateRenderPass(swapchain->device->logical, 
+    if (vkCreateRenderPass(logicalDevice, 
                            &renderPassInfo, 
                            NULL, 
                            &swapchain->renderPass) 
@@ -283,6 +290,7 @@ static void createRenderPass(SwapChain swapchain)
 
 static void createFramebuffers(SwapChain swapchain) 
 {
+    VkDevice                logicalDevice = getLogicalDevice(swapchain->device);
     VkExtent2D              swapChainExtent;
     VkFramebufferCreateInfo framebufferInfo;
     swapchain->framebuffers.resize(swapchain->swapChainImages.size());
@@ -301,11 +309,10 @@ static void createFramebuffers(SwapChain swapchain)
         framebufferInfo.height           = swapChainExtent.height;
         framebufferInfo.layers           = 1;
 
-        if (vkCreateFramebuffer(
-                        swapchain->device->logical,
-                        &framebufferInfo,
-                        nullptr,
-                        &swapchain->framebuffers[i]) 
+        if (vkCreateFramebuffer(logicalDevice,
+                                &framebufferInfo,
+                                nullptr,
+                                &swapchain->framebuffers[i]) 
             != VK_SUCCESS){
             throw std::runtime_error("failed to create framebuffer!");
         }
@@ -314,6 +321,7 @@ static void createFramebuffers(SwapChain swapchain)
 
 static void createDepthResources(SwapChain swapchain) 
 {
+    VkDevice          logicalDevice   = getLogicalDevice(swapchain->device);
     VkFormat          depthFormat     = findDepthFormat(swapchain);
     VkExtent2D        swapChainExtent = swapchain->swapChainExtent;
     VkImageCreateInfo imageInfo{};
@@ -357,7 +365,7 @@ static void createDepthResources(SwapChain swapchain)
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount     = 1;
 
-        if (vkCreateImageView(swapchain->device->logical, 
+        if (vkCreateImageView(logicalDevice, 
                               &viewInfo, 
                               NULL, 
                               &swapchain->depthImageViews[i]) 
@@ -369,6 +377,7 @@ static void createDepthResources(SwapChain swapchain)
 
 static void createSyncObjects(SwapChain swapchain) 
 {
+    VkDevice              logicalDevice = getLogicalDevice(swapchain->device);
     VkSemaphoreCreateInfo semaphoreInfo = {};
     VkFenceCreateInfo     fenceInfo     = {};
 
@@ -382,19 +391,19 @@ static void createSyncObjects(SwapChain swapchain)
 
     //TODO: what the fuck
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
-        if (vkCreateSemaphore(swapchain->device->logical, 
+        if (vkCreateSemaphore(logicalDevice, 
                               &semaphoreInfo, 
                               NULL, 
                               &swapchain->imageAvailableSemaphores[i]) 
             != VK_SUCCESS 
             || 
-            vkCreateSemaphore(swapchain->device->logical, 
+            vkCreateSemaphore(logicalDevice, 
                               &semaphoreInfo, 
                               NULL, 
                               &swapchain->renderFinishedSemaphores[i]) 
             != VK_SUCCESS 
             ||
-            vkCreateFence    (swapchain->device->logical, 
+            vkCreateFence    (logicalDevice, 
                               &fenceInfo, 
                               NULL, 
                               &swapchain->inFlightFences[i]) 

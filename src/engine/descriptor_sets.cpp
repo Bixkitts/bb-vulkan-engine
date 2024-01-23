@@ -45,7 +45,7 @@ BBError createDescriptorSetLayout(VkDescriptorSetLayout *layout,
     layoutInfo.bindingCount = bindingCount;
     layoutInfo.pBindings    = bindings;
 
-    if (vkCreateDescriptorSetLayout(device->logical, 
+    if (vkCreateDescriptorSetLayout(getLogicalDevice(device), 
                                     &layoutInfo, 
                                     NULL, 
                                     layout)
@@ -88,21 +88,21 @@ BBError createDescriptorPool(VulkanDescriptorPool *pool,
 }
 
 BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
+                             const int dSetCount,
                              const Device device, 
                              const VkDescriptorSetLayout descriptorSetLayout, 
                              const VulkanDescriptorPool descriptorPool, 
                              const UniformBuffer uniformBuffers[], 
                              const VulkanImage texture)
 {
-    const int                   AMOUNT_OF_DESCRIPTORS                  = 3;
     const int                   descriptorWriteCount                   = 
-                                MAX_FRAMES_IN_FLIGHT * AMOUNT_OF_DESCRIPTORS;
+                                MAX_FRAMES_IN_FLIGHT * dSetCount;
     VkDescriptorSetLayout       layouts[MAX_FRAMES_IN_FLIGHT]          = {0};
     VkDescriptorSetAllocateInfo allocInfo                              = {};
-    VkWriteDescriptorSet        descriptorWrites[descriptorWriteCount] = {};
+    VkWriteDescriptorSet        descriptorWrites[descriptorWriteCount];
     VkDescriptorImageInfo       imageInfo                              = {};
-    // TODO: MALLOC without free
-    *descriptorSets = (VkDescriptorSet*)calloc(MAX_FRAMES_IN_FLIGHT, sizeof(VkDescriptorSet));
+
+    *descriptorSets = (VkDescriptorSet*)calloc(dSetCount, sizeof(VkDescriptorSet));
     if ((*descriptorSets) == NULL) {
         return BB_ERROR_MEM;
     }
@@ -114,7 +114,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
 
     allocInfo.sType              = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
     allocInfo.descriptorPool     = descriptorPool->pool;
-    allocInfo.descriptorSetCount = (uint32_t)(MAX_FRAMES_IN_FLIGHT);
+    allocInfo.descriptorSetCount = (uint32_t)(dSetCount);
     allocInfo.pSetLayouts        = layouts;
     
     if (vkAllocateDescriptorSets(getLogicalDevice(device), 
@@ -124,7 +124,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         return BB_ERROR_DESCRIPTOR_SET;
     }
     // TODO: magic number 3
-    for(int i = 0; i < descriptorWriteCount; i += AMOUNT_OF_DESCRIPTORS){
+    for(int i = 0; i < descriptorWriteCount; i += dSetCount){
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         //TODO: AHHHHH. Sort out the views and samplers thing.
         //They need to be encoded depending on what image or sampler type it is
