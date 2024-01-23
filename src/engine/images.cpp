@@ -5,6 +5,31 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
+struct VulkanImage_T
+{
+    Device         device;
+    VkFormat       format;
+    VkImage        textureImage;
+    VkDeviceMemory textureImageMemory;
+    // Views of the image, there will typically be only one
+    // anyways.
+    // If there are more of them I'll need
+    // to come up with a standard for how they are
+    // dereferenced.
+    VkImageView    views[VIEW_PER_IMAGE];
+    uint64_t       viewCount;
+    // I'll also need some kind of convention
+    // for referencing the correct samplers
+    // when there are multiple.
+    // A problem for future me!
+    VkSampler      samplers[SAMPLER_PER_IMAGE];
+    uint64_t       samplerCount;
+    // Maybe I can get these from VkImage or smthn??
+    uint32_t       width;
+    uint32_t       height;
+    uint32_t       layerCount;
+};
+
 // TODO: too many params
 static BBError createImage (const uint32_t width, 
                             const uint32_t height, 
@@ -16,13 +41,10 @@ static BBError createImage (const uint32_t width,
                             VkDeviceMemory imageMemory, 
                             const Device device);
 
-// Load a texture into a buffer from
-// a directory on disk.
-// Currently allocates on load and delete, I need
 // to get my memory management together!
-BBError createTextureImage (VulkanImage *image, 
+BBError createTextureImage (VulkanImage_T **image, 
                             const char *dir, 
-                            const Device device)
+                            Device device)
 {
     VkDevice        logicalDevice         = getLogicalDevice(device);
     void           *data                  = NULL;
@@ -31,7 +53,7 @@ BBError createTextureImage (VulkanImage *image,
     int             texHeight             = 0; 
     int             texChannels           = 0;
     VkDeviceSize    imageSize             = {0};
-    VkBuffer        stagingBuffer         = {0};
+    StagingBuffer   sBuffer               = NULL;
     VkDeviceMemory  stagingBufferMemory   = {0};
     // TODO: custom image loader?
     stbi_uc        *pixels                = stbi_load(dir, 
@@ -45,29 +67,15 @@ BBError createTextureImage (VulkanImage *image,
 
     imageSize = texWidth * texHeight * 4;
     //TODO: MALLOC without free
-    *image    = (VulkanImage)calloc(1, sizeof(VulkanImage_T));
+    *image    = (VulkanImage_T*)calloc(1, sizeof(VulkanImage_T));
     if (image == NULL){
         return BB_ERROR_MEM;
     }
     (*image)->device = device;
     (*image)->format = VK_FORMAT_R8G8B8A8_SRGB;
 
-    createBuffer          (imageSize, 
-                           VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-                           VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-                           stagingBuffer, 
-                           stagingBufferMemory, device);
-    vkMapMemory           (logicalDevice, 
-                           stagingBufferMemory, 
-                           0, 
-                           imageSize, 
-                           0, 
-                           &data);
-    memcpy                (data, 
-                           pixels, 
-                           (size_t)imageSize);
-    vkUnmapMemory         (logicalDevice, 
-                           stagingBufferMemory);
+    createStagingBuffer   (&sBuffer, device, imageSize);
+    copyIntoStagingBuffer (sBuffer, pixels, imageSize);
     stbi_image_free       (pixels);
     er = 
     createImage           (texWidth, texHeight, 
@@ -85,7 +93,8 @@ BBError createTextureImage (VulkanImage *image,
                            VK_FORMAT_R8G8B8A8_SRGB, 
                            VK_IMAGE_LAYOUT_UNDEFINED, 
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device);
-    copyBufferToImage     (device, stagingBuffer, 
+    copyBufferToImage     (device, 
+                           sBuffer, 
                            (*image)->textureImage, 
                            (unsigned int)texWidth, 
                            (unsigned int)texHeight, 
@@ -96,9 +105,7 @@ BBError createTextureImage (VulkanImage *image,
                            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, device);
 
     
-    vkDestroyBuffer       (logicalDevice, stagingBuffer, NULL);
-    // TODO: Why is this an allocation
-    vkFreeMemory          (logicalDevice, stagingBufferMemory, NULL);
+    destroyBuffer         (&sBuffer);
     
     return BB_ERROR_OK;
 
@@ -307,4 +314,36 @@ BBError createTextureSampler(VulkanImage image)
         return BB_ERROR_IMAGE_SAMPLER_CREATE;
     }
     return BB_ERROR_OK;
+}
+
+void copyBufferToImage(VulkanBuffer_T *buffer, 
+                       VkImage image, 
+                       uint32_t width, 
+                       uint32_t height, 
+                       uint32_t layerCount) 
+{
+    VkCommandBuffer commandBuffer = 
+    beginSingleTimeCommands (device);
+  
+    VkBufferImageCopy region = {0};
+    region.bufferOffset                    = 0;
+    region.bufferRowLength                 = 0;
+    region.bufferImageHeight               = 0;
+  
+    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel       = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount     = layerCount;
+  
+    region.imageOffset                     = {0, 0, 0};
+    region.imageExtent                     = {width, height, 1};
+  
+    vkCmdCopyBufferToImage (commandBuffer,
+                            buffer,
+                            image,
+                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                            1,
+                            &region);
+    endSingleTimeCommands  (&commandBuffer, 
+                            device);
 }

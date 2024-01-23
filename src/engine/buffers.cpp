@@ -11,40 +11,37 @@ struct VulkanBuffer_T
     VkDeviceSize   size;
 };
 
-static void initStagingBuffer       (StagingBuffer_T *sBuffer,
-                                     const Device device,
-                                     VkDeviceSize bufferSize);
-static void destroyStagingBuffer    (StagingBuffer_T *s);
-static void copyVertsToDeviceMem    (StagingBuffer sb, 
-                                     Vertex *vertices, 
-                                     uint32_t vertexCount);
-static void copyIndecesToDeviceMem  (StagingBuffer sb, 
-                                     uint32_t *indeces, 
-                                     uint32_t indexCount);
-
 static VkMemoryAllocateInfo memoryAllocateInfo (const VkMemoryRequirements memRequirements,
                                                 const VkMemoryPropertyFlags properties, 
                                                 const Device theGPU);
 static VkBufferCreateInfo   bufferCreateInfo   (const VkDeviceSize size, 
                                                 const VkBufferUsageFlags usage);
+// big main buffer creation function
+static BBError              createBuffer       (const VkDeviceSize size,
+                                                const VkBufferUsageFlags usage,
+                                                const VkMemoryPropertyFlags properties,
+                                                VkBuffer buffer,
+                                                VkDeviceMemory bufferMemory,
+                                                const Device theGPU);
 
-static void initStagingBuffer(StagingBuffer_T *sBuffer,
-                              const Device device,
-                              VkDeviceSize bufferSize)
+BBError createStagingBuffer(StagingBuffer_T **sBuffer,
+                            const Device device,
+                            VkDeviceSize bufferSize)
 {
-    sBuffer->device = device;
+    // TODO: all these buffers need a better allocation strategy
+    *sBuffer = (StagingBuffer_T*)calloc(1, sizeof(StagingBuffer_T));
+    if (*sBuffer == NULL) {
+        return BB_ERROR_MEM;
+    }
+
+    (*sBuffer)->device = device;
     createBuffer (bufferSize,
                   VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
                   VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                  sBuffer->buffer,
-                  sBuffer->deviceMemory,
-                  sBuffer->device);
-}
-
-static void destroyStagingBuffer(StagingBuffer_T *s)
-{
-    vkDestroyBuffer (getLogicalDevice(s->device), s->buffer, nullptr);
-    vkFreeMemory    (getLogicalDevice(s->device), s->deviceMemory, nullptr);
+                  (*sBuffer)->buffer,
+                  (*sBuffer)->deviceMemory,
+                  (*sBuffer)->device);
+    return BB_ERROR_OK;
 }
 
 BBError createVertexBuffer(VertexBuffer_T **vBuffer, 
@@ -54,7 +51,7 @@ BBError createVertexBuffer(VertexBuffer_T **vBuffer,
     uint32_t          vertCount   = getModelVertexCount (model);
     Vertex           *verts       = getModelVerts       (model);
     VkDeviceSize      bufferSize  = sizeof(Vertex) * vertCount;
-    StagingBuffer_T   sBuffer     = {};
+    StagingBuffer_T  *sBuffer     = NULL;
 
     if (vertCount < 3) {
         return BB_ERROR_GPU_BUFFER_CREATE;
@@ -66,9 +63,8 @@ BBError createVertexBuffer(VertexBuffer_T **vBuffer,
         return BB_ERROR_MEM;
     }
 
-    initStagingBuffer    (&sBuffer, device, bufferSize);
-    copyVertsToDeviceMem (&sBuffer, verts, vertCount);
-    // TODO: MALLOC without free
+    createStagingBuffer  (&sBuffer, device, bufferSize);
+    copyIntoStagingBuffer(sBuffer, verts, (size_t)bufferSize);
     (*vBuffer)->device = device;
     (*vBuffer)->size   = vertCount;
     createBuffer         (bufferSize, 
@@ -78,10 +74,10 @@ BBError createVertexBuffer(VertexBuffer_T **vBuffer,
                           (*vBuffer)->deviceMemory, 
                           (*vBuffer)->device);
     copyBuffer           (device, 
-                          sBuffer.buffer, 
+                          sBuffer->buffer, 
                           (*vBuffer)->buffer, 
                           bufferSize);
-    destroyStagingBuffer (&sBuffer); 
+    destroyBuffer        (&sBuffer); 
     return BB_ERROR_OK;
 }
 
@@ -89,21 +85,18 @@ BBError createIndexBuffer(IndexBuffer_T **iBuffer,
                           const Device device, 
                           Model model)
 {
-    VertIndex      *indeces    = getModelIndeces    (model);
-    uint32_t        indexCount = getModelIndexCount (model);
-    StagingBuffer_T sBuffer    = {};
-    VkDeviceSize    bufferSize = sizeof(indeces[0]) * indexCount;
+    VertIndex       *indeces    = getModelIndeces    (model);
+    uint32_t         indexCount = getModelIndexCount (model);
+    StagingBuffer_T *sBuffer    = NULL;
+    VkDeviceSize     bufferSize = sizeof(indeces[0]) * indexCount;
 
     *iBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
     if (*iBuffer == NULL) {
         return BB_ERROR_MEM;
     }
 
-    initStagingBuffer      (&sBuffer, device, bufferSize);
-    copyIndecesToDeviceMem (&sBuffer, 
-                            indeces, 
-                            indexCount);
-    
+    createStagingBuffer    (&sBuffer, device, bufferSize);
+    copyIntoStagingBuffer  (sBuffer, indeces, (size_t)bufferSize);
 
     (*iBuffer)->device = device;
     (*iBuffer)->size   = indexCount;
@@ -114,10 +107,10 @@ BBError createIndexBuffer(IndexBuffer_T **iBuffer,
                             (*iBuffer)->deviceMemory, 
                             (*iBuffer)->device);
     copyBuffer             (device, 
-                            sBuffer.buffer, 
+                            sBuffer->buffer, 
                             (*iBuffer)->buffer, 
                             bufferSize);
-    destroyStagingBuffer   (&sBuffer); 
+    destroyBuffer          (&sBuffer); 
     return BB_ERROR_OK;
 }
 
@@ -193,49 +186,31 @@ VkBuffer getVkBuffer(VulkanBuffer buffer)
     return buffer->buffer;
 }
 
-static void copyVertsToDeviceMem(StagingBuffer sb, Vertex *vertices, uint32_t vertexCount)
+BBError copyIntoStagingBuffer(StagingBuffer sb, void *data, size_t size)
 {
-    uint32_t  size = vertexCount * sizeof(Vertex);
-    void     *data;
+    // TODO: check if any of these vulkan functions fail
+    void     *mappedMem = NULL;
     vkMapMemory   (getLogicalDevice(sb->device), 
                    sb->deviceMemory, 
                    0, 
                    size, 
                    0, 
-                   &data);
-    // TODO:
-    // beware of this cast
-    memcpy        (data, 
-                   vertices, 
-                   (size_t)size);
-    vkUnmapMemory (getLogicalDevice(sb->device), 
-                   sb->deviceMemory);
-}
-
-static void copyIndecesToDeviceMem(StagingBuffer sb, uint32_t *indeces, uint32_t indexCount)
-{
-    size_t    size = indexCount * sizeof(indeces[0]);
-    void     *data = NULL;
-    vkMapMemory   (getLogicalDevice(sb->device), 
-                   sb->deviceMemory, 
-                   0, 
-                   size, 
-                   0, 
-                   &data);
-    memcpy        (data, 
-                   indeces, 
+                   &mappedMem);
+    memcpy        (mappedMem, 
+                   data, 
                    size);
     vkUnmapMemory (getLogicalDevice(sb->device), 
                    sb->deviceMemory);
+    return BB_ERROR_OK;
 }
 
 //TODO: manage device memory allocation instead of allocating for every new buffer
-BBError createBuffer(const VkDeviceSize size,
-                     const VkBufferUsageFlags usage,
-                     const VkMemoryPropertyFlags properties,
-                     VkBuffer buffer,
-                     VkDeviceMemory bufferMemory,
-                     const Device device) 
+static BBError createBuffer(const VkDeviceSize size,
+                            const VkBufferUsageFlags usage,
+                            const VkMemoryPropertyFlags properties,
+                            VkBuffer buffer,
+                            VkDeviceMemory bufferMemory,
+                            const Device device) 
 {
     VkBufferCreateInfo bufferInfo = bufferCreateInfo(size, usage);
 
@@ -295,37 +270,6 @@ void copyBuffer(const Device device,
                            device);
 }
 
-void copyBufferToImage(Device device,
-                       VkBuffer buffer, 
-                       VkImage image, 
-                       uint32_t width, 
-                       uint32_t height, 
-                       uint32_t layerCount) 
-{
-    VkCommandBuffer commandBuffer = beginSingleTimeCommands(device);
-  
-    VkBufferImageCopy region = {0};
-    region.bufferOffset                    = 0;
-    region.bufferRowLength                 = 0;
-    region.bufferImageHeight               = 0;
-  
-    region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
-    region.imageSubresource.mipLevel       = 0;
-    region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount     = layerCount;
-  
-    region.imageOffset                     = {0, 0, 0};
-    region.imageExtent                     = {width, height, 1};
-  
-    vkCmdCopyBufferToImage (commandBuffer,
-                            buffer,
-                            image,
-                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                            1,
-                            &region);
-    endSingleTimeCommands  (&commandBuffer, 
-                            device);
-}
 
 void copyIntoMappedMem(VulkanBuffer_T *buffer, void* srcData, size_t dataSize)
 {

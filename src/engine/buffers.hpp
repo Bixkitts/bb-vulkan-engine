@@ -36,6 +36,9 @@ typedef struct PerObjectMatrices
 //-------------------------------------------------------------------------------
 
 
+BBError         createStagingBuffer      (StagingBuffer *sBuffer,
+                                          const Device device,
+                                          VkDeviceSize bufferSize);
 BBError         createVertexBuffer       (VertexBuffer *vBuffer, 
                                           const Device device, 
                                           Model model);
@@ -49,6 +52,9 @@ void            destroyBuffer            (VulkanBuffer *v);
 void            copyIntoMappedMem        (VulkanBuffer_T *buffer, 
                                           void* srcData, 
                                           size_t dataSize);
+BBError         copyIntoStagingBuffer    (StagingBuffer sb, 
+                                          void *data, 
+                                          size_t size);
 
 // These functions should maybe be bundled in with drawing
 void            drawVertexBuffer         (VertexBuffer vertexBuffer, 
@@ -61,13 +67,6 @@ void            bindIndexBuffer          (IndexBuffer indexBuffer,
                                           VkCommandBuffer commandBuffer);
 VkBuffer        getVkBuffer              (VulkanBuffer buffer);
 
-// big main buffer creation function
-BBError         createBuffer             (const VkDeviceSize size,
-                                          const VkBufferUsageFlags usage,
-                                          const VkMemoryPropertyFlags properties,
-                                          VkBuffer buffer,
-                                          VkDeviceMemory bufferMemory,
-                                          const Device theGPU);
 
 VkCommandBuffer beginSingleTimeCommands  (Device theGPU);
 void            endSingleTimeCommands    (VkCommandBuffer *commandBuffer, 
