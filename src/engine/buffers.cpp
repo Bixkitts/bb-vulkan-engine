@@ -47,14 +47,16 @@ static void destroyStagingBuffer(StagingBuffer_T *s)
     vkFreeMemory    (getLogicalDevice(s->device), s->deviceMemory, nullptr);
 }
 
-BBError createVertexBuffer(VertexBuffer *vBuffer, 
+BBError createVertexBuffer(VertexBuffer_T **vBuffer, 
                            const Device device, 
                            Model model)
 {
-    VkDeviceSize      bufferSize  = sizeof(Vertex) * model->vertexCount;
+    uint32_t          vertCount   = getModelVertexCount (model);
+    Vertex           *verts       = getModelVerts       (model);
+    VkDeviceSize      bufferSize  = sizeof(Vertex) * vertCount;
     StagingBuffer_T   sBuffer     = {};
 
-    if (model->vertexCount < 3) {
+    if (vertCount < 3) {
         return BB_ERROR_GPU_BUFFER_CREATE;
     }
 
@@ -64,11 +66,11 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
         return BB_ERROR_MEM;
     }
 
-    initStagingBuffer(&sBuffer, device, bufferSize);
-    copyVertsToDeviceMem (&sBuffer, model->vertices, model->vertexCount);
+    initStagingBuffer    (&sBuffer, device, bufferSize);
+    copyVertsToDeviceMem (&sBuffer, verts, vertCount);
     // TODO: MALLOC without free
     (*vBuffer)->device = device;
-    (*vBuffer)->size   = model->vertexCount;
+    (*vBuffer)->size   = vertCount;
     createBuffer         (bufferSize, 
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
@@ -83,12 +85,14 @@ BBError createVertexBuffer(VertexBuffer *vBuffer,
     return BB_ERROR_OK;
 }
 
-BBError createIndexBuffer(IndexBuffer *iBuffer,
+BBError createIndexBuffer(IndexBuffer_T **iBuffer,
                           const Device device, 
                           Model model)
 {
+    VertIndex      *indeces    = getModelIndeces    (model);
+    uint32_t        indexCount = getModelIndexCount (model);
     StagingBuffer_T sBuffer    = {};
-    VkDeviceSize    bufferSize = sizeof(model->indeces[0]) * model->indexCount;
+    VkDeviceSize    bufferSize = sizeof(indeces[0]) * indexCount;
 
     *iBuffer = (VertexBuffer_T*)calloc(1, sizeof(VertexBuffer_T));
     if (*iBuffer == NULL) {
@@ -97,12 +101,12 @@ BBError createIndexBuffer(IndexBuffer *iBuffer,
 
     initStagingBuffer      (&sBuffer, device, bufferSize);
     copyIndecesToDeviceMem (&sBuffer, 
-                            model->indeces, 
-                            model->indexCount);
+                            indeces, 
+                            indexCount);
     
 
     (*iBuffer)->device = device;
-    (*iBuffer)->size   = model->indexCount;
+    (*iBuffer)->size   = indexCount;
     createBuffer           (bufferSize, 
                             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 

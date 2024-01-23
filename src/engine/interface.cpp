@@ -39,7 +39,7 @@ BBAPI int createRenderObject(RenderObject_T** rObj,
         return -1;
     }
 
-    loadModel              ((*rObj)->model, 
+    loadModel              (&(*rObj)->model, 
                             modelDir);
     createTextureImage     (&(*rObj)->texture, 
                             textureDir, 

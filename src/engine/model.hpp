@@ -6,25 +6,24 @@
 #include <vulkan/vulkan_core.h>
 #include <stdio.h>
 
+#include "defines.hpp"
 #include "error_handling.h"
 #include "vertex.hpp"
 
 #define GLM_FORCE_RADIANS
 #define GLM_FORCE_DEPTH_ZERO_TO_ONE
 
-typedef struct
-{
-    // TODO:
-    // If I'm going to store vertex attribute stuff, it ought to go here.
-    Vertex    *vertices;
-    VertIndex *indeces;
-    uint32_t   vertexCount;
-    uint32_t   indexCount;
-}Model_T, *Model;
+typedef struct Model_T Model_T;
+BB_OPAQUE_HANDLE(Model);
 
-BBError loadModel   (Model model, const char *dir);
+BBError    loadModel           (Model *model, const char *dir);
 
-void    bindModel   (Model model, VkCommandBuffer commandBuffer);
-void    drawModel   (Model model, VkCommandBuffer commandBuffer);
+Vertex    *getModelVerts       (Model model);
+VertIndex *getModelIndeces     (Model model);
+uint32_t   getModelIndexCount  (Model model);
+uint32_t   getModelVertexCount (Model model);
+
+void       bindModel   (Model model, VkCommandBuffer commandBuffer);
+void       drawModel   (Model model, VkCommandBuffer commandBuffer);
 
 #endif
