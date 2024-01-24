@@ -44,8 +44,8 @@ BBAPI int createRenderObject(RenderObject_T** rObj,
     createTextureImage     (&(*rObj)->texture, 
                             textureDir, 
                             device);
-    createTextureImageView ((*rObj)->texture);
-    createTextureSampler   ((*rObj)->texture);
+    createTextureImageView ((*rObj)->texture, IMAGE_VIEW_DEFAULT);
+    createTextureSampler   ((*rObj)->texture, IMAGE_SAMPLER_DEFAULT);
     // All the uniform buffers associated with an (*entity).
     // Remember, each frame in the swap chain needs
     // a separate one!

@@ -11,35 +11,26 @@ struct VulkanImage_T
     VkFormat       format;
     VkImage        textureImage;
     VkDeviceMemory textureImageMemory;
-    // Views of the image, there will typically be only one
-    // anyways.
-    // If there are more of them I'll need
-    // to come up with a standard for how they are
-    // dereferenced.
-    VkImageView    views[VIEW_PER_IMAGE];
-    uint64_t       viewCount;
-    // I'll also need some kind of convention
-    // for referencing the correct samplers
-    // when there are multiple.
-    // A problem for future me!
-    VkSampler      samplers[SAMPLER_PER_IMAGE];
-    uint64_t       samplerCount;
+    VkImageView    views    [IMAGE_VIEW_COUNT];
+    VkSampler      samplers [IMAGE_SAMPLER_COUNT];
     // Maybe I can get these from VkImage or smthn??
     uint32_t       width;
     uint32_t       height;
     uint32_t       layerCount;
 };
 
+static void    copyBufferToImage (VulkanBuffer buffer, 
+                                  VulkanImage_T *image);
 // TODO: too many params
-static BBError createImage (const uint32_t width, 
-                            const uint32_t height, 
-                            const VkFormat format, 
-                            const VkImageTiling tiling, 
-                            const VkImageUsageFlags usage, 
-                            const VkMemoryPropertyFlags properties, 
-                            VkImage image, 
-                            VkDeviceMemory imageMemory, 
-                            const Device device);
+static BBError createImage       (const uint32_t width, 
+                                  const uint32_t height, 
+                                  const VkFormat format, 
+                                  const VkImageTiling tiling, 
+                                  const VkImageUsageFlags usage, 
+                                  const VkMemoryPropertyFlags properties, 
+                                  VkImage image, 
+                                  VkDeviceMemory imageMemory, 
+                                  const Device device);
 
 // to get my memory management together!
 BBError createTextureImage (VulkanImage_T **image, 
@@ -73,6 +64,9 @@ BBError createTextureImage (VulkanImage_T **image,
     }
     (*image)->device = device;
     (*image)->format = VK_FORMAT_R8G8B8A8_SRGB;
+    (*image)->width  = texWidth;
+    (*image)->height = texHeight;
+    (*image)->layerCount = 1; // TODO: placeholder + sensitive invariant
 
     createStagingBuffer   (&sBuffer, device, imageSize);
     copyIntoStagingBuffer (sBuffer, pixels, imageSize);
@@ -89,20 +83,14 @@ BBError createTextureImage (VulkanImage_T **image,
     if (er != BB_ERROR_OK){
         goto error_exit;
     }
-    transitionImageLayout ((*image)->textureImage, 
-                           VK_FORMAT_R8G8B8A8_SRGB, 
+    transitionImageLayout ((*image), 
                            VK_IMAGE_LAYOUT_UNDEFINED, 
-                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, device);
-    copyBufferToImage     (device, 
-                           sBuffer, 
-                           (*image)->textureImage, 
-                           (unsigned int)texWidth, 
-                           (unsigned int)texHeight, 
-                           1);
-    transitionImageLayout ((*image)->textureImage, 
-                           VK_FORMAT_R8G8B8A8_SRGB, 
+                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+    copyBufferToImage     (sBuffer, 
+                           (*image));
+    transitionImageLayout ((*image), 
                            VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 
-                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, device);
+                           VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
     
     destroyBuffer         (&sBuffer);
@@ -115,21 +103,26 @@ error_exit:
     return er;
 }
 
-void destroyImage(VulkanImage *v)
+void destroyImage(VulkanImage_T **v)
 {
     VkDevice logicalDevice = getLogicalDevice((*v)->device);
     if (*v == NULL){
         return;
     }
-    for(uint64_t i = (*v)->viewCount-1; i >= 0; i--){
-        vkDestroyImageView (logicalDevice, 
-                            (*v)->views[i], 
-                            NULL);
+    // We're destroying these in reverse because.... ???
+    for(uint64_t i = IMAGE_VIEW_COUNT - 1; i >= 0; i--){
+        if ((*v)->views[i] != NULL) {
+            vkDestroyImageView (logicalDevice, 
+                                (*v)->views[i], 
+                                NULL);
+        }
     }
-    for(uint64_t i = (*v)->samplerCount-1; i >= 0; i--){
-        vkDestroySampler   (logicalDevice, 
-                            (*v)->samplers[i], 
-                            NULL);
+    for(uint64_t i = IMAGE_SAMPLER_COUNT - 1; i >= 0; i--){
+        if ((*v)->samplers[i] != NULL) {
+            vkDestroySampler   (logicalDevice, 
+                                (*v)->samplers[i], 
+                                NULL);
+        }
     }
     vkDestroyImage (logicalDevice, 
                     (*v)->textureImage, 
@@ -188,22 +181,21 @@ static BBError createImage(const uint32_t width,
     return BB_ERROR_OK;
 }
 
-BBError transitionImageLayout(VkImage image, 
-                              const VkFormat format, 
+BBError transitionImageLayout(VulkanImage_T *image, 
                               VkImageLayout oldLayout, 
-                              VkImageLayout newLayout, 
-                              const Device device) 
+                              VkImageLayout newLayout)
 {
-    VkCommandBuffer      commandBuffer = beginSingleTimeCommands(device);
-    VkPipelineStageFlags sourceStage;
-    VkPipelineStageFlags destinationStage;
-    VkImageMemoryBarrier barrier{};
+    VkCommandBuffer      commandBuffer     = beginSingleTimeCommands(image->device);
+    VkPipelineStageFlags sourceStage       = {};
+    VkPipelineStageFlags destinationStage  = {};
+    VkImageMemoryBarrier barrier           = {};
+
     barrier.sType                           = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
     barrier.oldLayout                       = oldLayout;
     barrier.newLayout                       = newLayout;
     barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image                           = image;
+    barrier.image                           = image->textureImage;
     barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel   = 0;
     barrier.subresourceRange.levelCount     = 1;
@@ -240,16 +232,11 @@ BBError transitionImageLayout(VkImage image,
                          0, NULL,
                          1, &barrier);
 
-    endSingleTimeCommands(&commandBuffer, device);
+    endSingleTimeCommands(&commandBuffer, image->device);
     return BB_ERROR_OK;
 }
 
-// this has a duplicate function I should transform into one
-// ^ I read this later and have no idea what the duplicate is
-// This function is a bitch basic placeholder
-// that simply reads a 2D color texture.
-// I should maybe generalise it more.
-BBError createTextureImageView(VulkanImage image)
+BBError createTextureImageView(VulkanImage image, ImageViewType type)
 {
     VkDevice              logicalDevice = getLogicalDevice(image->device);
     VkImageViewCreateInfo viewInfo      = {};
@@ -263,15 +250,12 @@ BBError createTextureImageView(VulkanImage image)
     viewInfo.subresourceRange.baseArrayLayer = 0;
     viewInfo.subresourceRange.layerCount     = 1;
 
-    if (image->viewCount <= VIEW_PER_IMAGE){
-        if (vkCreateImageView(logicalDevice, 
-                              &viewInfo, 
-                              nullptr, 
-                              &image->views[image->viewCount]) 
-            != VK_SUCCESS) {
-            return BB_ERROR_IMAGE_VIEW_CREATE;
-        }
-        image->viewCount++;
+    if (vkCreateImageView(logicalDevice, 
+                          &viewInfo, 
+                          NULL, 
+                          &image->views[type]) 
+        != VK_SUCCESS) {
+        return BB_ERROR_IMAGE_VIEW_CREATE;
     }
     else{
         return BB_ERROR_IMAGE_VIEW_CREATE;
@@ -279,7 +263,7 @@ BBError createTextureImageView(VulkanImage image)
     return BB_ERROR_OK;
 }
 
-BBError createTextureSampler(VulkanImage image)
+BBError createTextureSampler(VulkanImage image, ImageSamplerType type)
 {
     VkDevice            logicalDevice = getLogicalDevice(image->device);
     VkSamplerCreateInfo samplerInfo   = {};
@@ -290,7 +274,7 @@ BBError createTextureSampler(VulkanImage image)
     samplerInfo.addressModeV             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.addressModeW             = VK_SAMPLER_ADDRESS_MODE_REPEAT;
     samplerInfo.anisotropyEnable         = VK_TRUE;
-    samplerInfo.maxAnisotropy            = getDevPhysicalProperties(image->device).limits.maxSamplerAnisotropy;
+    samplerInfo.maxAnisotropy            = (getDevPhysicalProperties(image->device)).limits.maxSamplerAnisotropy;
     samplerInfo.borderColor              = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
     samplerInfo.unnormalizedCoordinates  = VK_FALSE;
     samplerInfo.compareEnable            = VK_FALSE;
@@ -300,15 +284,12 @@ BBError createTextureSampler(VulkanImage image)
     samplerInfo.minLod                   = 0.0f;
     samplerInfo.maxLod                   = 0.0f;
     //TODO: stdlib shit
-    if (image->samplerCount <= SAMPLER_PER_IMAGE){
-        if (vkCreateSampler(logicalDevice, 
-                            &samplerInfo, 
-                            NULL, 
-                            &image->samplers[image->samplerCount]) 
-        != VK_SUCCESS){
-            return BB_ERROR_IMAGE_SAMPLER_CREATE;
-        }
-        image->samplerCount++;
+    if (vkCreateSampler(logicalDevice, 
+                        &samplerInfo, 
+                        NULL, 
+                        &image->samplers[type]) 
+    != VK_SUCCESS){
+        return BB_ERROR_IMAGE_SAMPLER_CREATE;
     }
     else{
         return BB_ERROR_IMAGE_SAMPLER_CREATE;
@@ -316,14 +297,26 @@ BBError createTextureSampler(VulkanImage image)
     return BB_ERROR_OK;
 }
 
-void copyBufferToImage(VulkanBuffer_T *buffer, 
-                       VkImage image, 
-                       uint32_t width, 
-                       uint32_t height, 
-                       uint32_t layerCount) 
+VkImageView getTextureImageView    (VulkanImage_T *image,
+                                    ImageViewType viewType)
+{
+    return image->views[viewType];
+}
+
+VkSampler   getTextureImageSampler (VulkanImage_T *image,
+                                    ImageSamplerType samplerType)
+{
+    return image->samplers[samplerType];
+}
+
+static void copyBufferToImage(VulkanBuffer_T *buffer, 
+                              VulkanImage_T *image)                       
 {
     VkCommandBuffer commandBuffer = 
-    beginSingleTimeCommands (device);
+    beginSingleTimeCommands (image->device);
+
+    VkBuffer        srcBuffer     =
+    getVkBuffer             (buffer);
   
     VkBufferImageCopy region = {0};
     region.bufferOffset                    = 0;
@@ -333,17 +326,17 @@ void copyBufferToImage(VulkanBuffer_T *buffer,
     region.imageSubresource.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     region.imageSubresource.mipLevel       = 0;
     region.imageSubresource.baseArrayLayer = 0;
-    region.imageSubresource.layerCount     = layerCount;
+    region.imageSubresource.layerCount     = image->layerCount;
   
     region.imageOffset                     = {0, 0, 0};
-    region.imageExtent                     = {width, height, 1};
+    region.imageExtent                     = {image->width, image->height, 1};
   
     vkCmdCopyBufferToImage (commandBuffer,
-                            buffer,
-                            image,
+                            srcBuffer,
+                            image->textureImage,
                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                             1,
                             &region);
     endSingleTimeCommands  (&commandBuffer, 
-                            device);
+                            image->device);
 }

@@ -76,12 +76,6 @@ void            copyBuffer               (const Device device,
                                           const VkBuffer srcBuffer, 
                                           VkBuffer dstBuffer, 
                                           const VkDeviceSize size);
-void            copyBufferToImage        (Device device,
-                                          VkBuffer buffer, 
-                                          VkImage image, 
-                                          uint32_t width, 
-                                          uint32_t height, 
-                                          uint32_t layerCount);
 //----------------------------------------------------
 //Allocation Stuff, maybe moved to it's own files
 //

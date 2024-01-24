@@ -128,8 +128,8 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         imageInfo.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         //TODO: AHHHHH. Sort out the views and samplers thing.
         //They need to be encoded depending on what image or sampler type it is
-        imageInfo.imageView   = texture->views[0];
-        imageInfo.sampler     = texture->samplers[0];
+        imageInfo.imageView   = getTextureImageView    (texture, IMAGE_VIEW_DEFAULT);
+        imageInfo.sampler     = getTextureImageSampler (texture, IMAGE_SAMPLER_DEFAULT);
 
         VkDescriptorBufferInfo transBufferInfo{};
         transBufferInfo.buffer = getVkBuffer(uniformBuffers[0]);
