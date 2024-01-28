@@ -2,6 +2,7 @@
 #include "device.hpp"
 #include "error_handling.h"
 #include "command_buffers.hpp"
+#include <vulkan/vulkan_core.h>
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -9,76 +10,80 @@ struct VulkanImage_T
 {
     Device         device;
     VkFormat       format;
-    VkImage        textureImage;
-    VkDeviceMemory textureImageMemory;
+    VkImage        imageHandle;
+    VkDeviceMemory deviceMemory;
     VkImageView    views    [IMAGE_VIEW_COUNT];
     VkSampler      samplers [IMAGE_SAMPLER_COUNT];
     // Maybe I can get these from VkImage or smthn??
-    uint32_t       width;
-    uint32_t       height;
+    VkExtent2D     extent;
     uint32_t       layerCount;
 };
 
-static void    copyBufferToImage (VulkanBuffer buffer, 
-                                  VulkanImage_T *image);
-// TODO: too many params
-static BBError createImage       (const uint32_t width, 
-                                  const uint32_t height, 
-                                  const VkFormat format, 
-                                  const VkImageTiling tiling, 
-                                  const VkImageUsageFlags usage, 
-                                  const VkMemoryPropertyFlags properties, 
-                                  VkImage image, 
-                                  VkDeviceMemory imageMemory, 
-                                  const Device device);
+static void     copyBufferToImage     (VulkanBuffer buffer, 
+                                       VulkanImage_T *image);
+static BBError  initVulkanImage       (VulkanImage_T *image,
+                                       VkImageCreateInfo *createInfo,
+                                       VkMemoryPropertyFlags memProperties,
+                                       Device device);
+static VkFormat findDepthImageFormat  (Device device); 
 
 // to get my memory management together!
 BBError createTextureImage (VulkanImage_T **image, 
                             const char *dir, 
                             Device device)
 {
-    VkDevice        logicalDevice         = getLogicalDevice(device);
-    void           *data                  = NULL;
-    BBError         er                    = BB_ERROR_UNKNOWN;
-    int             texWidth              = 0;
-    int             texHeight             = 0; 
-    int             texChannels           = 0;
-    VkDeviceSize    imageSize             = {0};
-    StagingBuffer   sBuffer               = NULL;
-    VkDeviceMemory  stagingBufferMemory   = {0};
+    VkDevice           logicalDevice       = getLogicalDevice(device);
+    void              *data                = NULL;
+    BBError            er                  = BB_ERROR_UNKNOWN;
+    int                texWidth            = 0;
+    int                texHeight           = 0; 
+    int                texChannels         = 0;
+    VkDeviceSize       imageSize           = {0};
+    StagingBuffer      sBuffer             = NULL;
+    VkDeviceMemory     stagingBufferMemory = {0};
+    VkImageCreateInfo  imageCreateInfo     = {};
+
     // TODO: custom image loader?
-    stbi_uc        *pixels                = stbi_load(dir, 
-                                                      &texWidth, 
-                                                      &texHeight, 
-                                                      &texChannels, 
-                                                      STBI_rgb_alpha);
+    stbi_uc           *pixels              = stbi_load(dir, 
+                                                       &texWidth, 
+                                                       &texHeight, 
+                                                       &texChannels, 
+                                                       STBI_rgb_alpha);
     if(!pixels){
         return BB_ERROR_IMAGE_CREATE;
     }
 
+    // TODO: magic number 4
     imageSize = texWidth * texHeight * 4;
     //TODO: MALLOC without free
     *image    = (VulkanImage_T*)calloc(1, sizeof(VulkanImage_T));
     if (image == NULL){
         return BB_ERROR_MEM;
     }
-    (*image)->device = device;
-    (*image)->format = VK_FORMAT_R8G8B8A8_SRGB;
-    (*image)->width  = texWidth;
-    (*image)->height = texHeight;
-    (*image)->layerCount = 1; // TODO: placeholder + sensitive invariant
+
+    imageCreateInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    imageCreateInfo.imageType     = VK_IMAGE_TYPE_2D;
+    imageCreateInfo.extent.width  = texWidth;
+    imageCreateInfo.extent.height = texHeight;
+    imageCreateInfo.extent.depth  = 1;
+    imageCreateInfo.mipLevels     = 1;
+    imageCreateInfo.arrayLayers   = 1;
+    imageCreateInfo.format        = (*image)->format;
+    imageCreateInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
+    imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    imageCreateInfo.usage         = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    imageCreateInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+    imageCreateInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+    imageCreateInfo.flags         = 0; // Optional
+
 
     createStagingBuffer   (&sBuffer, device, imageSize);
     copyIntoStagingBuffer (sBuffer, pixels, imageSize);
     stbi_image_free       (pixels);
     er = 
-    createImage           (texWidth, texHeight, 
-                           VK_FORMAT_R8G8B8A8_SRGB, 
-                           VK_IMAGE_TILING_OPTIMAL, 
-                           VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, 
-                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                           (*image)->textureImage, 
-                           (*image)->textureImageMemory, 
+    initVulkanImage       (*image,
+                           &imageCreateInfo,
+                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
                            device);
     if (er != BB_ERROR_OK){
         goto error_exit;
@@ -103,6 +108,97 @@ error_exit:
     return er;
 }
 
+BBError createSwapchainImages(VulkanImage_T *images[], 
+                              Device device, 
+                              VkSwapchainKHR swapchain,
+                              uint32_t *count)
+{
+    VkDevice  logicalDevice = getLogicalDevice(device);
+    VkImage  *swapchainImages = NULL;
+    vkGetSwapchainImagesKHR(logicalDevice, 
+                            swapchain, 
+                            count, 
+                            NULL);
+    *images = (VulkanImage_T*)calloc((*count), sizeof(VulkanImage_T));
+    if (*images == NULL) {
+        return BB_ERROR_MEM;
+    }
+    swapchainImages = (VkImage*)malloc((*count) * sizeof(VkImage));
+    if (swapchainImages == NULL) {
+        free(*images);
+        return BB_ERROR_MEM;
+    }
+    for (int i = 0; i < (*count); i++) {
+        swapchainImages[i] = (*images)[i].imageHandle;
+    }
+
+    vkGetSwapchainImagesKHR(logicalDevice, swapchain, count, swapchainImages);
+
+    swapchain->swapChainImageFormat = surfaceFormat.format;
+    swapchain->swapChainExtent = extent;
+
+}
+
+BBError createSwapchainImageViews(VulkanImage_T* swapchainImages[], 
+                                  uint32_t imageCount) 
+{
+    VkImageViewCreateInfo createInfo      = {};
+    VkDevice              logicalDevice = getLogicalDevice(swapchainImages[0]->device);
+    createInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+    createInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
+    createInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
+    createInfo.subresourceRange.baseMipLevel   = 0;
+    createInfo.subresourceRange.levelCount     = 1;
+    createInfo.subresourceRange.baseArrayLayer = 0;
+    createInfo.subresourceRange.layerCount     = 1;
+
+    for (size_t i = 0; i < imageCount; i++) 
+    {
+        createInfo.image  = swapchainImages[i]->imageHandle;
+        createInfo.format = swapchainImages[i]->format;
+
+        if (vkCreateImageView(logicalDevice, 
+                              &createInfo, 
+                              NULL, 
+                              &swapchainImages[i]->imageHandle) 
+            != VK_SUCCESS){
+            return BB_ERROR_IMAGE_VIEW_CREATE;
+        }
+    }
+    return BB_ERROR_OK;
+}
+BBError createDepthImage(VulkanImage_T **image, VkExtent2D extent)
+{
+    
+    VkImageCreateInfo createInfo = {};
+    createInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+    createInfo.imageType     = VK_IMAGE_TYPE_2D;
+    createInfo.extent.width  = extent.width;
+    createInfo.extent.height = extent.height;
+    createInfo.extent.depth  = 1;
+    createInfo.mipLevels     = 1;
+    createInfo.arrayLayers   = 1;
+    createInfo.format        = findDepthImageFormat((*image)->device);
+    createInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
+    createInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    createInfo.usage         = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+    createInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
+    createInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
+    createInfo.flags         = 0;
+
+    return BB_ERROR_OK;
+}
+
+static VkFormat findDepthImageFormat(Device device) 
+{
+    return findSupportedFormat({VK_FORMAT_D32_SFLOAT, 
+                                VK_FORMAT_D32_SFLOAT_S8_UINT, 
+                                VK_FORMAT_D24_UNORM_S8_UINT},
+                               VK_IMAGE_TILING_OPTIMAL,
+                               VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT,
+                               device);
+}
+
 void destroyImage(VulkanImage_T **v)
 {
     VkDevice logicalDevice = getLogicalDevice((*v)->device);
@@ -125,59 +221,45 @@ void destroyImage(VulkanImage_T **v)
         }
     }
     vkDestroyImage (logicalDevice, 
-                    (*v)->textureImage, 
+                    (*v)->imageHandle, 
                     NULL);
     vkFreeMemory   (logicalDevice, 
-                    (*v)->textureImageMemory, 
+                    (*v)->deviceMemory, 
                     NULL);
     free           (*v);
     *v = NULL;
 }
 
-static BBError createImage(const uint32_t width, 
-                           const uint32_t height, 
-                           const VkFormat format, 
-                           const VkImageTiling tiling, 
-                           const VkImageUsageFlags usage, 
-                           const VkMemoryPropertyFlags properties, 
-                           VkImage image, 
-                           VkDeviceMemory imageMemory, 
-                           const Device device)
+static BBError initVulkanImage(VulkanImage_T *image,
+                               VkImageCreateInfo *createInfo,
+                               VkMemoryPropertyFlags memProperties,
+                               Device device)
 {
     VkMemoryAllocateInfo allocInfo       = {};
     VkMemoryRequirements memRequirements = {};
-    VkImageCreateInfo    imageInfo       = {};
     VkDevice             logicalDevice   = getLogicalDevice(device);
 
-    imageInfo.sType         = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-    imageInfo.imageType     = VK_IMAGE_TYPE_2D;
-    imageInfo.extent.width  = width;
-    imageInfo.extent.height = height;
-    imageInfo.extent.depth  = 1;
-    imageInfo.mipLevels     = 1;
-    imageInfo.arrayLayers   = 1;
-    imageInfo.format        = format;
-    imageInfo.tiling        = VK_IMAGE_TILING_OPTIMAL;
-    imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-    imageInfo.usage         = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-    imageInfo.sharingMode   = VK_SHARING_MODE_EXCLUSIVE;
-    imageInfo.samples       = VK_SAMPLE_COUNT_1_BIT;
-    imageInfo.flags         = 0; // Optional
-                                 //
-    if (vkCreateImage(logicalDevice, &imageInfo, nullptr, &image) != VK_SUCCESS) {
+    (image)->device        = device;
+    (image)->format        = VK_FORMAT_R8G8B8A8_SRGB;
+    (image)->extent.width  = createInfo->extent.width;
+    (image)->extent.height = createInfo->extent.height;
+    // TODO: not sure if this is the correct thing I want to track!
+    (image)->layerCount    = createInfo->arrayLayers; // TODO: placeholder + sensitive invariant
+                                                   //
+    if (vkCreateImage(logicalDevice, createInfo, nullptr, &image->imageHandle) != VK_SUCCESS) {
         return BB_ERROR_IMAGE_CREATE;
     }
-    vkGetImageMemoryRequirements (logicalDevice, image, &memRequirements);
+    vkGetImageMemoryRequirements (logicalDevice, image->imageHandle, &memRequirements);
 
     allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
     allocInfo.allocationSize  = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
+    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, memProperties, device);
 
-    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &imageMemory) != VK_SUCCESS) {
+    if (vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &image->deviceMemory) != VK_SUCCESS) {
         return BB_ERROR_MEM;
     }
 
-    vkBindImageMemory            (logicalDevice, image, imageMemory, 0);
+    vkBindImageMemory            (logicalDevice, image->imageHandle, image->deviceMemory, 0);
     return BB_ERROR_OK;
 }
 
@@ -195,7 +277,7 @@ BBError transitionImageLayout(VulkanImage_T *image,
     barrier.newLayout                       = newLayout;
     barrier.srcQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
     barrier.dstQueueFamilyIndex             = VK_QUEUE_FAMILY_IGNORED;
-    barrier.image                           = image->textureImage;
+    barrier.image                           = image->imageHandle;
     barrier.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseMipLevel   = 0;
     barrier.subresourceRange.levelCount     = 1;
@@ -221,7 +303,7 @@ BBError transitionImageLayout(VulkanImage_T *image,
         destinationStage      = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
     } 
     else{
-        return BB_ERROR_IMAGE_LAYOUT_TRANSISTION;
+        return BB_ERROR_IMAGE_LAYOUT_TRANSITION;
     }
 
     vkCmdPipelineBarrier(commandBuffer,
@@ -236,12 +318,16 @@ BBError transitionImageLayout(VulkanImage_T *image,
     return BB_ERROR_OK;
 }
 
-BBError createTextureImageView(VulkanImage image, ImageViewType type)
+VkImage     getImageHandle         (VulkanImage image)
+{
+    return image->imageHandle;
+}
+BBError createTextureImageView(VulkanImage image, TextureImageViewType type)
 {
     VkDevice              logicalDevice = getLogicalDevice(image->device);
     VkImageViewCreateInfo viewInfo      = {};
     viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-    viewInfo.image                           = image->textureImage;
+    viewInfo.image                           = image->imageHandle;
     viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
     viewInfo.format                          = image->format;
     viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -261,6 +347,11 @@ BBError createTextureImageView(VulkanImage image, ImageViewType type)
         return BB_ERROR_IMAGE_VIEW_CREATE;
     }
     return BB_ERROR_OK;
+}
+
+BBError createDepthImageView(VulkanImage image, DepthImageViewType type)
+{
+return BB_ERROR_OK;
 }
 
 BBError createTextureSampler(VulkanImage image, ImageSamplerType type)
@@ -333,7 +424,7 @@ static void copyBufferToImage(VulkanBuffer_T *buffer,
   
     vkCmdCopyBufferToImage (commandBuffer,
                             srcBuffer,
-                            image->textureImage,
+                            image->imageHandle,
                             VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
                             1,
                             &region);

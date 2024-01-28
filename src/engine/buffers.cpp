@@ -16,13 +16,11 @@ static VkMemoryAllocateInfo memoryAllocateInfo (const VkMemoryRequirements memRe
                                                 const Device theGPU);
 static VkBufferCreateInfo   bufferCreateInfo   (const VkDeviceSize size, 
                                                 const VkBufferUsageFlags usage);
-// big main buffer creation function
-static BBError              createBuffer       (const VkDeviceSize size,
+static BBError              initVulkanBuffer   (const VkDeviceSize size,
                                                 const VkBufferUsageFlags usage,
                                                 const VkMemoryPropertyFlags properties,
-                                                VkBuffer buffer,
-                                                VkDeviceMemory bufferMemory,
-                                                const Device theGPU);
+                                                VulkanBuffer_T *buffer,
+                                                const Device device);
 
 BBError createStagingBuffer(StagingBuffer_T **sBuffer,
                             const Device device,
@@ -35,12 +33,11 @@ BBError createStagingBuffer(StagingBuffer_T **sBuffer,
     }
 
     (*sBuffer)->device = device;
-    createBuffer (bufferSize,
-                  VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
-                  (*sBuffer)->buffer,
-                  (*sBuffer)->deviceMemory,
-                  (*sBuffer)->device);
+    initVulkanBuffer (bufferSize,
+                      VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+                      (*sBuffer),
+                      (*sBuffer)->device);
     return BB_ERROR_OK;
 }
 
@@ -67,11 +64,10 @@ BBError createVertexBuffer(VertexBuffer_T **vBuffer,
     copyIntoStagingBuffer(sBuffer, verts, (size_t)bufferSize);
     (*vBuffer)->device = device;
     (*vBuffer)->size   = vertCount;
-    createBuffer         (bufferSize, 
+    initVulkanBuffer     (bufferSize, 
                           VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, 
                           VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                          (*vBuffer)->buffer, 
-                          (*vBuffer)->deviceMemory, 
+                          (*vBuffer), 
                           (*vBuffer)->device);
     copyBuffer           (device, 
                           sBuffer->buffer, 
@@ -100,11 +96,10 @@ BBError createIndexBuffer(IndexBuffer_T **iBuffer,
 
     (*iBuffer)->device = device;
     (*iBuffer)->size   = indexCount;
-    createBuffer           (bufferSize, 
+    initVulkanBuffer       (bufferSize, 
                             VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT, 
                             VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, 
-                            (*iBuffer)->buffer, 
-                            (*iBuffer)->deviceMemory, 
+                            (*iBuffer), 
                             (*iBuffer)->device);
     copyBuffer             (device, 
                             sBuffer->buffer, 
@@ -128,18 +123,17 @@ BBError createUniformBuffer(UniformBuffer *uBuffer,
         return BB_ERROR_MEM;
     }
 
-    createBuffer (bufferSize, 
-                  VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-                  VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
-                  (*uBuffer)->buffer, 
-                  (*uBuffer)->deviceMemory, 
-                  device); 
-    vkMapMemory  (getLogicalDevice(device), 
-                  (*uBuffer)->deviceMemory, 
-                  0, 
-                  bufferSize, 
-                  0, 
-                  &(*uBuffer)->mapped);
+    initVulkanBuffer (bufferSize, 
+                      VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
+                      VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, 
+                      (*uBuffer), 
+                      device); 
+    vkMapMemory      (getLogicalDevice(device), 
+                      (*uBuffer)->deviceMemory, 
+                      0, 
+                      bufferSize, 
+                      0, 
+                      &(*uBuffer)->mapped);
 
     return BB_ERROR_OK;
 }
@@ -205,25 +199,24 @@ BBError copyIntoStagingBuffer(StagingBuffer sb, void *data, size_t size)
 }
 
 //TODO: manage device memory allocation instead of allocating for every new buffer
-static BBError createBuffer(const VkDeviceSize size,
-                            const VkBufferUsageFlags usage,
-                            const VkMemoryPropertyFlags properties,
-                            VkBuffer buffer,
-                            VkDeviceMemory bufferMemory,
-                            const Device device) 
+static BBError initVulkanBuffer(const VkDeviceSize size,
+                                const VkBufferUsageFlags usage,
+                                const VkMemoryPropertyFlags properties,
+                                VulkanBuffer_T *buffer,
+                                const Device device) 
 {
     VkBufferCreateInfo bufferInfo = bufferCreateInfo(size, usage);
 
-    if (vkCreateBuffer(getLogicalDevice(device), &bufferInfo, nullptr, &buffer) 
+    if (vkCreateBuffer(getLogicalDevice(device), &bufferInfo, nullptr, &buffer->buffer) 
         != VK_SUCCESS){
         fprintf(stderr, "\nfailed to create buffer on GPU");
         return BB_ERROR_GPU_BUFFER_CREATE;
     }
 
     // TODO: device memory allocation needs to be separated
-    bufferMemory = allocateDeviceMemory(device, buffer, properties, size);
+    buffer->deviceMemory = allocateDeviceMemory(device, buffer->buffer, properties, size);
 
-    vkBindBufferMemory(getLogicalDevice(device), buffer, bufferMemory, 0);
+    vkBindBufferMemory(getLogicalDevice(device), buffer->buffer, buffer->deviceMemory, 0);
     return BB_ERROR_OK;
 }
 
@@ -276,37 +269,37 @@ void copyIntoMappedMem(VulkanBuffer_T *buffer, void* srcData, size_t dataSize)
     memcpy(buffer->mapped, srcData, dataSize);
 }
 
-void createImageWithInfo(const VkImageCreateInfo *imageInfo,
-                         const VkMemoryPropertyFlags properties,
-                         VkImage *image,
-                         VkDeviceMemory *imageMemory,
-                         Device device) 
-{
-    if (vkCreateImage(getLogicalDevice(device), imageInfo, nullptr, image) != VK_SUCCESS) 
-    {
-        exit(1);
-    }
-
-    VkMemoryRequirements memRequirements;
-    VkMemoryAllocateInfo allocInfo{};
-
-    vkGetImageMemoryRequirements(getLogicalDevice(device), *image, &memRequirements);
-  
-    allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-    allocInfo.allocationSize  = memRequirements.size;
-    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
-
-    // TODO: stdlib shit
-    if (vkAllocateMemory(getLogicalDevice(device), &allocInfo, nullptr, imageMemory) 
-            != VK_SUCCESS){
-        exit(1);
-    }
-  
-    if (vkBindImageMemory(getLogicalDevice(device), *image, *imageMemory, 0) 
-            != VK_SUCCESS){
-        exit(1);
-    }
-}
+//void createImage(const VkImageCreateInfo *imageInfo,
+//                         const VkMemoryPropertyFlags properties,
+//                         VkImage *image,
+//                         VkDeviceMemory *imageMemory,
+//                         Device device) 
+//{
+//    if (vkCreateImage(getLogicalDevice(device), imageInfo, NULL, image) != VK_SUCCESS) 
+//    {
+//        exit(1);
+//    }
+//
+//    VkMemoryRequirements memRequirements  = {};
+//    VkMemoryAllocateInfo allocInfo        = {};
+//
+//    vkGetImageMemoryRequirements(getLogicalDevice(device), *image, &memRequirements);
+//  
+//    allocInfo.sType           = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+//    allocInfo.allocationSize  = memRequirements.size;
+//    allocInfo.memoryTypeIndex = findMemoryType(memRequirements.memoryTypeBits, properties, device);
+//
+//    // TODO: stdlib shit
+//    if (vkAllocateMemory(getLogicalDevice(device), &allocInfo, nullptr, imageMemory) 
+//            != VK_SUCCESS){
+//        exit(1);
+//    }
+//  
+//    if (vkBindImageMemory(getLogicalDevice(device), *image, *imageMemory, 0) 
+//            != VK_SUCCESS){
+//        exit(1);
+//    }
+//}
 
 static VkMemoryAllocateInfo memoryAllocateInfo(const VkMemoryRequirements memRequirements,
                                         const VkMemoryPropertyFlags properties, 

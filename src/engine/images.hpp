@@ -11,9 +11,15 @@
 
 typedef enum 
 {
-    IMAGE_VIEW_DEFAULT,
-    IMAGE_VIEW_COUNT
-}ImageViewType;
+    TEXTURE_IMAGE_VIEW_DEFAULT,
+    TEXTURE_IMAGE_VIEW_COUNT
+}TextureImageViewType;
+
+typedef enum
+{
+    DEPTH_IMAGE_VIEW_DEFAULT,
+    DEPTH_IMAGE_VIEW_COUN
+}DepthImageViewType;
 
 typedef enum
 {
@@ -24,18 +30,36 @@ typedef enum
 typedef struct VulkanImage_T VulkanImage_T;
 BB_OPAQUE_HANDLE(VulkanImage);
 
-BBError     createTextureImage     (VulkanImage *image, 
-                                    const char *dir, 
-                                    const Device device);
-BBError     createTextureImageView (VulkanImage image, ImageViewType type);
-BBError     createTextureSampler   (VulkanImage image, ImageSamplerType type);
-BBError     transitionImageLayout  (VulkanImage_T *image, 
-                                    VkImageLayout oldLayout, 
-                                    VkImageLayout newLayout);
-VkImageView getTextureImageView    (VulkanImage image,
-                                    ImageViewType viewType);
-VkSampler   getTextureImageSampler (VulkanImage image,
-                                    ImageSamplerType samplerType);
-void        destroyImage           (VulkanImage *v);
+/* Texture images (typically for fragment shaders) */
+BBError     createTextureImage        (VulkanImage *image, 
+                                       const char *dir, 
+                                       const Device device);
+BBError     createTextureImageView    (VulkanImage image, 
+                                       TextureImageViewType type);
+BBError     createTextureSampler      (VulkanImage image, 
+                                       ImageSamplerType type);
+/* Depth images (typically for the swapchain) */
+BBError     createDepthImage          (VulkanImage *image, 
+                                       VkExtent2D extent);
+BBError     createDepthImageView      (VulkanImage image, 
+                                       DepthImageViewType type);
+/* Swapchain image stuff. This is pretty messy! */
+BBError     createSwapchainImages     (VulkanImage images[], 
+                                       Device device, 
+                                       VkSwapchainKHR swapchain,
+                                       uint32_t *count);
+BBError     createSwapchainImageViews (VulkanImage swapchainImages[], 
+                                       uint32_t imageCount);
+
+/* Any image type */
+VkImage     getImageHandle            (VulkanImage image);
+VkImageView getImageView              (VulkanImage image,
+                                       TextureImageViewType viewType);
+VkSampler   getImageSampler           (VulkanImage image,
+                                       ImageSamplerType samplerType);
+BBError     transitionImageLayout     (VulkanImage image, 
+                                       VkImageLayout oldLayout, 
+                                       VkImageLayout newLayout);
+void        destroyImage              (VulkanImage *v);
 
 #endif

@@ -129,7 +129,7 @@ BBError createDescriptorSets(VkDescriptorSetArray *descriptorSets,
         //TODO: AHHHHH. Sort out the views and samplers thing.
         //They need to be encoded depending on what image or sampler type it is
         imageInfo.imageView   = getTextureImageView    (texture, IMAGE_VIEW_DEFAULT);
-        imageInfo.sampler     = getTextureImageSampler (texture, IMAGE_SAMPLER_DEFAULT);
+        imageInfo.sampler     = getImageSampler (texture, IMAGE_SAMPLER_DEFAULT);
 
         VkDescriptorBufferInfo transBufferInfo{};
         transBufferInfo.buffer = getVkBuffer(uniformBuffers[0]);

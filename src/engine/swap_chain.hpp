@@ -3,29 +3,11 @@
 
 #include <vector>
 #include <vulkan/vulkan.h>
+#include "defines.hpp"
 #include "device.hpp"
 
-typedef struct SwapChain_T
-{
-    //TODO: stdlib shit
-    Device                      device;
-    std::vector<VkFramebuffer>  framebuffers;
-    VkRenderPass                renderPass;
-    std::vector<VkImage>        depthImages;
-    std::vector<VkDeviceMemory> depthImageMemorys;
-    std::vector<VkImageView>    depthImageViews;
-    std::vector<VkImage>        swapChainImages;
-    std::vector<VkImageView>    swapChainImageViews;
-    VkExtent2D                  windowExtent;
-    VkFormat                    swapChainImageFormat;
-    VkExtent2D                  swapChainExtent;
-    VkSwapchainKHR              swapChain;
-    std::vector<VkSemaphore>    imageAvailableSemaphores;
-    std::vector<VkSemaphore>    renderFinishedSemaphores;
-    std::vector<VkFence>        inFlightFences;
-    size_t                      currentFrame;
-    
-}SwapChain_T, *SwapChain;
+typedef struct SwapChain_T SwapChain_T;
+BB_OPAQUE_HANDLE(SwapChain);
 
 BBError            createSwapChain         (SwapChain *swapchain, 
                                             const Device device, 

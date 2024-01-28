@@ -22,12 +22,13 @@ static const char *errorMessages[BB_ERROR_TYPE_COUNT] =
     "Command buffer recording failure\n",
     "Command buffer creation failure\n",
     "Command buffer run failure\n",
-    "Swap chain image acquisition error\n"
+    "Swap chain image acquisition error\n",
+    "Swap chain creation error\n"
 };
 
-BBAPI void printBBError(BBError error)
+void printErrorMsg(BBError error)
 {
     const char *errorString = errorMessages[error];
     fprintf(stderr, "\nEncountered error: ");
-    fprintf(stderr, "%s", errorString);
+    fprintf(stderr, "%s\n", errorString);
 }
