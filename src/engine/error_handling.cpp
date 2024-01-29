@@ -23,7 +23,8 @@ static const char *errorMessages[BB_ERROR_TYPE_COUNT] =
     "Command buffer creation failure\n",
     "Command buffer run failure\n",
     "Swap chain image acquisition error\n",
-    "Swap chain creation error\n"
+    "Swap chain creation error\n",
+    "Frame buffer creation error\n"
 };
 
 void printErrorMsg(BBError error)

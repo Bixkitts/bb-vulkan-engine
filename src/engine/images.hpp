@@ -11,15 +11,24 @@
 
 typedef enum 
 {
-    TEXTURE_IMAGE_VIEW_DEFAULT,
-    TEXTURE_IMAGE_VIEW_COUNT
+    TEXTURE_IMAGE_VIEW_DEFAULT
 }TextureImageViewType;
 
 typedef enum
 {
-    DEPTH_IMAGE_VIEW_DEFAULT,
-    DEPTH_IMAGE_VIEW_COUN
+    DEPTH_IMAGE_VIEW_DEFAULT
 }DepthImageViewType;
+
+typedef enum
+{
+    SWAPCHAIN_IMAGE_VIEW_DEFAULT
+}SwapchainImageViewType;
+
+// This should (at minimum) correspond to the size of the biggest
+// enum above.
+// It's the size of the array that holds views into an image,
+// and the enums index directly into it.
+#define IMAGE_VIEW_TYPES_MAX 4
 
 typedef enum
 {
@@ -57,6 +66,7 @@ VkImageView getImageView              (VulkanImage image,
                                        TextureImageViewType viewType);
 VkSampler   getImageSampler           (VulkanImage image,
                                        ImageSamplerType samplerType);
+VkFormat    getImageFormat            (VulkanImage image);
 BBError     transitionImageLayout     (VulkanImage image, 
                                        VkImageLayout oldLayout, 
                                        VkImageLayout newLayout);

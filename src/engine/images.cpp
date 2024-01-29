@@ -12,7 +12,7 @@ struct VulkanImage_T
     VkFormat       format;
     VkImage        imageHandle;
     VkDeviceMemory deviceMemory;
-    VkImageView    views    [IMAGE_VIEW_COUNT];
+    VkImageView    views    [IMAGE_VIEW_TYPES_MAX];
     VkSampler      samplers [IMAGE_SAMPLER_COUNT];
     // Maybe I can get these from VkImage or smthn??
     VkExtent2D     extent;
@@ -111,32 +111,44 @@ error_exit:
 BBError createSwapchainImages(VulkanImage_T *images[], 
                               Device device, 
                               VkSwapchainKHR swapchain,
-                              uint32_t *count)
+                              uint32_t *count,
+                              VkFormat surfaceFormat,
+                              VkExtent2D extent)
 {
     VkDevice  logicalDevice = getLogicalDevice(device);
-    VkImage  *swapchainImages = NULL;
-    vkGetSwapchainImagesKHR(logicalDevice, 
-                            swapchain, 
-                            count, 
-                            NULL);
-    *images = (VulkanImage_T*)calloc((*count), sizeof(VulkanImage_T));
+    VkImage  *imageHandles  = NULL;
+    vkGetSwapchainImagesKHR (logicalDevice, 
+                             swapchain, 
+                             count, 
+                             NULL);
+
+    // We need to extract the VkImage handles from the structures
+    // because vkGetSwapchainImagesKHR expects an array full of the
+    // things.
+    *images       = (VulkanImage_T*)calloc((*count), sizeof(VulkanImage_T));
+     imageHandles =       (VkImage*)malloc((*count) * sizeof(VkImage));
+
     if (*images == NULL) {
         return BB_ERROR_MEM;
     }
-    swapchainImages = (VkImage*)malloc((*count) * sizeof(VkImage));
-    if (swapchainImages == NULL) {
+    if (imageHandles == NULL) {
         free(*images);
         return BB_ERROR_MEM;
     }
+
     for (int i = 0; i < (*count); i++) {
-        swapchainImages[i] = (*images)[i].imageHandle;
+        imageHandles[i]   = (*images)[i].imageHandle;
+        images[i]->format = surfaceFormat;
+        images[i]->extent = extent;
+        images[i]->device = device;
     }
 
-    vkGetSwapchainImagesKHR(logicalDevice, swapchain, count, swapchainImages);
-
-    swapchain->swapChainImageFormat = surfaceFormat.format;
-    swapchain->swapChainExtent = extent;
-
+    vkGetSwapchainImagesKHR (logicalDevice, 
+                             swapchain, 
+                             count, 
+                             imageHandles);
+    free                    (imageHandles);
+    return BB_ERROR_OK;
 }
 
 BBError createSwapchainImageViews(VulkanImage_T* swapchainImages[], 
@@ -160,7 +172,7 @@ BBError createSwapchainImageViews(VulkanImage_T* swapchainImages[],
         if (vkCreateImageView(logicalDevice, 
                               &createInfo, 
                               NULL, 
-                              &swapchainImages[i]->imageHandle) 
+                              &swapchainImages[i]->views[) 
             != VK_SUCCESS){
             return BB_ERROR_IMAGE_VIEW_CREATE;
         }
@@ -321,6 +333,10 @@ BBError transitionImageLayout(VulkanImage_T *image,
 VkImage     getImageHandle         (VulkanImage image)
 {
     return image->imageHandle;
+}
+VkFormat    getImageFormat            (VulkanImage image)
+{
+    return image->format;
 }
 BBError createTextureImageView(VulkanImage image, TextureImageViewType type)
 {

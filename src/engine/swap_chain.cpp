@@ -3,6 +3,7 @@
 #include <cstring>
 #include <limits>
 #include <stdexcept>
+#include <vulkan/vulkan_core.h>
 
 #include "swap_chain.hpp"
 #include "buffers.hpp"
@@ -13,26 +14,32 @@ struct SwapChain_T
 {
     //TODO: stdlib shit
     Device                      device;
-    std::vector<VkFramebuffer>  framebuffers;
-    VkRenderPass                renderPass;
-    VulkanImage                 depthImages[SWAPCHAIN_MAX_DEPTH_IMAGES];
+
+    VkFramebuffer              *framebuffers;
+    uint32_t                    framebufferCount;
+
+    VulkanImage                *depthImages;
+    uint32_t                    depthImageCount;
+
     VulkanImage                *swapChainImages;
     uint32_t                    swapChainImageCount;
+
     VkExtent2D                  windowExtent;
     VkExtent2D                  swapChainExtent;
     VkSwapchainKHR              swapChain;
     std::vector<VkSemaphore>    imageAvailableSemaphores;
     std::vector<VkSemaphore>    renderFinishedSemaphores;
     std::vector<VkFence>        inFlightFences;
+    VkRenderPass                renderPass;
+
     size_t                      currentFrame;
-    
 };
 
 static BBError initSwapChain             (SwapChain swapchain);
 static void    createSwapchainImageViews (SwapChain swapchain);
-static void    createDepthResources      (SwapChain swapchain);
+static BBError createDepthResources      (SwapChain swapchain);
 static void    createRenderPass          (SwapChain swapchain);
-static void    createFramebuffers        (SwapChain swapchain);
+static BBError createFramebuffers        (SwapChain swapchain);
 static void    createSyncObjects         (SwapChain swapchain);
 
 BBError createSwapChain(SwapChain *swapchain, 
@@ -63,44 +70,44 @@ float getExtentAspectRatio(SwapChain swapchain)
     / static_cast<float>(swapchain->swapChainExtent.height);
 }
 
-void destroySwapchain(SwapChain swapchain) 
+void destroySwapchain(SwapChain *swapchain) 
 {
-    VkDevice logicalDevice = getLogicalDevice(swapchain->device);
-    for (auto imageView : swapchain->swapChainImageViews){
-        vkDestroyImageView    (logicalDevice, 
-                               imageView, 
-                               NULL);
+    VkDevice logicalDevice = getLogicalDevice((*swapchain)->device);
+
+    for (int i = 0; i < (*swapchain)->swapChainImageCount; i++){
+        destroyImage(&(*swapchain)->swapChainImages[i]);
     }
-    swapchain->swapChainImageViews.clear();
-    if (swapchain->swapChain != NULL) {
+    if ((*swapchain)->swapChain != NULL) {
         vkDestroySwapchainKHR (logicalDevice, 
-                               swapchain->swapChain, 
+                               (*swapchain)->swapChain, 
                                NULL);
-        swapchain->swapChain = NULL;
+        (*swapchain)->swapChain = NULL;
     }
-    for (int i = 0; i < swapchain->depthImageCount; i++) {
+    for (int i = 0; i < (*swapchain)->depthImageCount; i++) {
         // TODO: set pointers to NULL if it's not done by vulkan
-        destroyImage(&swapchain->depthImages[i]);
+        destroyImage(&(*swapchain)->depthImages[i]);
     }
-    for (auto framebuffer : swapchain->framebuffers) {
-        vkDestroyFramebuffer  (logicalDevice, framebuffer, nullptr);
+    for (int i = 0; i < (*swapchain)->framebufferCount; i++) {
+        vkDestroyFramebuffer  (logicalDevice, (*swapchain)->framebuffers[i], NULL);
     }
 
-    vkDestroyRenderPass       (logicalDevice, swapchain->renderPass, nullptr);
+    vkDestroyRenderPass       (logicalDevice, (*swapchain)->renderPass, NULL);
 
     // cleanup synchronization objects
     for (size_t i = 0; i < MAX_FRAMES_IN_FLIGHT; i++){
         vkDestroySemaphore    (logicalDevice, 
-                               swapchain->renderFinishedSemaphores[i], 
+                               (*swapchain)->renderFinishedSemaphores[i], 
                                NULL);
         vkDestroySemaphore    (logicalDevice, 
-                               swapchain->imageAvailableSemaphores[i], 
+                               (*swapchain)->imageAvailableSemaphores[i], 
                                NULL);
         vkDestroyFence        (logicalDevice, 
-                               swapchain->inFlightFences[i], 
+                               (*swapchain)->inFlightFences[i], 
                                NULL);
     }
-    delete swapchain;
+    free(*swapchain);
+    (*swapchain) = NULL;
+    return;
 }
 
 VkResult acquireNextImage(SwapChain swapchain, uint32_t* imageIndex) 
@@ -195,6 +202,7 @@ static BBError initSwapChain(SwapChain swapchain)
                           swapchain->device,
                           swapchain->swapChain,
                           &swapchain->swapChainImageCount);
+    return BB_ERROR_OK;
 }
 
     // we only specified a minimum number of images in the swap chain, so the implementation is
@@ -227,7 +235,7 @@ static void createRenderPass(SwapChain swapchain)
     depthAttachmentRef.attachment   = 1;
     depthAttachmentRef.layout       = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    colorAttachment.format          = swapchain->swapChainImageFormat;
+    colorAttachment.format          = getImageFormat(swapchain->swapChainImages[0]);
     colorAttachment.samples         = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp          = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp         = VK_ATTACHMENT_STORE_OP_STORE;
@@ -276,12 +284,17 @@ static void createRenderPass(SwapChain swapchain)
     }
 }
 
-static void createFramebuffers(SwapChain swapchain) 
+static BBError createFramebuffers(SwapChain swapchain) 
 {
     VkDevice                logicalDevice = getLogicalDevice(swapchain->device);
     VkExtent2D              swapChainExtent;
     VkFramebufferCreateInfo framebufferInfo;
-    swapchain->framebuffers.resize(swapchain->swapChainImages.size());
+
+    swapchain->framebuffers = (VkFramebuffer*)calloc(swapchain->swapChainImageCount, sizeof(VkFramebuffer));
+    if (swapchain->framebuffers == NULL){
+        return BB_ERROR_MEM;
+    }
+
     for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
     {
         // TODO: fucking disgusting
@@ -305,28 +318,26 @@ static void createFramebuffers(SwapChain swapchain)
             throw std::runtime_error("failed to create framebuffer!");
         }
     }
+    return BB_ERROR_OK;
 }
 
-static void createDepthResources(SwapChain swapchain) 
+static BBError createDepthResources(SwapChain swapchain) 
 {
     VkDevice          logicalDevice   = getLogicalDevice(swapchain->device);
     VkFormat          depthFormat     = findDepthFormat(swapchain);
     VkExtent2D        swapChainExtent = swapchain->swapChainExtent;
 
     // TODO: stdlib shit
-    swapchain->depthImages.resize       (swapchain->swapChainImages.size());
-    swapchain->depthImageMemorys.resize (swapchain->swapChainImages.size());
-    swapchain->depthImageViews.resize   (swapchain->swapChainImages.size());
+    swapchain->depthImages = (VulkanImage*)calloc(swapchain->depthImageCount, sizeof(VulkanImage));
+    if (swapchain->depthImages == NULL){
+        return BB_ERROR_MEM;
+    }
 
-    for (int i = 0; i < swapchain->depthImages.size(); i++) 
+    for (int i = 0; i < swapchain->depthImageCount; i++) 
     {
 
-        createDepthImage     (&imageInfo,
-                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-                              &swapchain->depthImages[i],
-                              &swapchain->depthImageMemorys[i],
-                              swapchain->device);
-        createDepthImageView (
+        createDepthImage     (&swapchain->depthImages[i], swapChainExtent);
+        createDepthImageView (swapchain->depthImages[i], DEPTH_IMAGE_VIEW_DEFAULT);
 
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

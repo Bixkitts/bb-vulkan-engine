@@ -23,6 +23,7 @@ typedef enum BBError
     BB_ERROR_COMMAND_BUFFER_RUN,
     BB_ERROR_ACQUIRE_SWAP_CHAIN_IMAGE,
     BB_ERROR_CREATE_SWAP_CHAIN,
+    BB_ERROR_FRAME_BUFFER_CREATE,
     BB_ERROR_TYPE_COUNT // The amount of different errors
 }BBError;
 
