@@ -172,7 +172,7 @@ BBError createSwapchainImageViews(VulkanImage_T* swapchainImages[],
         if (vkCreateImageView(logicalDevice, 
                               &createInfo, 
                               NULL, 
-                              &swapchainImages[i]->views[) 
+                              &swapchainImages[i]->views[i]) 
             != VK_SUCCESS){
             return BB_ERROR_IMAGE_VIEW_CREATE;
         }
@@ -218,7 +218,7 @@ void destroyImage(VulkanImage_T **v)
         return;
     }
     // We're destroying these in reverse because.... ???
-    for(uint64_t i = IMAGE_VIEW_COUNT - 1; i >= 0; i--){
+    for(uint64_t i = IMAGE_VIEW_TYPES_MAX - 1; i >= 0; i--){
         if ((*v)->views[i] != NULL) {
             vkDestroyImageView (logicalDevice, 
                                 (*v)->views[i], 
@@ -338,7 +338,7 @@ VkFormat    getImageFormat            (VulkanImage image)
 {
     return image->format;
 }
-BBError createTextureImageView(VulkanImage image, TextureImageViewType type)
+BBError createTextureImageView(VulkanImage image, ImageViewType type)
 {
     VkDevice              logicalDevice = getLogicalDevice(image->device);
     VkImageViewCreateInfo viewInfo      = {};
@@ -365,9 +365,9 @@ BBError createTextureImageView(VulkanImage image, TextureImageViewType type)
     return BB_ERROR_OK;
 }
 
-BBError createDepthImageView(VulkanImage image, DepthImageViewType type)
+BBError createDepthImageView(VulkanImage image, ImageViewType type)
 {
-return BB_ERROR_OK;
+    return BB_ERROR_OK;
 }
 
 BBError createTextureSampler(VulkanImage image, ImageSamplerType type)

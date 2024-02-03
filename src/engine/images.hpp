@@ -11,18 +11,14 @@
 
 typedef enum 
 {
-    TEXTURE_IMAGE_VIEW_DEFAULT
-}TextureImageViewType;
+    // Texture image view types here
+    TEXTURE_IMAGE_VIEW_DEFAULT   = 0,
+    // Depth image view types here
+    DEPTH_IMAGE_VIEW_DEFAULT     = 0,
+    // Swapchain image view types here
+    SWAPCHAIN_IMAGE_VIEW_DEFAULT = 0
+}ImageViewType;
 
-typedef enum
-{
-    DEPTH_IMAGE_VIEW_DEFAULT
-}DepthImageViewType;
-
-typedef enum
-{
-    SWAPCHAIN_IMAGE_VIEW_DEFAULT
-}SwapchainImageViewType;
 
 // This should (at minimum) correspond to the size of the biggest
 // enum above.
@@ -44,14 +40,14 @@ BBError     createTextureImage        (VulkanImage *image,
                                        const char *dir, 
                                        const Device device);
 BBError     createTextureImageView    (VulkanImage image, 
-                                       TextureImageViewType type);
+                                       ImageViewType type);
 BBError     createTextureSampler      (VulkanImage image, 
                                        ImageSamplerType type);
 /* Depth images (typically for the swapchain) */
 BBError     createDepthImage          (VulkanImage *image, 
                                        VkExtent2D extent);
 BBError     createDepthImageView      (VulkanImage image, 
-                                       DepthImageViewType type);
+                                       ImageViewType type);
 /* Swapchain image stuff. This is pretty messy! */
 BBError     createSwapchainImages     (VulkanImage images[], 
                                        Device device, 
@@ -63,7 +59,7 @@ BBError     createSwapchainImageViews (VulkanImage swapchainImages[],
 /* Any image type */
 VkImage     getImageHandle            (VulkanImage image);
 VkImageView getImageView              (VulkanImage image,
-                                       TextureImageViewType viewType);
+                                       ImageViewType viewType);
 VkSampler   getImageSampler           (VulkanImage image,
                                        ImageSamplerType samplerType);
 VkFormat    getImageFormat            (VulkanImage image);

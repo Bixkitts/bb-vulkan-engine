@@ -8,6 +8,7 @@
 #include "swap_chain.hpp"
 #include "buffers.hpp"
 #include "defines.hpp"
+#include "error_handling.h"
 #include "images.hpp"
 
 struct SwapChain_T
@@ -21,8 +22,8 @@ struct SwapChain_T
     VulkanImage                *depthImages;
     uint32_t                    depthImageCount;
 
-    VulkanImage                *swapChainImages;
-    uint32_t                    swapChainImageCount;
+    VulkanImage                *swapchainImages;
+    uint32_t                    swapchainImageCount;
 
     VkExtent2D                  windowExtent;
     VkExtent2D                  swapChainExtent;
@@ -36,7 +37,6 @@ struct SwapChain_T
 };
 
 static BBError initSwapChain             (SwapChain swapchain);
-static void    createSwapchainImageViews (SwapChain swapchain);
 static BBError createDepthResources      (SwapChain swapchain);
 static void    createRenderPass          (SwapChain swapchain);
 static BBError createFramebuffers        (SwapChain swapchain);
@@ -55,7 +55,7 @@ BBError createSwapChain(SwapChain *swapchain,
     (*swapchain)->device = device;
 
     initSwapChain             (*swapchain);
-    createSwapchainImageViews (*swapchain);
+    createSwapchainImageViews ((*swapchain)->swapchainImages, (*swapchain)->swapchainImageCount);
     createRenderPass          (*swapchain);
     createDepthResources      (*swapchain);
     createFramebuffers        (*swapchain);
@@ -74,8 +74,8 @@ void destroySwapchain(SwapChain *swapchain)
 {
     VkDevice logicalDevice = getLogicalDevice((*swapchain)->device);
 
-    for (int i = 0; i < (*swapchain)->swapChainImageCount; i++){
-        destroyImage(&(*swapchain)->swapChainImages[i]);
+    for (int i = 0; i < (*swapchain)->swapchainImageCount; i++){
+        destroyImage(&(*swapchain)->swapchainImages[i]);
     }
     if ((*swapchain)->swapChain != NULL) {
         vkDestroySwapchainKHR (logicalDevice, 
@@ -152,16 +152,16 @@ static BBError initSwapChain(SwapChain swapchain)
     extent           = chooseSwapExtent        (swapchain, 
                                                 swapChainSupport.capabilities);
 
-    swapchain->swapChainImageCount = swapChainSupport.capabilities.minImageCount + 1;
+    swapchain->swapchainImageCount = swapChainSupport.capabilities.minImageCount + 1;
 
     if (swapChainSupport.capabilities.maxImageCount > 0 
-        && swapchain->swapChainImageCount > swapChainSupport.capabilities.maxImageCount){
-        swapchain->swapChainImageCount = swapChainSupport.capabilities.maxImageCount;
+        && swapchain->swapchainImageCount > swapChainSupport.capabilities.maxImageCount){
+        swapchain->swapchainImageCount = swapChainSupport.capabilities.maxImageCount;
     }
 
     createInfo.sType            = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     createInfo.surface          = getDevVkSurface(swapchain->device);
-    createInfo.minImageCount    = swapchain->swapChainImageCount;
+    createInfo.minImageCount    = swapchain->swapchainImageCount;
     createInfo.imageFormat      = surfaceFormat.format;
     createInfo.imageColorSpace  = surfaceFormat.colorSpace;
     createInfo.imageExtent      = extent;
@@ -198,10 +198,10 @@ static BBError initSwapChain(SwapChain swapchain)
         != VK_SUCCESS){
         return BB_ERROR_CREATE_SWAP_CHAIN;
     }
-    createSwapchainImages(swapchain->swapChainImages,
+    createSwapchainImages(swapchain->swapchainImages,
                           swapchain->device,
                           swapchain->swapChain,
-                          &swapchain->swapChainImageCount);
+                          &swapchain->swapchainImageCount);
     return BB_ERROR_OK;
 }
 
@@ -235,7 +235,7 @@ static void createRenderPass(SwapChain swapchain)
     depthAttachmentRef.attachment   = 1;
     depthAttachmentRef.layout       = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-    colorAttachment.format          = getImageFormat(swapchain->swapChainImages[0]);
+    colorAttachment.format          = getImageFormat(swapchain->swapchainImages[0]);
     colorAttachment.samples         = VK_SAMPLE_COUNT_1_BIT;
     colorAttachment.loadOp          = VK_ATTACHMENT_LOAD_OP_CLEAR;
     colorAttachment.storeOp         = VK_ATTACHMENT_STORE_OP_STORE;
@@ -286,26 +286,30 @@ static void createRenderPass(SwapChain swapchain)
 
 static BBError createFramebuffers(SwapChain swapchain) 
 {
-    VkDevice                logicalDevice = getLogicalDevice(swapchain->device);
+    VkDevice                logicalDevice    = getLogicalDevice(swapchain->device);
     VkExtent2D              swapChainExtent;
     VkFramebufferCreateInfo framebufferInfo;
+    const uint32_t          attachmentCount  = 2;
 
-    swapchain->framebuffers = (VkFramebuffer*)calloc(swapchain->swapChainImageCount, sizeof(VkFramebuffer));
+    swapchain->framebuffers = (VkFramebuffer*)calloc(swapchain->swapchainImageCount, sizeof(VkFramebuffer));
     if (swapchain->framebuffers == NULL){
         return BB_ERROR_MEM;
     }
 
-    for (size_t i = 0; i < swapchain->swapChainImages.size(); i++) 
+    for (size_t i = 0; i < swapchain->swapchainImageCount; i++) 
     {
-        // TODO: fucking disgusting
-        std::array<VkImageView, 2> attachments = {swapchain->swapChainImageViews[i], swapchain->depthImageViews[i]};
+        // We're attaching the swapchain image views
+        VkImageView attachments[attachmentCount] = {getImageView(swapchain->swapchainImages[i], 
+                                                                 SWAPCHAIN_IMAGE_VIEW_DEFAULT),
+                                                    getImageView(swapchain->depthImages[i], 
+                                                                 DEPTH_IMAGE_VIEW_DEFAULT)};
 
         swapChainExtent                  = swapchain->swapChainExtent;
         framebufferInfo                  = {};
         framebufferInfo.sType            = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass       = swapchain->renderPass;
-        framebufferInfo.attachmentCount  = static_cast<uint32_t>(attachments.size());
-        framebufferInfo.pAttachments     = attachments.data();
+        framebufferInfo.attachmentCount  = attachmentCount;
+        framebufferInfo.pAttachments     = attachments;
         framebufferInfo.width            = swapChainExtent.width;
         framebufferInfo.height           = swapChainExtent.height;
         framebufferInfo.layers           = 1;
@@ -315,7 +319,7 @@ static BBError createFramebuffers(SwapChain swapchain)
                                 nullptr,
                                 &swapchain->framebuffers[i]) 
             != VK_SUCCESS){
-            throw std::runtime_error("failed to create framebuffer!");
+            return BB_ERROR_FRAME_BUFFER_CREATE;
         }
     }
     return BB_ERROR_OK;
@@ -341,7 +345,7 @@ static BBError createDepthResources(SwapChain swapchain)
 
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType                           = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        viewInfo.image                           = swapchain->depthImages[i];
+        viewInfo.image                           = getImageHandle(swapchain->depthImages[i]);
         viewInfo.viewType                        = VK_IMAGE_VIEW_TYPE_2D;
         viewInfo.format                          = depthFormat;
         viewInfo.subresourceRange.aspectMask     = VK_IMAGE_ASPECT_DEPTH_BIT;
@@ -350,14 +354,17 @@ static BBError createDepthResources(SwapChain swapchain)
         viewInfo.subresourceRange.baseArrayLayer = 0;
         viewInfo.subresourceRange.layerCount     = 1;
 
+        VkImageView imageView = getImageView(swapchain->depthImages[i], DEPTH_IMAGE_VIEW_DEFAULT);
+
         if (vkCreateImageView(logicalDevice, 
                               &viewInfo, 
                               NULL, 
-                              &swapchain->depthImageViews[i]) 
+                              &imageView) 
             != VK_SUCCESS){
-            throw std::runtime_error("failed to create texture image view!");
+            return BB_ERROR_IMAGE_VIEW_CREATE;
         }
     }
+    return BB_ERROR_OK;
 }
 
 static void createSyncObjects(SwapChain swapchain) 
